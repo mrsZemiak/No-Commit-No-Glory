@@ -36,19 +36,26 @@ cd SciSubmit
  ```
 ### Backend Setup
 ```bash
+#Navigate to the `backend` directory
 cd backend
 npm install
 ```
 
 ### Frontend Setup
+1. Install dependencies
 ```bash
-cd ../frontend
+#Navigate to the `frontend` directory
+cd frontend
 npm install
+```
+2. Run the Development Server
+```bash
+npm run dev
 ```
 
 ### Start Docker Containers
 ```bash
-cd ..
+#In project root folder run
 docker-compose up --build
 ```
 
