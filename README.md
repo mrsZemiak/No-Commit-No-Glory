@@ -36,15 +36,19 @@ cd SciSubmit
  ```
 ### Backend Setup
 ```bash
-#Navigate to the `backend` directory
 cd backend
 npm install
+```
+
+### Database Seeder
+```bash
+cd backend/src
+npx ts-node seed.ts
 ```
 
 ### Frontend Setup
 1. Install dependencies
 ```bash
-#Navigate to the `frontend` directory
 cd frontend
 npm install
 ```
