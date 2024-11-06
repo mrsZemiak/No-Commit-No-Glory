@@ -40,12 +40,6 @@ cd backend
 npm install
 ```
 
-### Database Seeder
-```bash
-cd backend/src
-npx ts-node seed.ts
-```
-
 ### Frontend Setup
 1. Install dependencies
 ```bash
@@ -61,6 +55,12 @@ npm run dev
 ```bash
 #In project root folder run
 docker-compose up --build
+```
+
+### Database Seeder
+```bash
+cd backend/src
+npx ts-node seed.ts
 ```
 
 ## Development Workflow
