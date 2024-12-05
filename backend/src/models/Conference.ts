@@ -2,11 +2,13 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IConference extends Document {
     year: number;
-    start_date: Date;
-    end_date: Date;
+    location: String;
+    conference_date: Date;
+    submission_deadline: Date;
+    review_deadline: Date;
+    revision_deadline: Date;
+    post_conference_revision_deadline: Date;
     categories: mongoose.Schema.Types.ObjectId[]; // Array of categories
-    deadline_submission: Date;
-    deadline_review: Date;
     created_at: Date;
     user: mongoose.Schema.Types.ObjectId;
 }
@@ -21,11 +23,13 @@ const ConferenceSchema: Schema = new Schema({
             },
             message: 'Year must be a valid four-digit year.'
         }},
-    start_date: { type: Date, required: true },
-    end_date: { type: Date, required: true },
+    location: { type: String, required: true },
+    conference_date: { type: Date, required: true },
+    submission_deadline: { type: Date, required: true },
+    review_deadline: { type: Date, required: true },
+    revision_deadline: { type: Date, required: true },
+    post_conference_revision_deadline: { type: Date, required: true },
     categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],  // Reusing global categories
-    deadline_submission: { type: Date, required: true },
-    deadline_review: { type: Date, required: true },
     created_at: { type: Date, default: Date.now },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }  // Admin who created the conference
 });
