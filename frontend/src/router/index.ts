@@ -7,12 +7,15 @@ import SubmissionView from "@/views/SubmissionView.vue";
 import ReviewForm from "@/components/Reviewer/ReviewForm.vue";
 import UserCard from "@/views/UserProfile/UserCard.vue";
 
+
 const routes = [
   { path: '/', name: 'Home', component: HomeView },
   { path: '/profile', name: 'Profile', component: UserCard },
   { path: '/studentSubmission', name: 'studentSubmission', component: SubmissionView },
   { path: '/reviewForm', name: 'reviewForm', component: ReviewForm},
   { path: '/participantView', name: 'ParticipantView', component: ParticipantView},
+
+
 
   {
     path: '/admin',
