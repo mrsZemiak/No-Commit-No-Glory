@@ -3,21 +3,17 @@ import AdminView from '@/views/AdminView.vue';
 import ReviewerView from '@/views/ReviewerView.vue';
 import ParticipantView from '@/views/ParticipantView.vue';
 import HomeView from '../views/HomeView.vue';
+import SubmissionView from "@/views/SubmissionView.vue";
+import ReviewForm from "@/components/Reviewer/ReviewForm.vue";
+import UserCard from "@/views/UserProfile/UserCard.vue";
 
 const routes = [
-  // Public routes
-  {
-    path: '/',
-    name: 'home',
-    component: HomeView,
-  },
-  {
-    path: '/about',
-    name: 'about',
-    component: () => import('../views/AboutView.vue'),
-  },
+  { path: '/', name: 'Home', component: HomeView },
+  { path: '/profile', name: 'Profile', component: UserCard },
+  { path: '/studentSubmission', name: 'studentSubmission', component: SubmissionView },
+  { path: '/reviewForm', name: 'reviewForm', component: ReviewForm},
+  { path: '/participantView', name: 'ParticipantView', component: ParticipantView},
 
-  // Authenticated routes
   {
     path: '/admin',
     component: AdminView,
@@ -49,7 +45,7 @@ const router = createRouter({
 
 // Role-based navigation guard
 router.beforeEach((to, from, next) => {
-  const userRole = localStorage.getItem('role'); // Example: Replace with actual role-fetching logic
+  const userRole = localStorage.getItem('role');
   if (to.meta.role && to.meta.role !== userRole) {
     next('/unauthorized');
   } else {
