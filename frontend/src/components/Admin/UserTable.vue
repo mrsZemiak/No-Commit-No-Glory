@@ -1,99 +1,115 @@
 <template>
-  <div class="card">
-    <div class="card-header">
-      <h3>User Management</h3>
+  <div id="app">
+    <div class="card">
+      <div class="card-header">
+        <h3>User Management</h3>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+          <tr>
+            <th>Meno</th>
+            <th>Priezvisko</th>
+            <th>Email</th>
+            <th>Univerzita</th>
+            <th>Stav</th>
+            <th>Role</th>
+            <th>Akcie</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr v-for="(user, index) in users" :key="index">
+            <td>{{ user.firstName }}</td>
+            <td>{{ user.lastName }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.university }}</td>
+            <td>
+                <span :class="{
+                  'badge badge-success': user.status === 'active',
+                  'badge badge-secondary': user.status === 'inactive',
+                  'badge badge-warning': user.status !== 'active' && user.status !== 'inactive'
+                }">
+                  {{ user.status }}
+                </span>
+            </td>
+            <td>
+                <span v-for="(role, i) in user.roles" :key="i" class="badge badge-info">
+                  {{ role }}
+                </span>
+            </td>
+            <td>
+              <button class="btn btn-warning btn-sm" @click="editUser(user)">Upraviť</button>
+              <button class="btn btn-danger btn-sm ml-2" @click="deleteUser(user)">Vymazať</button>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-footer">
+        <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
+        <button @click="nextPage" :disabled="currentPage * itemsPerPage >= totalUsers">Next</button>
+      </div>
     </div>
 
-    <div class="table-responsive">
-      <table class="table">
-        <thead>
-        <tr>
-          <th>First Name</th>
-          <th>Last Name</th>
-          <th>Email</th>
-          <th>Roles</th>
-          <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="(user, index) in users" :key="index">
-          <td>{{ user.firstName }}</td>
-          <td>{{ user.lastName }}</td>
-          <td>{{ user.email }}</td>
-          <td>
-              <span v-for="(role, i) in user.roles" :key="i" class="badge badge-info">
-                {{ role }}
-              </span>
-          </td>
-          <td>
-            <button class="btn btn-warning btn-sm" @click="editUser(user)">Edit</button>
-            <button class="btn btn-danger btn-sm ml-2" @click="deleteUser(user)">Delete</button>
-          </td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="card-footer">
-      <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
-      <button @click="nextPage" :disabled="currentPage * itemsPerPage >= totalUsers">Next</button>
+    <!-- Modal -->
+    <div v-if="isModalVisible" class="modal-overlay" @click.self="closeModal">
+      <div class="modal-container">
+        <modal-edit-user :user="selectedUser" @update="updateUser" @close="closeModal" />
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from 'vue';
+import ModalEditUser from './modalEditUser.vue';
 
 interface User {
   firstName: string;
   lastName: string;
   email: string;
+  university: string;
+  status: string;
   roles: string[];
 }
 
 export default defineComponent({
-  name: "UserTable",
+  name: 'UserTable',
+  components: {
+    ModalEditUser,
+  },
   data() {
     return {
       users: [
-        {
-          firstName: "Alice",
-          lastName: "Johnson",
-          email: "alice.johnson@example.com",
-          roles: ["student", "reviewer"],
-        },
-        {
-          firstName: "Bob",
-          lastName: "Smith",
-          email: "bob.smith@example.com",
-          roles: ["admin"],
-        },
-        {
-          firstName: "Charlie",
-          lastName: "Brown",
-          email: "charlie.brown@example.com",
-          roles: ["student"],
-        },
-        {
-          firstName: "Diana",
-          lastName: "Evans",
-          email: "diana.evans@example.com",
-          roles: ["reviewer", "admin"],
-        },
+        { firstName: 'Alice', lastName: 'Johnson', email: 'alice.johnson@example.com', university: 'University A', status: 'active', roles: ['participant', 'reviewer'] },
+        { firstName: 'Bob', lastName: 'Smith', email: 'bob.smith@example.com', university: 'University B', status: 'inactive', roles: ['admin'] },
       ] as User[],
       currentPage: 1,
       itemsPerPage: 10,
       totalUsers: 50,
+      isModalVisible: false,
+      selectedUser: {} as User,
     };
   },
   methods: {
     editUser(user: User): void {
-      alert(`Editing user: ${user.firstName} ${user.lastName}`);
-      // Toto je všetko temporary
+      this.selectedUser = { ...user };
+      this.isModalVisible = true;
+    },
+    closeModal(): void {
+      this.isModalVisible = false;
+    },
+    updateUser(updatedUser: User): void {
+      const index = this.users.findIndex((user) => user.email === updatedUser.email);
+      if (index !== -1) {
+        this.users[index] = { ...updatedUser };
+      }
+      this.closeModal();
     },
     deleteUser(user: User): void {
       alert(`Deleting user: ${user.firstName} ${user.lastName}`);
-
     },
     prevPage(): void {
       if (this.currentPage > 1) this.currentPage--;
@@ -106,23 +122,43 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.card {
-  border: 1px solid #ddd;
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-container {
+  background: white;
+  padding: 20px;
   border-radius: 8px;
-  overflow: hidden;
-  margin: 20px auto;
-  max-width: 800px;
-}
-
-.card-header {
-  background: #f4f4f4;
-  padding: 15px;
-  border-bottom: 1px solid #ddd;
-}
-
-.table {
+  max-width: 500px;
   width: 100%;
-  border-collapse: collapse;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.badge-info {
+  background-color: #17a2b8;
+}
+
+.badge-success {
+  background-color: #28a745;
+}
+
+.badge-secondary {
+  background-color: #6c757d;
+}
+
+.badge-warning {
+  background-color: #ffc107;
 }
 
 .table th,
@@ -137,53 +173,10 @@ export default defineComponent({
   font-weight: bold;
 }
 
-.badge {
-  display: inline-block;
+.table .badge {
   padding: 5px 10px;
   border-radius: 5px;
-  color: white;
   font-size: 12px;
-  margin-right: 5px;
-}
-
-.badge-info {
-  background-color: #17a2b8;
-}
-
-.btn {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.btn-warning {
-  background-color: #ffc107;
-  color: black;
-}
-
-.btn-warning:hover {
-  background-color: #e0a800;
-}
-
-.btn-danger {
-  background-color: #dc3545;
   color: white;
-}
-
-.btn-danger:hover {
-  background-color: #c82333;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: flex-end;
-  padding: 10px;
-  background: #f4f4f4;
-}
-
-button:disabled {
-  background-color: #ddd;
-  cursor: not-allowed;
 }
 </style>

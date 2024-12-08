@@ -14,27 +14,27 @@ const links: Link[] = [
   {
     name: "Home",
     icon: "ni ni-shop text-primary",
-    path: "/",
+    path: "/auth/home",
   },
   {
     name: "Profile",
     icon: "ni ni-planet text-orange",
-    path: "/profile",
+    path: "/auth/profile",
   },
   {
     name: "Submission",
     icon: "ni ni-planet text-orange",
-    path: "/studentSubmission",
+    path: "/auth/studentSubmission",
   },
   {
     name: "My works",
     icon: "ni ni-planet text-orange",
-    path: "/participantView",
+    path: "/auth/participantView",
   },
   {
     name: "Review",
     icon: "ni ni-planet text-orange",
-    path: "/reviewForm",
+    path: "/auth/reviewForm",
   },
 ];
 
@@ -50,6 +50,8 @@ function navigateTo(path: string): void {
         <i :class="link.icon" class="icon"></i>
         <span class="link-name">{{ link.name }}</span>
       </li>
+
+      <li>Odhlásiť sa</li>
     </ul>
   </nav>
 </template>

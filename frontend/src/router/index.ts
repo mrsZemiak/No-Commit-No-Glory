@@ -6,16 +6,31 @@ import HomeView from '../views/HomeView.vue';
 import SubmissionView from "@/views/SubmissionView.vue";
 import ReviewForm from "@/components/Reviewer/ReviewForm.vue";
 import UserCard from "@/views/UserProfile/UserCard.vue";
+import GuestLayout from "@/layouts/GuestLayout.vue";
+import AuthenticatedLayout from "@/layouts/AuthenticatedLayout.vue";
 
 
 const routes = [
-  { path: '/', name: 'Home', component: HomeView },
-  { path: '/profile', name: 'Profile', component: UserCard },
-  { path: '/studentSubmission', name: 'studentSubmission', component: SubmissionView },
-  { path: '/reviewForm', name: 'reviewForm', component: ReviewForm},
-  { path: '/participantView', name: 'ParticipantView', component: ParticipantView},
-
-
+  {
+    path: '/',
+    name: 'GuestLayout',
+    component: GuestLayout,
+    children: [
+      { path: '', name: 'HomeView', component: HomeView },
+    ],
+  },
+  {
+    path: '/auth',
+    component: AuthenticatedLayout,
+    children: [
+      { path: '', name: 'HomeView', component: HomeView },
+      { path: 'home', name: 'Home', component: HomeView },
+      { path: 'profile', name: 'Profile', component: UserCard },
+      { path: 'studentSubmission', name: 'StudentSubmission', component: SubmissionView },
+      { path: 'reviewForm', name: 'ReviewForm', component: ReviewForm },
+      { path: 'participantView', name: 'ParticipantView', component: ParticipantView },
+    ],
+  },
 
   {
     path: '/admin',

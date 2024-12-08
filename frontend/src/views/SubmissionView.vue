@@ -81,6 +81,19 @@
         ></textarea>
       </div>
 
+      <div class="form-group">
+        <label for="projectFile">Projektový súbor</label>
+        <input
+          type="file"
+          id="projectFile"
+          @change="handleFileChange"
+          accept=".pdf,.docx"
+          required
+        />
+        <small class="form-text text-muted">Akceptované formáty: PDF, Word (.docx)</small>
+      </div>
+
+
       <button type="submit">Odovzdať</button>
     </form>
   </div>
@@ -99,6 +112,7 @@ const form = ref({
   keywords: "",
   abstract: "",
   sectionPick: "",
+  projectFile: null as File | null
 });
 
 function addAuthor() {
@@ -109,9 +123,20 @@ function removeAuthor(index: number) {
   form.value.otherAuthors.splice(index, 1);
 }
 
+function handleFileChange(event: Event) {
+  const fileInput = event.target as HTMLInputElement;
+  const file = fileInput.files ? fileInput.files[0] : null;
+  form.value.projectFile = file;
+}
+
 function handleSubmit() {
 
   console.log("Form submitted:", form.value);
+
+  if (!form.value.projectFile) {
+    alert("Prosím vyberte projektový súbor (PDF alebo Word).");
+    return;
+  }
   alert("Form submitted successfully!");
 
   // Reset the form after submission
@@ -123,8 +148,10 @@ function handleSubmit() {
     keywords: "",
     abstract: "",
     sectionPick: "",
+    projectFile: null,
   };
 }
+
 </script>
 
 <style scoped>
