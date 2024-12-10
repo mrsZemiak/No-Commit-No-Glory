@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import {IRole} from "./Role";
 
 export interface IUser extends Document {
     first_name: string;
@@ -7,8 +8,10 @@ export interface IUser extends Document {
     password: string;
     university: string;
     status: string;
-    role: mongoose.Schema.Types.ObjectId;
+    role: mongoose.Schema.Types.ObjectId | IRole;
     created_at: Date;
+    isVerified: boolean;
+    verificationToken: string | null;
 }
 
 const UserSchema: Schema = new Schema({
@@ -19,7 +22,9 @@ const UserSchema: Schema = new Schema({
     university: { type: String, required: true },
     status: { type: String, default: 'active' },
     role: { type: mongoose.Schema.Types.ObjectId, ref: 'Role', required: true },  // References Role schema
-    created_at: { type: Date, default: Date.now }
+    created_at: { type: Date, default: Date.now },
+    isVerified: { type: Boolean, default: false },
+    verificationToken: { type: String, required: false },
 });
 
 export default mongoose.model<IUser>('User', UserSchema);

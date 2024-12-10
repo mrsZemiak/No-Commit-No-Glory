@@ -1,8 +1,8 @@
-# Use Node.js version 16 (you can change this based on your needs)
-FROM node:16-alpine
+# Use Node.js version
+FROM node:20
 
 # Create and set the working directory
-WORKDIR /usr/src/app
+WORKDIR usr/src/app
 
 # Copy packages for dependencies installation first
 COPY package*.json ./
@@ -16,5 +16,5 @@ COPY . .
 # Expose the port for app run
 EXPOSE 3000
 
-# Start the app
+# Start the application using server.ts
 CMD ["npm", "start"]

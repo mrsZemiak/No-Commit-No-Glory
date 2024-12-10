@@ -1,7 +1,12 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import User from './User'; // Import the User model
+import Role from './Role'; // Import the Role model
 
 export interface IConference extends Document {
     year: number;
+    location: string;
+    university: string;
+    status: string;
     start_date: Date;
     end_date: Date;
     categories: mongoose.Schema.Types.ObjectId[]; // Array of categories
@@ -27,7 +32,40 @@ const ConferenceSchema: Schema = new Schema({
     deadline_submission: { type: Date, required: true },
     deadline_review: { type: Date, required: true },
     created_at: { type: Date, default: Date.now },
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }  // Admin who created the conference
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User',required: true }  // Admin who created the conference
 });
+
+/*
+// Pre-save hook to check if the user has the admin role
+ConferenceSchema.pre('save', async function (next) {
+    const conference = this;
+
+    try {
+        // Populate the user's role
+        const user = await User.findById(conference.user).populate('role');
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        const role = await Role.findById(user.role);
+
+        if (!role) {
+            throw new Error('Role not found');
+        }
+
+        // Check if the user's role is "admin"
+        if (role.name !== 'admin') {
+            throw new Error('Only users with the admin role can create or manage conferences.');
+        }
+
+        // If the user has the admin role, proceed to save
+        next();
+    } catch (error) {
+        next(error); // Pass the error to the next middleware
+    }
+});
+
+ */
 
 export default mongoose.model<IConference>('Conference', ConferenceSchema);

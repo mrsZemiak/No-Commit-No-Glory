@@ -27,18 +27,18 @@ const prepareDatabase = async () => {
         await Role.insertMany([
             {
                 name: 'admin',
-                permissions: ['manage_conferences', 'assign_reviewers', 'view_all_papers', 'view_reports'],
-                ui_components: ['/admin_dashboard', '/manage_users', '/create_conferences', '/reports' ],
+                permissions: ['manage_conferences', 'assign_reviewers', 'view_papers', 'view_reports', 'manage_profile'],
+                ui_components: ['/admin_dashboard', '/manage_users', '/manage_conferences', '/reports', '/profile'],
             },
             {
-                name: 'student',
-                permissions: ['view_submitted_papers', 'submit_papers', 'view_reviews'],
-                ui_components: ['/student_dashboard', '/upload_paper','/request_extension'],
+                name: 'participant',
+                permissions: ['view_submitted_papers', 'submit_papers', 'view_reviews', 'manage_profile'],
+                ui_components: ['/student_dashboard', '/upload_paper','/request_extension', '/profile'],
             },
             {
                 name: 'reviewer',
-                permissions: ['view_assigned_papers', 'submit_reviews', 'download_papers'],
-                ui_components: ['/reviewer_dashboard', '/review_paper'],
+                permissions: ['view_assigned_papers', 'submit_reviews', 'download_papers', 'manage_profile'],
+                ui_components: ['/reviewer_dashboard', '/review_paper', '/profile'],
             },
         ]);
 
