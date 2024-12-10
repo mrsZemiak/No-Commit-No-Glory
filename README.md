@@ -31,7 +31,7 @@ To get a local copy up and running, follow these steps:
 
 ### Clone the Repository
 ```bash
-git clone https://github.com/your-organization/SciSubmit.git
+git clone https://github.com/Elfonator/No-Commit-No-Glory.git
 cd SciSubmit
  ```
 ### Backend Setup
