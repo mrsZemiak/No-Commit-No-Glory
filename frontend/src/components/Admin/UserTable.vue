@@ -30,7 +30,7 @@
                   'badge badge-secondary': user.status === 'inactive',
                   'badge badge-warning': user.status !== 'active' && user.status !== 'inactive'
                 }">
-                  {{ user.status }}
+                      {{ user.status === 'active' ? 'aktívny' : (user.status === 'inactive' ? 'neaktívny' : user.status) }}
                 </span>
             </td>
             <td>

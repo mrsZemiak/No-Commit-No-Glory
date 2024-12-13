@@ -1,19 +1,17 @@
 <template>
   <div>
     <!-- Profile Card -->
-    <b-card no-body class="card-profile" alt="Image placeholder" img-top>
-      <b-row class="justify-content-center">
-        <b-col lg="3" class="order-lg-2">
+    <b-card no-body class="card-profile" alt="Image placeholder">
+      <b-row class="d-flex flex-column align-items-center">
+        <b-col lg="3" md="4" sm="6" xs="12" >
           <div class="card-profile-image">
             <a href="#">
-              <b-img src="@/assets/Unknown_person.jpg" rounded="circle" />
+              <img :src="profileImage" class="img-thumbnail rounded-circle mx-auto d-block" />
             </a>
           </div>
         </b-col>
       </b-row>
 
-      <b-card-header class="text-center border-0 pt-8 pt-md-4 pb-0 pb-md-4">
-      </b-card-header>
 
       <b-card-body class="pt-0">
         <div class="text-center">
@@ -55,12 +53,14 @@
 <script>
 import { ref } from "vue";
 import EditProfileForm from "./EditProfileForm.vue";
+import UnknownPersonPicture from "@/assets/Unknown_person.jpg"
 
 export default {
   components: {
     EditProfileForm,
   },
   setup() {
+    const profileImage = UnknownPersonPicture;
     const showEditForm = ref(false);
 
     const toggleEditForm = () => {
@@ -70,6 +70,7 @@ export default {
     return {
       showEditForm,
       toggleEditForm,
+      profileImage,
     };
   },
 };
@@ -81,5 +82,10 @@ export default {
   background-color: #f8f9fa;
   border: 1px solid #ddd;
   border-radius: 8px;
+}
+
+.card-profile-image {
+  width: 80px;
+  height: auto;
 }
 </style>

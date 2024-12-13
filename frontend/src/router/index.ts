@@ -8,6 +8,7 @@ import ReviewForm from "@/components/Reviewer/ReviewForm.vue";
 import UserCard from "@/views/UserProfile/UserCard.vue";
 import GuestLayout from "@/layouts/GuestLayout.vue";
 import AuthenticatedLayout from "@/layouts/AuthenticatedLayout.vue";
+import ReviewTable from "@/components/Reviewer/ReviewTable.vue";
 
 
 const routes = [
@@ -27,10 +28,17 @@ const routes = [
       { path: 'home', name: 'Home', component: HomeView },
       { path: 'profile', name: 'Profile', component: UserCard },
       { path: 'studentSubmission', name: 'StudentSubmission', component: SubmissionView },
-      { path: 'reviewForm', name: 'ReviewForm', component: ReviewForm },
       { path: 'participantView', name: 'ParticipantView', component: ParticipantView },
+      { path: 'review', name: 'ReviewTable', component: ReviewTable },
+      {
+        path: '/review/:id',
+        name: 'ReviewForm',
+        component: ReviewForm,
+        props: true
+      },
     ],
   },
+
 
   {
     path: '/admin',

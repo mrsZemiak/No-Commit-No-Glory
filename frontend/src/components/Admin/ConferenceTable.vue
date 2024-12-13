@@ -1,35 +1,40 @@
 <template>
   <div class="card">
     <div class="card-header">
-      <h3>Conferences Management</h3>
+      <h3>Konferencie</h3>
+      <button class="btn btn-primary" @click="addConference">Pridať konferenciu</button>
     </div>
 
     <div class="table-responsive">
       <table class="table">
         <thead>
         <tr>
-          <th>Conference Name</th>
-          <th>Start Date</th>
-          <th>End Date</th>
-          <th>Status</th>
-          <th>Actions</th>
+          <th>Názov</th>
+          <th>Rok</th>
+          <th>Miesto</th>
+          <th>Dátum konferencie</th>
+          <th>Uzávierka prihlášok</th>
+          <th>Stav</th>
+          <th>Akcie</th>
         </tr>
         </thead>
         <tbody>
-        <tr v-for="(conference, index) in conferences" :key="index">
+        <tr v-for="(conference, index) in paginatedConferences" :key="index">
           <td>{{ conference.name }}</td>
-          <td>{{ formatTimestamp(conference.startTimestamp) }}</td>
-          <td>{{ formatTimestamp(conference.endTimestamp) }}</td>
+          <td>{{ conference.year }}</td>
+          <td>{{ conference.location }}</td>
+          <td>{{ formatTimestamp(conference.conferenceDate) }}</td>
+          <td>{{ formatTimestamp(conference.submissionDeadline) }}</td>
           <td>
               <span
                 :class="`badge ${isOngoing(conference) ? 'badge-success' : 'badge-secondary'}`"
               >
-                {{ isOngoing(conference) ? 'Ongoing' : 'Completed' }}
+                {{ isOngoing(conference) ? 'Aktuálna' : 'Skončená' }}
               </span>
           </td>
           <td>
             <button class="btn btn-warning btn-sm" @click="editConference(conference)">
-              Edit
+              Upraviť
             </button>
           </td>
         </tr>
@@ -44,71 +49,165 @@
       </button>
     </div>
   </div>
+  <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+    <div class="modal-container">
+      <ModalConference
+        v-if="showModal"
+        :conference="selectedConference"
+        :mode="modalMode"
+        :availableCategories="categories"
+        @add="addNewConference"
+        @update="updateConference"
+        @close="closeModal"
+      />
+    </div>
+  </div>
+
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import ModalConference from "@/components/Admin/modalConference.vue";
+import type {ConferenceAdmin, CategoryAdmin} from "@/types/conference";
+import ModalEditUser from "@/components/Admin/modalEditUser.vue";
 
-interface Conference {
-  name: string;
-  startTimestamp: number | null;
-  endTimestamp: number | null;
-}
+
+
 
 export default defineComponent({
   name: "ConferenceTable",
+  components: {ModalEditUser, ModalConference },
   data() {
     return {
       conferences: [
         {
           name: "International AI Symposium 2023",
-          startTimestamp: 1678901234000,
-          endTimestamp: 1678991234000,
+          year: 2023,
+          location: "New York",
+          conferenceDate: new Date("2023-06-01"),
+          submissionDeadline: new Date("2023-04-01"),
+          reviewDeadline: new Date("2023-04-15"),
+          revisionDeadline: new Date("2023-05-01"),
+          postConferenceRevisionDeadline: new Date("2023-06-15"),
+          categories: ["1", "3"],
         },
         {
           name: "Tech Innovations Conference 2024",
-          startTimestamp: 1679901234000,
-          endTimestamp: null,
+          year: 2024,
+          location: "San Francisco",
+          conferenceDate: new Date("2024-08-20"),
+          submissionDeadline: new Date("2024-06-01"),
+          reviewDeadline: new Date("2024-06-20"),
+          revisionDeadline: new Date("2024-07-01"),
+          postConferenceRevisionDeadline: new Date("2024-09-01"),
+          categories: ["2"],
         },
-        {
-          name: "Digital Future Summit",
-          startTimestamp: 1678801234000,
-          endTimestamp: 1678851234000,
-        },
-      ] as Conference[],
+      ] as ConferenceAdmin[],
+      categories: [
+        { id: "1", name: "Artificial Intelligence" },
+        { id: "2", name: "Data Science" },
+        { id: "3", name: "Cybersecurity" },
+      ] as CategoryAdmin[],
       currentPage: 1,
       itemsPerPage: 10,
       totalConferences: 30,
+      showModal: false,
+      selectedConference: null as ConferenceAdmin | null,
+      modalMode: "add" as "add" | "edit",
     };
   },
+  computed: {
+    paginatedConferences() {
+      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+      const endIndex = this.currentPage * this.itemsPerPage;
+      return this.conferences.slice(startIndex, endIndex);
+    }
+  },
   methods: {
-    formatTimestamp(timestamp: number | null): string {
-      if (timestamp === null) return "N/A";
-      const date = new Date(timestamp);
-      return date.toLocaleString();
+    formatTimestamp(value: number | Date | null): string {
+      if (!value) return "N/A";
+      const date = value instanceof Date ? value : new Date(value);
+
+      const year = date.getFullYear();
+      const month = (date.getMonth() + 1).toString().padStart(2, "0");
+      const day = date.getDate().toString().padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
     },
-    isOngoing(conference: Conference): boolean {
-      const now = Date.now();
-      return (
-        conference.startTimestamp !== null &&
-        conference.startTimestamp <= now &&
-        (conference.endTimestamp === null || conference.endTimestamp >= now)
+
+    isOngoing(conference: ConferenceAdmin): boolean {
+      const now = new Date().getTime();
+      return new Date(conference.conferenceDate).getTime() > now;
+    },
+    addConference() {
+      this.modalMode = "add";
+      this.selectedConference = null;
+      this.showModal = true;
+    },
+
+    editConference(conference: ConferenceAdmin) {
+      this.modalMode = "edit";
+      this.selectedConference = { ...conference };
+      this.showModal = true;
+    },
+
+    addNewConference(newConference: ConferenceAdmin) {
+      this.conferences.push(newConference);
+      this.closeModal();
+    },
+
+    updateConference(updatedConference: ConferenceAdmin) {
+      const index = this.conferences.findIndex(
+        (conf) => conf.name === updatedConference.name && conf.year === updatedConference.year
       );
+
+      if (index !== -1) {
+        this.conferences[index] = updatedConference;
+      }
+
+      this.closeModal();
     },
-    editConference(conference: Conference): void {
-      alert(`Editing conference: ${conference.name}`);
+
+    closeModal() {
+      this.showModal = false;
     },
-    prevPage(): void {
+    prevPage() {
       if (this.currentPage > 1) this.currentPage--;
     },
-    nextPage(): void {
+    nextPage() {
       if (this.currentPage * this.itemsPerPage < this.totalConferences) this.currentPage++;
     },
-  },
+  }
 });
+
 </script>
 
 <style scoped>
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-container {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+
 .card {
   border: 1px solid #ddd;
   border-radius: 8px;

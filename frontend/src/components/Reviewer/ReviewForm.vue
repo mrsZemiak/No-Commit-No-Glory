@@ -1,6 +1,6 @@
 <template>
   <div class="submission-form">
-    <h2>Submission Form</h2>
+    <h2>Hodnotenie pre ID: {{ id }}</h2>
     <form @submit.prevent="handleSubmit">
 
       <!-- Prejdenie vsetkych otazok -->
@@ -70,6 +70,13 @@ interface Question {
   category: string;
 }
 export default defineComponent({
+  name: 'ReviewForm',
+  props: {
+    id: {
+      type: Number,
+      required: true,
+    },
+  },
   data() {
     return {
       questions: [

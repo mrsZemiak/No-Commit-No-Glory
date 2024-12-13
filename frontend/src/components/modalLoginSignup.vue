@@ -1,29 +1,4 @@
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
 
-export default defineComponent({
-  name: "modalLoginSignup",
-  setup() {
-
-    const activeTab = ref('login');
-
-
-    const setActiveTab = (tab: string) => {
-      activeTab.value = tab;
-    };
-
-
-    const isActiveTab = (tab: string) => {
-      return activeTab.value === tab;
-    };
-
-    return {
-      setActiveTab,
-      isActiveTab,
-    };
-  },
-});
-</script>
 
 <template>
 
@@ -52,8 +27,7 @@ export default defineComponent({
     </li>
   </ul>
 
-
-
+  <!--prihlasenie -->
   <div class="tab-content">
     <div v-show="isActiveTab('login')" class="tab-pane fade show active" id="pills-login" role="tabpanel" aria-labelledby="tab-login">
       <form>
@@ -73,7 +47,7 @@ export default defineComponent({
 
           <div class="float-end">
 
-            <a href="#!">Zabudnuté heslo?</a>
+            <a href="#" @click.prevent="setActiveTab('forgotPassword')">Zabudnuté heslo?</a>
           </div>
 
 
@@ -116,14 +90,63 @@ export default defineComponent({
         </div>
 
 
-
-
         <button type="submit" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block mb-3">Registrovať sa</button>
       </form>
     </div>
-  </div>
 
+    <!-- formulár na obnovenie hesla -->
+    <div
+      v-show="isActiveTab('forgotPassword')"
+      class="tab-pane fade show active"
+      id="pills-forgot-password"
+      role="tabpanel"
+      aria-labelledby="tab-forgot-password"
+    >
+      <form>
+        <div data-mdb-input-init class="form-outline mb-4">
+          <input type="email" id="forgotPasswordEmail" class="form-control" />
+          <label class="form-label" for="forgotPasswordEmail">Email</label>
+        </div>
+        <button
+          type="submit"
+          data-mdb-button-init
+          data-mdb-ripple-init
+          class="btn btn-primary btn-block mb-3"
+        >
+          Obnoviť heslo
+        </button>
+
+      </form>
+    </div>
+  </div>
 </template>
+
+<script lang="ts">
+import { defineComponent, ref } from 'vue';
+
+export default defineComponent({
+  name: "modalLoginSignup",
+  setup() {
+
+    const activeTab = ref('login');
+
+
+    const setActiveTab = (tab: string) => {
+      activeTab.value = tab;
+    };
+
+
+    const isActiveTab = (tab: string) => {
+      return activeTab.value === tab;
+    };
+
+    return {
+      setActiveTab,
+      isActiveTab,
+    };
+  },
+});
+</script>
 
 <style scoped>
 .nav-link.active {

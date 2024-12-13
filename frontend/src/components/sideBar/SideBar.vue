@@ -34,7 +34,7 @@ const links: Link[] = [
   {
     name: "Review",
     icon: "ni ni-planet text-orange",
-    path: "/auth/reviewForm",
+    path: "/auth/review",
   },
 ];
 

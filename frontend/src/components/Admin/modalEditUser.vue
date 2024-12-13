@@ -1,6 +1,6 @@
 <template>
   <div class="modal-content">
-    <h4>Edit User</h4>
+    <h4>Úprava používateľa</h4>
     <form @submit.prevent="updateUser">
       <div class="form-group">
         <label for="firstName">Meno</label>
@@ -21,8 +21,8 @@
       <div class="form-group">
         <label for="status">Stav</label>
         <select v-model="user.status" id="status" required>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+          <option value="active">Aktívny</option>
+          <option value="inactive">Neaktívny</option>
         </select>
       </div>
       <div class="form-group">
@@ -61,7 +61,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType } from 'vue';
+import { defineComponent } from 'vue';
+import { PropType } from 'vue';
 
 export default defineComponent({
   name: 'ModalEditUser',
@@ -83,15 +84,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.modal-content {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 500px;
-  width: 100%;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  position: relative;
-}
 
 .form-group {
   margin-bottom: 1rem;
@@ -114,9 +106,7 @@ button {
   cursor: pointer;
 }
 
-button:hover {
-  background-color: #45a049;
-}
+
 
 .btn-close {
   position: absolute;

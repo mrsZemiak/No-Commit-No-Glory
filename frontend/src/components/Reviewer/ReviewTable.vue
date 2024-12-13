@@ -1,48 +1,8 @@
-<script lang="ts">
-import { defineComponent } from "vue";
-
-interface Work {
-  name: string;
-  timestamp: number;
-  reviewed: boolean;
-}
-
-export default defineComponent({
-  name: "ParticipantWorksTable",
-  data() {
-    return {
-      works: [
-        { name: "Math Assignment 1", timestamp: 1678901234000, reviewed: true },
-        { name: "History Essay", timestamp: 1678992345000, reviewed: false },
-        { name: "Physics Lab Report", timestamp: 1679083456000, reviewed: true },
-        { name: "Literature Review", timestamp: 1679174567000, reviewed: false },
-      ] as Work[],
-      currentPage: 1,
-      perPage: 10,
-     totalWorks: 50,  //toto potom zmeniť
-    };
-  },
-  methods: {
-    formatTimestamp(timestamp: number): string {
-      const date = new Date(timestamp);
-      return date.toLocaleString();
-    },
-    viewReview(work: Work): void {
-      alert(`Viewing review for: ${work.name}`);
-
-    },
-    editWork(work: Work): void {
-      alert(`Editing work: ${work.name}`);
-
-    },
-  },
-});
-</script>
 
 <template>
   <div>
     <header class="table-header">
-      <h3>Odoslané práce</h3>
+      <h3>Práce na hodnotenie</h3>
     </header>
 
     <div class="table-container">
@@ -65,8 +25,9 @@ export default defineComponent({
               </span>
           </td>
           <td>
-            <button @click="viewReview(work)" class="btn info">Pozrieť hodnotenie</button>
-            <button @click="editWork(work)" class="btn warning">Upraviť</button>
+            <router-link :to="{ name: 'ReviewForm', params: { id: work.timestamp } }">
+              <button class="btn warning">Hodnotiť</button>
+            </router-link>
           </td>
         </tr>
         </tbody>
@@ -92,9 +53,46 @@ export default defineComponent({
     </footer>
   </div>
 </template>
+<script lang="ts">
+import { defineComponent } from "vue";
+
+interface Work {
+  name: string;
+  timestamp: number;
+  reviewed: boolean;
+}
+
+export default defineComponent({
+  name: "ReviewTable",
+  data() {
+    return {
+      works: [
+        { name: "Math Assignment 1", timestamp: 1678901234000, reviewed: true },
+        { name: "History Essay", timestamp: 1678992345000, reviewed: false },
+        { name: "Physics Lab Report", timestamp: 1679083456000, reviewed: true },
+        { name: "Literature Review", timestamp: 1679174567000, reviewed: false },
+      ] as Work[],
+      currentPage: 1,
+      perPage: 10,
+      totalWorks: 50,  //toto potom zmeniť
+    };
+  },
+  methods: {
+    formatTimestamp(timestamp: number): string {
+      const date = new Date(timestamp);
+      return date.toLocaleString();
+    },
+
+    reviewWork(work: Work): void {
+      alert(`Editing work: ${work.name}`);
+
+    },
+  },
+});
+</script>
 
 <style scoped>
-/* General styling */
+
 .table-header {
   margin-bottom: 1rem;
   font-size: 1.5rem;
