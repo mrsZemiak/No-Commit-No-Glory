@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div>
     <div class="card">
       <div class="card-header">
         <h3>User Management</h3>
@@ -48,8 +48,8 @@
       </div>
 
       <div class="card-footer">
-        <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
-        <button @click="nextPage" :disabled="currentPage * itemsPerPage >= totalUsers">Next</button>
+        <button class="pagination-btn" @click="prevPage" :disabled="currentPage === 1">Previous</button>
+        <button class="pagination-btn" @click="nextPage" :disabled="currentPage * itemsPerPage >= totalUsers">Next</button>
       </div>
     </div>
 
@@ -122,61 +122,5 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
 
-.modal-container {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 500px;
-  width: 100%;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  position: relative;
-}
-
-.badge-info {
-  background-color: #17a2b8;
-}
-
-.badge-success {
-  background-color: #28a745;
-}
-
-.badge-secondary {
-  background-color: #6c757d;
-}
-
-.badge-warning {
-  background-color: #ffc107;
-}
-
-.table th,
-.table td {
-  padding: 10px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-.table th {
-  background: #f4f4f4;
-  font-weight: bold;
-}
-
-.table .badge {
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  color: white;
-}
 </style>

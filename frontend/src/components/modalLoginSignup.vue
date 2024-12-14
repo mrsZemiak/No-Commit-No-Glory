@@ -149,8 +149,5 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.nav-link.active {
-  background-color: #007bff;
-  color: white;
-}
+
 </style>

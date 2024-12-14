@@ -85,10 +85,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, PropType, watch } from 'vue';
+import { defineComponent } from 'vue';
+import type { PropType } from 'vue';
 import type { ConferenceAdmin, CategoryAdmin } from "@/types/conference";
 import flatpickr from 'vue-flatpickr-component';
-import 'flatpickr/dist/flatpickr.min.css';
 
 export default defineComponent({
   name: "ModalConference",
@@ -166,5 +166,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
+
 
 </style>

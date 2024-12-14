@@ -43,8 +43,8 @@
     </div>
 
     <div class="card-footer">
-      <button @click="prevPage" :disabled="currentPage === 1">Previous</button>
-      <button @click="nextPage" :disabled="currentPage * itemsPerPage >= totalConferences">
+      <button class="pagination-btn" @click="prevPage" :disabled="currentPage === 1">Previous</button>
+      <button class="pagination-btn" @click="nextPage" :disabled="currentPage * itemsPerPage >= totalConferences">
         Next
       </button>
     </div>
@@ -184,101 +184,4 @@ export default defineComponent({
 
 <style scoped>
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-container {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 500px;
-  width: 100%;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  position: relative;
-}
-
-
-.card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  margin: 20px auto;
-  max-width: 800px;
-}
-
-.card-header {
-  background: #f4f4f4;
-  padding: 15px;
-  border-bottom: 1px solid #ddd;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.table th,
-.table td {
-  padding: 10px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-.table th {
-  background: #f4f4f4;
-  font-weight: bold;
-}
-
-.badge {
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: white;
-  font-size: 12px;
-}
-
-.badge-success {
-  background-color: #28a745;
-}
-
-.badge-secondary {
-  background-color: #6c757d;
-}
-
-.btn {
-  padding: 5px 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.btn-warning {
-  background-color: #ffc107;
-  color: black;
-}
-
-.btn-warning:hover {
-  background-color: #e0a800;
-}
-
-.card-footer {
-  display: flex;
-  justify-content: flex-end;
-  padding: 10px;
-  background: #f4f4f4;
-}
-
-button:disabled {
-  background-color: #ddd;
-  cursor: not-allowed;
-}
 </style>

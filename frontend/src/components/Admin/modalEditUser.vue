@@ -62,7 +62,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { PropType } from 'vue';
+import type { PropType } from 'vue';
 
 export default defineComponent({
   name: 'ModalEditUser',
@@ -85,37 +85,4 @@ export default defineComponent({
 
 <style scoped>
 
-.form-group {
-  margin-bottom: 1rem;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-button {
-  padding: 10px 20px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-
-
-.btn-close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  border: none;
-  background: none;
-  font-size: 1.5rem;
-  color: #333;
-  cursor: pointer;
-}
 </style>

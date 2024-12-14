@@ -219,49 +219,8 @@ export default defineComponent({
 </script>
 
 <style>
-.submission-form {
-  max-width: 600px;
-  margin: auto;
-  padding: 20px;
-  background: #f9f9f9;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-}
 
-.form-group {
-  margin-bottom: 15px;
-}
 
-.form-group label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
 
-.form-group input,
-.form-group select,
-.form-group textarea {
-  width: 100%;
-  padding: 8px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
 
-button {
-  padding: 10px 15px;
-  font-size: 14px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button[type="submit"] {
-  background: #2ecc71;
-  color: white;
-}
-
-button[type="submit"]:hover {
-  background: #27ae60;
-}
 </style>

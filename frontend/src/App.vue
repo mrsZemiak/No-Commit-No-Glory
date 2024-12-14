@@ -13,17 +13,6 @@ export default defineComponent({
 });
 </script>
 
-<style>
-
-.layout {
-  display: flex;
-  height: 100vh;
-}
-
-.main-content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-  background-color: #f9f9f9;
-}
+<style lang="scss">
+@use "../src/assets/styles/main.scss";
 </style>
