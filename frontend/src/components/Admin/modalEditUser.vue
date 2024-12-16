@@ -56,7 +56,7 @@
       </div>
       <button type="submit" class="btn btn-success">Aktualizovať</button>
     </form>
-    <button class="btn-close" @click="closeModal">X</button>
+    <button class="btn-close" @click="closeModal"></button>
   </div>
 </template>
 

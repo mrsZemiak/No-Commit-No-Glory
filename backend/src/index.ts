@@ -2,13 +2,17 @@ import express from 'express';
 import mongoose from 'mongoose';
 import routes from './routes/routes';
 import dotenv from 'dotenv';
+import cors from 'cors';
 dotenv.config(); // Load environment variables from .env
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+app.use(cors({
+    origin: 'http://localhost:5173',
+}));
 app.use(express.json());
 app.use('/api', routes);  // All API routes under '/api'
+
 
 // Simple route for testing
 app.get('/', (req, res) => {

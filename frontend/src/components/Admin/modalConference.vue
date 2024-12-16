@@ -67,15 +67,27 @@
 
       <div class="form-group">
         <label for="categories">Kategórie</label>
-        <select
-          id="categories"
-          v-model="localConference.categories"
-          multiple
-        >
-          <option v-for="category in availableCategories" :key="category.id" :value="category.id">
-            {{ category.name }}
-          </option>
-        </select>
+        <div id="categories">
+          <div
+            v-for="category in availableCategories"
+            :key="category._id"
+            class="form-check"
+          >
+            <input
+              type="checkbox"
+              :id="`category-${category._id}`"
+              :value="category._id"
+              v-model="localConference.categories"
+
+            />
+            <label
+              :for="`category-${category._id}`"
+              class="form-check-label"
+            >
+              {{ category.name }}
+            </label>
+          </div>
+        </div>
       </div>
 
       <button type="submit" class="btn btn-success">{{ isEditMode ? 'Aktualizovať konferenciu' : 'Pridať konferenciu' }}</button>
@@ -126,6 +138,7 @@ export default defineComponent({
           reviewDeadline: new Date(this.conference.reviewDeadline),
           revisionDeadline: new Date(this.conference.revisionDeadline),
           postConferenceRevisionDeadline: new Date(this.conference.postConferenceRevisionDeadline),
+          categories: [...(this.conference.categories || [])],
         }
         : {
           name: "",

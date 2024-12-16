@@ -2,7 +2,7 @@
   <div>
     <div class="card">
       <div class="card-header">
-        <h3>User Management</h3>
+        <h3>Správa používateľov</h3>
       </div>
 
       <div class="table-responsive">
@@ -65,6 +65,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import ModalEditUser from './modalEditUser.vue';
+import axios from "axios";
 
 interface User {
   firstName: string;

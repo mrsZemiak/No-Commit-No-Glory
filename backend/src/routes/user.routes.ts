@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.get('/users', async (req, res) => {
     const db = Database.getInstance();
-    const User = db.getConnection().model('User'); // Example with Mongoose model
+    const User = db.getConnection().model('User');
     try {
         const users = await User.find({});
         res.status(200).json(users);

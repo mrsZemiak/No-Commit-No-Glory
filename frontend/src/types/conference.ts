@@ -11,6 +11,6 @@ export interface ConferenceAdmin {
 }
 
 export interface CategoryAdmin {
-  id: string;
+  _id: string;
   name: string;
 }

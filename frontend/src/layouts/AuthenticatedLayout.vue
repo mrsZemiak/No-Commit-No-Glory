@@ -3,12 +3,12 @@ import {defineComponent} from 'vue'
 import SideBar from "@/components/sideBar/SideBar.vue";
 import ConferenceTable from "@/components/Admin/ConferenceTable.vue";
 import UserTable from "@/components/Admin/UserTable.vue";
-
+import CategoryTable from "@/components/Admin/CategoryTable.vue";
 
 
 export default defineComponent({
   name: "AuthenticatedLayout" ,
-  components: {UserTable, ConferenceTable, SideBar},
+  components: {UserTable, ConferenceTable, SideBar, CategoryTable},
 })
 </script>
 
@@ -19,6 +19,7 @@ export default defineComponent({
       <router-view />
       <ConferenceTable></ConferenceTable>
       <UserTable></UserTable>
+      <CategoryTable></CategoryTable>
 
     </div>
   </div>

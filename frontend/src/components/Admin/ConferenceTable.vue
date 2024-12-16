@@ -70,6 +70,7 @@ import { defineComponent } from "vue";
 import ModalConference from "@/components/Admin/modalConference.vue";
 import type {ConferenceAdmin, CategoryAdmin} from "@/types/conference";
 import ModalEditUser from "@/components/Admin/modalEditUser.vue";
+import axios from "axios";
 
 
 
@@ -89,7 +90,7 @@ export default defineComponent({
           reviewDeadline: new Date("2023-04-15"),
           revisionDeadline: new Date("2023-05-01"),
           postConferenceRevisionDeadline: new Date("2023-06-15"),
-          categories: ["1", "3"],
+          categories: ["67533541dfd23a313e7afe41", "67533541dfd23a313e7afe45"],
         },
         {
           name: "Tech Innovations Conference 2024",
@@ -100,14 +101,10 @@ export default defineComponent({
           reviewDeadline: new Date("2024-06-20"),
           revisionDeadline: new Date("2024-07-01"),
           postConferenceRevisionDeadline: new Date("2024-09-01"),
-          categories: ["2"],
+          categories: ["67533541dfd23a313e7afe46"],
         },
       ] as ConferenceAdmin[],
-      categories: [
-        { id: "1", name: "Artificial Intelligence" },
-        { id: "2", name: "Data Science" },
-        { id: "3", name: "Cybersecurity" },
-      ] as CategoryAdmin[],
+      categories: [] as CategoryAdmin[],
       currentPage: 1,
       itemsPerPage: 10,
       totalConferences: 30,
@@ -115,6 +112,9 @@ export default defineComponent({
       selectedConference: null as ConferenceAdmin | null,
       modalMode: "add" as "add" | "edit",
     };
+  },
+  mounted() {
+    this.fetchCategories();
   },
   computed: {
     paginatedConferences() {
@@ -124,6 +124,14 @@ export default defineComponent({
     }
   },
   methods: {
+    async fetchCategories() {
+      try {
+        const response = await axios.get("http://localhost:3000/api/categories");
+        this.categories = response.data; // Assign fetched categories
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    },
     formatTimestamp(value: number | Date | null): string {
       if (!value) return "N/A";
       const date = value instanceof Date ? value : new Date(value);

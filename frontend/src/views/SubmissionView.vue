@@ -1,6 +1,6 @@
 <template>
   <div class="submission-form">
-    <h2>Submission Form</h2>
+    <h2>Odovzdanie práce</h2>
     <form @submit.prevent="handleSubmit">
 
       <div class="form-group">
@@ -37,11 +37,11 @@
       </div>
 
       <div class="form-group">
-        <label for="sectionPick">Výber sekcie</label>
-        <select v-model="form.sectionPick" id="section" required>
+        <label for="categoryPick">Výber sekcie</label>
+        <select v-model="form.categoryPick" id="category" required>
           <option disabled value="">Vyberte sekciu</option>
-          <option v-for="section in sections" :key="section" :value="section">
-            {{ section }}
+          <option v-for="category in categories" :key="category.id" :value="category.id">
+            {{ category.name }}
           </option>
         </select>
       </div>
@@ -100,9 +100,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import {onMounted, ref} from 'vue';
+import axios from 'axios';
 
-const sections = ref(["Technology", "Science", "Art", "Music", "Sports"]);
+
+const categories = ref([] as { id: string; name: string }[]);
 
 const form = ref({
   firstName: "",
@@ -111,10 +113,21 @@ const form = ref({
   otherAuthors: [] as string[],
   keywords: "",
   abstract: "",
-  sectionPick: "",
+  categoryPick: "",
   projectFile: null as File | null
 });
 
+onMounted(async () => {
+  try {
+    const response = await axios.get("http://localhost:3000/api/categories"); // Adjust the URL to your API
+    categories.value = response.data.map((category: any) => ({
+      id: category._id.$oid,
+      name: category.name,
+    }));
+  } catch (error) {
+    console.error("Error fetching categories:", error);
+  }
+});
 function addAuthor() {
   form.value.otherAuthors.push("");
 }
@@ -139,7 +152,6 @@ function handleSubmit() {
   }
   alert("Form submitted successfully!");
 
-  // Reset the form after submission
   form.value = {
     firstName: "",
     lastName: "",
@@ -147,7 +159,7 @@ function handleSubmit() {
     otherAuthors: [],
     keywords: "",
     abstract: "",
-    sectionPick: "",
+    categoryPick: "",
     projectFile: null,
   };
 }
