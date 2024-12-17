@@ -1,18 +1,18 @@
 <template>
-  <card>
+  <b-card>
     <div class="pl-lg-4">
       <form @submit.prevent="handleSubmit">
         <b-row>
           <b-col lg="6">
             <div class="form-group">
-              <label for="email">Email address</label>
+              <label for="email">Email</label>
               <input
-                  type="email"
-                  id="email"
-                  class="form-control"
-                  placeholder="mike@email.com"
-                  v-model="user.email"
-                  required
+                type="email"
+                id="email"
+                class="form-control"
+                placeholder="email@email.com"
+                v-model="profile.email"
+                required
               />
             </div>
           </b-col>
@@ -21,27 +21,27 @@
         <b-row>
           <b-col lg="6">
             <div class="form-group">
-              <label for="first-name">First Name</label>
+              <label for="first-name">Meno</label>
               <input
-                  type="text"
-                  id="first-name"
-                  class="form-control"
-                  placeholder="First Name"
-                  v-model="user.firstName"
-                  required
+                type="text"
+                id="first-name"
+                class="form-control"
+                placeholder="Meno"
+                v-model="profile.firstName"
+                required
               />
             </div>
           </b-col>
           <b-col lg="6">
             <div class="form-group">
-              <label for="last-name">Last Name</label>
+              <label for="last-name">Priezvisko</label>
               <input
-                  type="text"
-                  id="last-name"
-                  class="form-control"
-                  placeholder="Last Name"
-                  v-model="user.lastName"
-                  required
+                type="text"
+                id="last-name"
+                class="form-control"
+                placeholder="Priezvisko"
+                v-model="profile.lastName"
+                required
               />
             </div>
           </b-col>
@@ -52,28 +52,28 @@
         <b-row>
           <b-col lg="6">
             <div class="form-group">
-              <label for="password">Password</label>
+              <label for="position">Pozícia</label>
               <input
-                  type="password"
-                  id="password"
-                  class="form-control"
-                  placeholder="Enter password"
-                  v-model="user.password"
-                  required
+                type="text"
+                id="position"
+                class="form-control"
+                placeholder="Vaša pozícia"
+                v-model="profile.position"
+                required
               />
             </div>
           </b-col>
           <b-col lg="6">
             <div class="form-group">
-              <label for="repeat-password">Repeat Password</label>
-              <input
-                  type="password"
-                  id="repeat-password"
-                  class="form-control"
-                  placeholder="Repeat password"
-                  v-model="user.repeatPassword"
-                  required
-              />
+              <label for="about-me">O mne</label>
+              <textarea
+                id="about-me"
+                class="form-control"
+                rows="4"
+                placeholder="Povedzte nám o sebe"
+                v-model="profile.aboutMe"
+                required
+              ></textarea>
             </div>
           </b-col>
         </b-row>
@@ -85,31 +85,25 @@
         </b-row>
       </form>
     </div>
-  </card>
+  </b-card>
 </template>
+
 <script>
 export default {
-  data() {
-    return {
-      user: {
-        company: 'Creative Code Inc.',
-        username: 'michael23',
-        email: '',
-        firstName: 'Mike',
-        lastName: 'Andrew',
-        address: 'Bld Mihail Kogalniceanu, nr. 8 Bl 1, Sc 1, Ap 09',
-        city: 'New York',
-        country: 'USA',
-        postalCode: '',
-        aboutMe: `Lamborghini Mercy, Your chick she so thirsty, I'm in that two seat Lambo.`
-      }
-    };
+  props: {
+    profile: {
+      type: Object,
+      required: true
+    }
   },
   methods: {
-    updateProfile() {
-      alert('Your data: ' + JSON.stringify(this.user));
+    handleSubmit() {
+      this.$emit('update', this.profile);
     }
   }
 };
 </script>
-<style></style>
+
+<style scoped>
+
+</style>

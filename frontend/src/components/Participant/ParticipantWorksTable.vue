@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="table-card">
     <div class="card-header">
       <header class="table-header">
         <h3>Odoslané práce</h3>
@@ -26,7 +26,7 @@
               </span>
           </td>
           <td>
-            <button @click="viewReview(work)" class="btn btn-warning"> Pozrieť hodnotenie</button>
+            <button @click="viewReview(work)" class="btn btn-edit"> Pozrieť hodnotenie</button>
             <button @click="editWork(work)" class="btn btn-primary">Upraviť</button>
           </td>
         </tr>
@@ -37,13 +37,15 @@
     <footer class="pagination-footer">
       <div class="pagination">
         <button
+          class="btn btn-primary"
           @click="currentPage > 1 && (currentPage--)"
           :disabled="currentPage === 1"
         >
           Previous
         </button>
-        <span>Page {{ currentPage }}</span>
+        <span>Strana {{ currentPage }}</span>
         <button
+          class="btn btn-primary"
           @click="currentPage < Math.ceil(totalWorks / perPage) && (currentPage++)"
           :disabled="currentPage === Math.ceil(totalWorks / perPage)"
         >

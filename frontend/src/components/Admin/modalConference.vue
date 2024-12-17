@@ -90,7 +90,7 @@
         </div>
       </div>
 
-      <button type="submit" class="btn btn-success">{{ isEditMode ? 'Aktualizovať konferenciu' : 'Pridať konferenciu' }}</button>
+      <button type="submit" class="btn btn-primary">{{ isEditMode ? 'Aktualizovať konferenciu' : 'Pridať konferenciu' }}</button>
     </form>
 
   </div>

@@ -54,7 +54,7 @@
           </label>
         </div>
       </div>
-      <button type="submit" class="btn btn-success">Aktualizovať</button>
+      <button type="submit" class="btn btn-primary">Aktualizovať</button>
     </form>
     <button class="btn-close" @click="closeModal"></button>
   </div>

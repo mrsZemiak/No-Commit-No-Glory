@@ -1,9 +1,10 @@
 <template>
-  <div class="category-management">
-    <h2>Správa kategórií</h2>
+  <div class="table-card">
+    <div class="card-header">
+      <h2>Správa kategórií</h2>
 
-    <button class="btn btn-primary" @click="openAddModal">Pridať kategóriu</button>
-
+      <button class="btn btn-primary" @click="openAddModal">Pridať kategóriu</button>
+    </div>
     <table class="table">
       <thead>
       <tr>
@@ -15,17 +16,17 @@
       <tr v-for="category in paginatedCategories" :key="category._id">
         <td>{{ category.name }}</td>
         <td>
-          <button class="btn btn-warning btn-sm" @click="openEditModal(category)">Upraviť</button>
-          <button class="btn btn-danger btn-sm" @click="deleteCategory(category._id)">Odstrániť</button>
+          <button class="btn btn-edit btn-sm" @click="openEditModal(category)">Upraviť</button>
+          <button class="btn btn-delete btn-sm" @click="deleteCategory(category._id)">Odstrániť</button>
         </td>
       </tr>
       </tbody>
     </table>
 
-    <!-- Pagination Controls -->
+
     <div class="card-footer">
-      <button class="pagination-btn" @click="prevPage" :disabled="currentPage === 1">Previous</button>
-      <button class="pagination-btn" @click="nextPage" :disabled="currentPage * itemsPerPage >= categories.length">
+      <button class="btn btn-primary" @click="prevPage" :disabled="currentPage === 1">Previous</button>
+      <button class="btn btn-primary" @click="nextPage" :disabled="currentPage * itemsPerPage >= categories.length">
         Next
       </button>
     </div>

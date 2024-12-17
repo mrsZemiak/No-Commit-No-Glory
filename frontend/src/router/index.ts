@@ -9,6 +9,9 @@ import UserCard from "@/views/UserProfile/UserCard.vue";
 import GuestLayout from "@/layouts/GuestLayout.vue";
 import AuthenticatedLayout from "@/layouts/AuthenticatedLayout.vue";
 import ReviewTable from "@/components/Reviewer/ReviewTable.vue";
+import ConferenceTable from "@/components/Admin/ConferenceTable.vue";
+import CategoryTable from "@/components/Admin/CategoryTable.vue";
+import UserTable from "@/components/Admin/UserTable.vue";
 
 
 const routes = [
@@ -27,9 +30,12 @@ const routes = [
       { path: '', name: 'HomeView', component: HomeView },
       { path: 'home', name: 'Home', component: HomeView },
       { path: 'profile', name: 'Profile', component: UserCard },
-      { path: 'studentSubmission', name: 'StudentSubmission', component: SubmissionView },
-      { path: 'participantView', name: 'ParticipantView', component: ParticipantView },
-      { path: 'review', name: 'ReviewTable', component: ReviewTable },
+      { path: 'submit', name: 'StudentSubmission', component: SubmissionView },
+      { path: 'reviews', name: 'ReviewTable', component: ReviewTable },
+      { path: 'participantView', name: 'ParticipantView', component: ParticipantView},
+      { path: 'conferences', name: 'ConferenceTable', component: ConferenceTable },
+      { path: 'categories', name: 'CategoryTable', component: CategoryTable },
+      { path: 'users', name: 'UserTable', component: UserTable },
       {
         path: '/review/:id',
         name: 'ReviewForm',

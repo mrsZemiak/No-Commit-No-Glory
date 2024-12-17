@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div class="table-card">
     <div class="card-header">
       <h3>Konferencie</h3>
       <button class="btn btn-primary" @click="addConference">Pridať konferenciu</button>
@@ -33,7 +33,7 @@
               </span>
           </td>
           <td>
-            <button class="btn btn-warning btn-sm" @click="editConference(conference)">
+            <button class="btn btn-edit btn-sm" @click="editConference(conference)">
               Upraviť
             </button>
           </td>
@@ -43,8 +43,8 @@
     </div>
 
     <div class="card-footer">
-      <button class="pagination-btn" @click="prevPage" :disabled="currentPage === 1">Previous</button>
-      <button class="pagination-btn" @click="nextPage" :disabled="currentPage * itemsPerPage >= totalConferences">
+      <button class="btn btn-primary" @click="prevPage" :disabled="currentPage === 1">Previous</button>
+      <button class="btn btn-primary" @click="nextPage" :disabled="currentPage * itemsPerPage >= totalConferences">
         Next
       </button>
     </div>

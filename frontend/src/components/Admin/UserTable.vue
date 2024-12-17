@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="card">
+    <div class="table-card">
       <div class="card-header">
         <h3>Správa používateľov</h3>
       </div>
@@ -39,8 +39,8 @@
                 </span>
             </td>
             <td>
-              <button class="btn btn-warning btn-sm" @click="editUser(user)">Upraviť</button>
-              <button class="btn btn-danger btn-sm ml-2" @click="deleteUser(user)">Vymazať</button>
+              <button class="btn btn-edit btn-sm" @click="editUser(user)">Upraviť</button>
+              <button class="btn btn-delete btn-sm ml-2" @click="deleteUser(user)">Vymazať</button>
             </td>
           </tr>
           </tbody>
@@ -48,8 +48,8 @@
       </div>
 
       <div class="card-footer">
-        <button class="pagination-btn" @click="prevPage" :disabled="currentPage === 1">Previous</button>
-        <button class="pagination-btn" @click="nextPage" :disabled="currentPage * itemsPerPage >= totalUsers">Next</button>
+        <button class="btn btn-primary" @click="prevPage" :disabled="currentPage === 1">Previous</button>
+        <button class="btn btn-primary" @click="nextPage" :disabled="currentPage * itemsPerPage >= totalUsers">Next</button>
       </div>
     </div>
 

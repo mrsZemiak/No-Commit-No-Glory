@@ -12,29 +12,44 @@ const router = useRouter();
 
 const links: Link[] = [
   {
-    name: "Home",
+    name: "Domov",
     icon: "ni ni-shop text-primary",
     path: "/auth/home",
   },
   {
-    name: "Profile",
+    name: "Profil",
     icon: "ni ni-planet text-orange",
     path: "/auth/profile",
   },
   {
-    name: "Submission",
+    name: "Odovzdanie práce",
     icon: "ni ni-planet text-orange",
-    path: "/auth/studentSubmission",
+    path: "/auth/submit",
   },
   {
-    name: "My works",
+    name: "Moje práce",
     icon: "ni ni-planet text-orange",
     path: "/auth/participantView",
   },
   {
-    name: "Review",
+    name: "Práce na hodnotenie",
     icon: "ni ni-planet text-orange",
-    path: "/auth/review",
+    path: "/auth/reviews",
+  },
+  {
+    name: "Konferencie",
+    icon: "ni ni-planet text-orange",
+    path: "/auth/conferences",
+  },
+  {
+    name: "Kategórie",
+    icon: "ni ni-planet text-orange",
+    path: "/auth/categories",
+  },
+  {
+    name: "Používatelia",
+    icon: "ni ni-planet text-orange",
+    path: "/auth/users",
   },
 ];
 

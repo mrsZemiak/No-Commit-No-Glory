@@ -37,6 +37,16 @@
       </div>
 
       <div class="form-group">
+        <label for="conferencePick">Výber konferencie</label>
+        <select v-model="form.conferencePick" id="conferencePick" required>
+          <option disabled value="">Vyberte konferenciu</option>
+          <option v-for="conference in conferences" :key="conference.id" :value="conference.id">
+            {{ conference.name }}
+          </option>
+        </select>
+      </div>
+
+      <div class="form-group">
         <label for="categoryPick">Výber sekcie</label>
         <select v-model="form.categoryPick" id="category" required>
           <option disabled value="">Vyberte sekciu</option>
@@ -54,9 +64,9 @@
             v-model="form.otherAuthors[index]"
             placeholder="Vložte meno autora"
           />
-          <button type="button" @click="removeAuthor(index)">Odstrániť</button>
+          <button type="button" class="btn btn-delete" @click="removeAuthor(index)">Odstrániť</button>
         </div>
-        <button type="button" @click="addAuthor">Pridať autora</button>
+        <button type="button" class="btn btn-edit" @click="addAuthor">Pridať autora</button>
       </div>
 
       <div class="form-group">
@@ -94,7 +104,7 @@
       </div>
 
 
-      <button type="submit">Odovzdať</button>
+      <button type="submit" class="btn btn-primary">Odovzdať</button>
     </form>
   </div>
 </template>
@@ -105,6 +115,11 @@ import axios from 'axios';
 
 
 const categories = ref([] as { id: string; name: string }[]);
+const conferences = ref([
+  { id: "101", name: "Konferencia A" },
+  { id: "102", name: "Konferencia B" },
+  { id: "103", name: "Konferencia C" },
+]);
 
 const form = ref({
   firstName: "",
@@ -114,6 +129,7 @@ const form = ref({
   keywords: "",
   abstract: "",
   categoryPick: "",
+  conferencePick: "",
   projectFile: null as File | null
 });
 
@@ -160,6 +176,7 @@ function handleSubmit() {
     keywords: "",
     abstract: "",
     categoryPick: "",
+    conferencePick: "",
     projectFile: null,
   };
 }

@@ -9,7 +9,7 @@
         <input type="text" v-model="localCategory.name" id="name" required />
       </div>
 
-      <button type="submit" class="btn btn-success">
+      <button type="submit" class="btn btn-primary">
         {{ isEditMode ? 'Aktualizovať kategóriu' : 'Pridať kategóriu' }}
       </button>
     </form>

@@ -1,4 +1,21 @@
 
+$primary-color: #116466;
+$secondary-color: #D9B09C;
+$tertiary-color: #FFCB9A;
+
+$primary-highlight: #D1E8E2;
+$primary-shadow: #2C3531;
+
+$primary-light: #3C888C;
+$secondary-light: #F2C9B6;
+$secondary-dark: #B7846C;
+
+$delete-color: #CA3C38;
+$delete-light: #DB4440;
+
+$black: #000;
+$white: #FFF;
+
 .layout {
   display: flex;
   height: 100vh;
@@ -111,60 +128,48 @@
   font-size: 0.9rem;
 }
 
-.btn-warning {
-  background-color: #ffc107;
-  color: black;
+.btn-primary {
+  background-color: $primary-color !important;
+  border: none !important;
+}
+.btn-primary:hover {
+  background-color: $primary-light !important;
 }
 
-.btn-warning:hover {
-  background-color: #e0a800;
+.btn-edit{
+  background-color: $secondary-color !important;
+  color: $black !important;
+}
+.btn-edit:hover {
+  background-color: $secondary-light !important;
+  color: $black !important;
 }
 
-.btn-info {
-  background-color: #17a2b8;
-  color: white;
+.btn-delete {
+  background-color: $delete-color !important;
+  color: $white !important;
 }
+.btn-delete:hover {
+  background-color: $delete-light !important;
+  color: $white !important;
+}
+
 
 button:disabled {
   background-color: #ddd;
   cursor: not-allowed;
 }
-
-button[type="button"] {
-  background: #e74c3c;
-  color: white;
+.nav-link {
+  color: $primary-color !important;
 }
 
-button[type="button"]:hover {
-  background: #c0392b;
+.nav-pills .nav-link.active {
+  background-color: $primary-color !important;
+  color: $white !important;
 }
 
-button[type="submit"] {
-  background: #2ecc71;
-  color: white;
-}
-
-button[type="submit"]:hover {
-  background: #27ae60;
-}
-.pagination-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  background-color: #007bff;
-  color: white;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: background-color 0.3s ease;
-}
-
-.pagination-btn:hover {
-  background-color: #0056b3;
-}
-
-.pagination-btn:disabled {
-  background-color: #d6d6d6;
-  cursor: not-allowed;
+.password-reset {
+  color: $primary-color;
 }
 
 
@@ -293,4 +298,26 @@ button[type="submit"]:hover {
 .pagination span {
   margin: 0 8px;
   font-size: 1rem;
+}
+
+.edit-profile-form {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.card-profile-image {
+  width: 80px;
+  height: auto;
+}
+
+.table-card {
+  border: rgb(0 0 0 / 18%) 1px solid;
+  padding: 1rem 0 1rem 0;
+  border-radius: 0.375rem;
+}
+
+.table-card .card-header {
+  padding: 0 1rem 1rem 1rem;
 }

@@ -43,11 +43,8 @@
           <label class="form-label" for="loginPassword">Heslo</label>
         </div>
 
-
-
           <div class="float-end">
-
-            <a href="#" @click.prevent="setActiveTab('forgotPassword')">Zabudnuté heslo?</a>
+            <a href="#" class="password-reset" @click.prevent="setActiveTab('forgotPassword')">Zabudnuté heslo?</a>
           </div>
 
 

@@ -1,6 +1,6 @@
 
 <template>
-  <div>
+  <div class="table-card">
     <div class="card-header">
       <header class="table-header">
         <h3>Práce na hodnotenie</h3>
@@ -28,7 +28,7 @@
           </td>
           <td>
             <router-link :to="{ name: 'ReviewForm', params: { id: work.timestamp } }">
-              <button class="btn btn-warning">Hodnotiť</button>
+              <button class="btn btn-edit">Hodnotiť</button>
             </router-link>
           </td>
         </tr>
@@ -39,7 +39,7 @@
     <footer class="pagination-footer">
       <div class="pagination">
         <button
-          class="pagination-btn"
+          class="btn-primary"
           @click="currentPage > 1 && (currentPage--)"
           :disabled="currentPage === 1"
         >
@@ -47,7 +47,7 @@
         </button>
         <span>Page {{ currentPage }}</span>
         <button
-          class="pagination-btn"
+          class="btn-primary"
           @click="currentPage < Math.ceil(totalWorks / perPage) && (currentPage++)"
           :disabled="currentPage === Math.ceil(totalWorks / perPage)"
         >
