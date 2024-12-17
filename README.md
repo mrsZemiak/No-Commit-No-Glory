@@ -26,12 +26,12 @@ SciSubmit is a web application designed to streamline the process of submitting 
 To get a local copy up and running, follow these steps:
 
 ### Prerequisites
-- **Node.js** (v14.x or higher)
+- **Node.js**
 - **Docker** (with Docker Compose)
 
 ### Clone the Repository
 ```bash
-git clone https://github.com/your-organization/SciSubmit.git
+git clone https://github.com/Elfonator/No-Commit-No-Glory.git
 cd SciSubmit
  ```
 ### Backend Setup

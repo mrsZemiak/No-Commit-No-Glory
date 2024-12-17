@@ -1,22 +1,36 @@
 version: '3'
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
     ports:
       - "3000:3000"
     depends_on:
       - mongodb
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/scisubmit
+    env_file:
+      - ./backend/.env
+    volumes:
+      - /app/node_modules  # Avoid rebuilding dependencies every time
+    restart: always  # Automatically restart the backend on failure
 
   mongodb:
-    image: mongo
+    image: mongo:6
+    container_name: mongodb
     ports:
       - "27017:27017"
     volumes:
       - ./data/db:/data/db
+    restart: always  # Ensure MongoDB restarts automatically
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
     ports:
       - "8080:80"  # Host port 8080 -> Nginx port 80
+    depends_on:
+      - backend
+    restart: always
