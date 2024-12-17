@@ -1,15 +1,15 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IReviewResponse {
-    question: mongoose.Schema.Types.ObjectId; // References a Question
-    answer: string | number; // Text, Yes/No, or Rating
+    question: mongoose.Schema.Types.ObjectId; //References to Question model
+    answer: string | number; //Text, Yes/No, or Rating
 }
 
 export interface IReview extends Document {
     paper: mongoose.Schema.Types.ObjectId;
     reviewer: mongoose.Schema.Types.ObjectId;
-    responses: IReviewResponse[]; // Array of answers to questions
-    comments?: string; // Additional comments
+    responses: IReviewResponse[]; // array of answers to questions
+    comments?: string; // additional comments
     recommendation: 'publish' | 'publish_with_changes' | 'reject';
     created_at: Date;
 }
@@ -20,7 +20,7 @@ const ReviewSchema: Schema = new Schema({
     responses: [
         {
             question: { type: mongoose.Schema.Types.ObjectId, ref: 'Question', required: true },
-            answer: { type: Schema.Types.Mixed, required: true }, // Handles text, yes/no, and ratings
+            answer: { type: Schema.Types.Mixed, required: true }, // handles text, yes/no, and ratings
         },
     ],
     comments: { type: String },

@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Role from './models/Role';
 import Category from './models/Category';
@@ -7,17 +6,15 @@ import Conference from './models/Conference';
 import Paper from './models/Paper';
 import Review from './models/Review';
 import Question from "./models/Question";
+import Database from "./config/db";
 
 dotenv.config();
-
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/scisubmit';
 
 // Async function for DB connection, seeding and collection creation
 const prepareDatabase = async () => {
     try {
-        // Connect to the MongoDB database
-        await mongoose.connect(MONGO_URI);
-
+        // Initialize the database connection
+        Database.getInstance();
         console.log('Connected to MongoDB.');
 
         // Clear the roles collection
@@ -26,11 +23,6 @@ const prepareDatabase = async () => {
 
         // Insert roles
         await Role.insertMany([
-            {
-                name: 'superadmin',
-                permissions: ['*'], // All possible permissions
-                ui_components: ['/superadmin_dashboard']
-            },
             {
                 name: 'admin',
                 permissions: [
@@ -53,9 +45,9 @@ const prepareDatabase = async () => {
             {
                 name: 'participant',
                 permissions: [
-                    'view_submitted_papers',
-                    'submit_papers',
-                    'edit_papers',
+                    'manage_papers',
+                    'submit_paper',
+                    'edit_paper',
                     'view_reviews'
                 ],
                 ui_components: [

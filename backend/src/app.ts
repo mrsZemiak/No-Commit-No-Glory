@@ -1,34 +1,27 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import routes from './routes/routes';
 import userRoutes from './routes/user.routes';
 import authRoutes from './routes/auth.routes';
-import profileRoutes from "./routes/profile.routes";
+import Database from "./config/db";
+import reviewerRoutes from "./routes/reviewer.routes";
+import participantRoutes from "./routes/participant.routes";
+import adminRoutes from "./routes/admin.routes";
 
-dotenv.config(); // Load environment variables from .env
+dotenv.config(); //Load environment variables from .env
 
 const app = express();
 
-// Middleware
+Database.getInstance(); //Initialize database
+
+//Middleware
 app.use(express.json());
 
-// Routes
-app.use('/api', routes);
+//Routes
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/profile', profileRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/participants', participantRoutes);
+app.use('/api/reviewers', reviewerRoutes);
 
-// Database connection (optional for app testing)
-const mongoUri: string = process.env.MONGO_URI || '';
-if (!mongoUri) {
-    throw new Error('MONGO_URI is not defined in the environment variables');
-}
-
-mongoose
-    .connect(mongoUri)
-    .then(() => console.log('MongoDB connected'))
-    .catch((err) => console.error('MongoDB connection error:', err));
-
-// Export the app for testing or server use
+//Export the app for testing or server use
 export default app;

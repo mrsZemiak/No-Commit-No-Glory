@@ -19,7 +19,7 @@ class Database {
 
     //Connection to database
     private connect(): void {
-        const dbUri: string = process.env.DB_URI || 'mongodb://localhost:27017/SciSubmit';
+        const dbUri: string = process.env.DB_URI || 'mongodb://localhost:27017/scisubmit';
         mongoose
             .connect(dbUri)
             .then(() => {

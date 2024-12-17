@@ -20,52 +20,19 @@ const ConferenceSchema: Schema = new Schema({
     year: { type: Number, required: true,
         validate: {
             validator: (value: number) => {
-                // Validate that the year is a four-digit number between 2010 and the current year
+                //Validate that the year is a four-digit number between 2010 and the current year
                 const currentYear = new Date().getFullYear();
-                return value >= 2010 && value <= currentYear + 5;  // Allows years up to 5 years into the future
+                return value >= 2010 && value <= currentYear + 5;  //Allows years up to 5 years into the future
             },
             message: 'Year must be a valid four-digit year.'
         }},
     start_date: { type: Date, required: true },
     end_date: { type: Date, required: true },
-    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],  // Reusing global categories
+    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],  //Reusing global categories
     deadline_submission: { type: Date, required: true },
     deadline_review: { type: Date, required: true },
     created_at: { type: Date, default: Date.now },
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User',required: true }  // Admin who created the conference
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User',required: true }  //Admin who created the conference
 });
-
-/*
-// Pre-save hook to check if the user has the admin role
-ConferenceSchema.pre('save', async function (next) {
-    const conference = this;
-
-    try {
-        // Populate the user's role
-        const user = await User.findById(conference.user).populate('role');
-
-        if (!user) {
-            throw new Error('User not found');
-        }
-
-        const role = await Role.findById(user.role);
-
-        if (!role) {
-            throw new Error('Role not found');
-        }
-
-        // Check if the user's role is "admin"
-        if (role.name !== 'admin') {
-            throw new Error('Only users with the admin role can create or manage conferences.');
-        }
-
-        // If the user has the admin role, proceed to save
-        next();
-    } catch (error) {
-        next(error); // Pass the error to the next middleware
-    }
-});
-
- */
 
 export default mongoose.model<IConference>('Conference', ConferenceSchema);
