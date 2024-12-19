@@ -14,7 +14,10 @@ $delete-color: #CA3C38;
 $delete-light: #DB4440;
 
 $black: #000;
+$black: #000;
 $white: #FFF;
+
+
 
 .layout {
   display: flex;
@@ -320,4 +323,11 @@ button:disabled {
 
 .table-card .card-header {
   padding: 0 1rem 1rem 1rem;
+}
+
+.sidebar-category {
+  font-weight: bold;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid #ccc;
 }

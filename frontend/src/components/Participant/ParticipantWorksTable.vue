@@ -11,6 +11,7 @@
         <thead>
         <tr>
           <th>Názov</th>
+          <th>Konferencia</th>
           <th>Čas poslania</th>
           <th>Hodnotenie</th>
           <th>Akcie</th>
@@ -19,6 +20,7 @@
         <tbody>
         <tr v-for="(work, index) in works" :key="index">
           <td>{{ work.name }}</td>
+          <td> {{ work.conference }}</td>
           <td>{{ formatTimestamp(work.timestamp) }}</td>
           <td>
               <span :class="work.reviewed ? 'badge badge-success' : 'badge badge-secondary'">
@@ -60,6 +62,7 @@ import { defineComponent } from "vue";
 
 interface Work {
   name: string;
+  conference: string;
   timestamp: number;
   reviewed: boolean;
 }
@@ -69,10 +72,10 @@ export default defineComponent({
   data() {
     return {
       works: [
-        { name: "Math Assignment 1", timestamp: 1678901234000, reviewed: true },
-        { name: "History Essay", timestamp: 1678992345000, reviewed: false },
-        { name: "Physics Lab Report", timestamp: 1679083456000, reviewed: true },
-        { name: "Literature Review", timestamp: 1679174567000, reviewed: false },
+        { name: "Math Assignment 1", conference: "A", timestamp: 1678901234000, reviewed: true },
+        { name: "History Essay", conference: "B", timestamp: 1678992345000, reviewed: false },
+        { name: "Physics Lab Report", conference: "A", timestamp: 1679083456000, reviewed: true },
+        { name: "Literature Review", conference: "A", timestamp: 1679174567000, reviewed: false },
       ] as Work[],
       currentPage: 1,
       perPage: 10,

@@ -13,7 +13,7 @@
           <th>Rok</th>
           <th>Miesto</th>
           <th>Dátum konferencie</th>
-          <th>Uzávierka prihlášok</th>
+          <th>Odovzdanie prác</th>
           <th>Stav</th>
           <th>Akcie</th>
         </tr>
