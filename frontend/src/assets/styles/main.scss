@@ -331,3 +331,16 @@ button:disabled {
   margin-bottom: 0.5rem;
   border-bottom: 1px solid #ccc;
 }
+
+.file-input-submit {
+  display: none;
+}
+
+.custom-file-label {
+  display: inline-block;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-align: center;
+  font-weight: normal !important;
+  width: fit-content;
+}

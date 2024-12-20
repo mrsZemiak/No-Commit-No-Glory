@@ -24,12 +24,25 @@
     </table>
 
 
-    <div class="card-footer">
-      <button class="btn btn-primary" @click="prevPage" :disabled="currentPage === 1">Previous</button>
-      <button class="btn btn-primary" @click="nextPage" :disabled="currentPage * itemsPerPage >= categories.length">
-        Next
-      </button>
-    </div>
+    <footer class="pagination-footer">
+      <div class="pagination">
+        <button
+          class="btn btn-primary"
+          @click="currentPage > 1 && (currentPage--)"
+          :disabled="currentPage === 1"
+        >
+          Previous
+        </button>
+        <span class="pagination-current">Strana {{ currentPage }}</span>
+        <button
+          class="btn btn-primary"
+          @click="currentPage < totalPages && (currentPage++)"
+          :disabled="currentPage === totalPages || remainingItems <= perPage"
+        >
+          Next
+        </button>
+      </div>
+    </footer>
   </div>
 
   <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
@@ -59,7 +72,7 @@ export default defineComponent({
     return {
       categories: [] as CategoryAdmin[],
       currentPage: 1,
-      itemsPerPage: 10,
+      perPage: 10,
       totalCategories: 50,
       showModal: false,
       selectedCategory: {} as CategoryAdmin,
@@ -70,10 +83,17 @@ export default defineComponent({
     this.fetchCategories();
   },
   computed: {
+    totalPages() {
+      return Math.ceil(this.totalCategories / this.perPage);
+    },
     paginatedCategories() {
-      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-      const endIndex = this.currentPage * this.itemsPerPage;
-      return this.categories.slice(startIndex, endIndex);
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      return this.categories.slice(startIndex, startIndex + this.perPage);
+    },
+    remainingItems() {
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      const remaining = this.categories.length - startIndex;
+      return remaining;
     },
   },
   methods: {

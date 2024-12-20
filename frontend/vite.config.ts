@@ -8,7 +8,8 @@ export default defineConfig({
     rollupOptions: {
       external: [
         'vue-flatpickr-component',
-        'flatpickr/dist/flatpickr.min.css',],
+        'flatpickr/dist/flatpickr.min.css',
+        ],
 
     },
   },

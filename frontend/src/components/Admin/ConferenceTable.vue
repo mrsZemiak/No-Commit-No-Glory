@@ -26,29 +26,39 @@
           <td>{{ formatTimestamp(conference.conferenceDate) }}</td>
           <td>{{ formatTimestamp(conference.submissionDeadline) }}</td>
           <td>
-              <span
-                :class="`badge ${isOngoing(conference) ? 'badge-success' : 'badge-secondary'}`"
-              >
+              <span :class="`badge ${isOngoing(conference) ? 'badge-success' : 'badge-secondary'}`">
                 {{ isOngoing(conference) ? 'Aktuálna' : 'Skončená' }}
               </span>
           </td>
           <td>
-            <button class="btn btn-edit btn-sm" @click="editConference(conference)">
-              Upraviť
-            </button>
+            <button class="btn btn-edit btn-sm ml-2" @click="editConference(conference)">Upraviť</button>
           </td>
         </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="card-footer">
-      <button class="btn btn-primary" @click="prevPage" :disabled="currentPage === 1">Previous</button>
-      <button class="btn btn-primary" @click="nextPage" :disabled="currentPage * itemsPerPage >= totalConferences">
-        Next
-      </button>
-    </div>
+    <footer class="pagination-footer">
+      <div class="pagination">
+        <button
+          class="btn btn-primary"
+          @click="currentPage > 1 && (currentPage--)"
+          :disabled="currentPage === 1"
+        >
+          Previous
+        </button>
+        <span class="pagination-current">Strana {{ currentPage }}</span>
+        <button
+          class="btn btn-primary"
+          @click="currentPage < totalPages && (currentPage++)"
+          :disabled="currentPage === totalPages || remainingItems <= perPage"
+        >
+          Next
+        </button>
+      </div>
+    </footer>
   </div>
+
   <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
     <div class="modal-container">
       <ModalConference
@@ -62,22 +72,17 @@
       />
     </div>
   </div>
-
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 import ModalConference from "@/components/Admin/modalConference.vue";
-import type {ConferenceAdmin, CategoryAdmin} from "@/types/conference";
-import ModalEditUser from "@/components/Admin/modalEditUser.vue";
+import type { ConferenceAdmin, CategoryAdmin } from "@/types/conference";
 import axios from "axios";
-
-
-
 
 export default defineComponent({
   name: "ConferenceTable",
-  components: {ModalEditUser, ModalConference },
+  components: { ModalConference },
   data() {
     return {
       conferences: [
@@ -87,10 +92,6 @@ export default defineComponent({
           location: "New York",
           conferenceDate: new Date("2023-06-01"),
           submissionDeadline: new Date("2023-04-01"),
-          reviewDeadline: new Date("2023-04-15"),
-          revisionDeadline: new Date("2023-05-01"),
-          postConferenceRevisionDeadline: new Date("2023-06-15"),
-          categories: ["67533541dfd23a313e7afe41", "67533541dfd23a313e7afe45"],
         },
         {
           name: "Tech Innovations Conference 2024",
@@ -98,16 +99,12 @@ export default defineComponent({
           location: "San Francisco",
           conferenceDate: new Date("2024-08-20"),
           submissionDeadline: new Date("2024-06-01"),
-          reviewDeadline: new Date("2024-06-20"),
-          revisionDeadline: new Date("2024-07-01"),
-          postConferenceRevisionDeadline: new Date("2024-09-01"),
-          categories: ["67533541dfd23a313e7afe46"],
         },
       ] as ConferenceAdmin[],
       categories: [] as CategoryAdmin[],
       currentPage: 1,
-      itemsPerPage: 10,
-      totalConferences: 30,
+      perPage: 10,
+      totalConferences: 50, //oprav
       showModal: false,
       selectedConference: null as ConferenceAdmin | null,
       modalMode: "add" as "add" | "edit",
@@ -117,11 +114,18 @@ export default defineComponent({
     this.fetchCategories();
   },
   computed: {
+    totalPages() {
+      return Math.ceil(this.totalConferences / this.perPage);
+    },
     paginatedConferences() {
-      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-      const endIndex = this.currentPage * this.itemsPerPage;
-      return this.conferences.slice(startIndex, endIndex);
-    }
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      return this.conferences.slice(startIndex, startIndex + this.perPage);
+    },
+    remainingItems() {
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      const remaining = this.conferences.length - startIndex;
+      return remaining;
+    },
   },
   methods: {
     async fetchCategories() {
@@ -135,14 +139,11 @@ export default defineComponent({
     formatTimestamp(value: number | Date | null): string {
       if (!value) return "N/A";
       const date = value instanceof Date ? value : new Date(value);
-
       const year = date.getFullYear();
       const month = (date.getMonth() + 1).toString().padStart(2, "0");
       const day = date.getDate().toString().padStart(2, "0");
-
       return `${year}-${month}-${day}`;
     },
-
     isOngoing(conference: ConferenceAdmin): boolean {
       const now = new Date().getTime();
       return new Date(conference.conferenceDate).getTime() > now;
@@ -152,30 +153,24 @@ export default defineComponent({
       this.selectedConference = null;
       this.showModal = true;
     },
-
     editConference(conference: ConferenceAdmin) {
       this.modalMode = "edit";
       this.selectedConference = { ...conference };
       this.showModal = true;
     },
-
     addNewConference(newConference: ConferenceAdmin) {
       this.conferences.push(newConference);
       this.closeModal();
     },
-
     updateConference(updatedConference: ConferenceAdmin) {
       const index = this.conferences.findIndex(
         (conf) => conf.name === updatedConference.name && conf.year === updatedConference.year
       );
-
       if (index !== -1) {
         this.conferences[index] = updatedConference;
       }
-
       this.closeModal();
     },
-
     closeModal() {
       this.showModal = false;
     },
@@ -183,13 +178,18 @@ export default defineComponent({
       if (this.currentPage > 1) this.currentPage--;
     },
     nextPage() {
-      if (this.currentPage * this.itemsPerPage < this.totalConferences) this.currentPage++;
+      if (this.currentPage < this.totalPages) this.currentPage++;
     },
-  }
+  },
 });
-
 </script>
 
 <style scoped>
+.pagination-footer {
+  margin-top: 20px;
+}
 
+.pagination button {
+  margin: 0 10px;
+}
 </style>

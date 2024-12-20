@@ -18,7 +18,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr v-for="(work, index) in works" :key="index">
+        <tr v-for="(work, index) in paginatedWorks" :key="index">
           <td>{{ work.name }}</td>
           <td> {{ work.conference }}</td>
           <td>{{ formatTimestamp(work.timestamp) }}</td>
@@ -28,8 +28,8 @@
               </span>
           </td>
           <td>
-            <button @click="viewReview(work)" class="btn btn-edit"> Pozrieť hodnotenie</button>
-            <button @click="editWork(work)" class="btn btn-primary">Upraviť</button>
+            <button @click="viewReview(work)" class="btn btn-primary btn-sm"> Pozrieť hodnotenie</button>
+            <button class="btn btn-edit btn-sm ml-2" @click="editWork(work)">Upraviť</button>
           </td>
         </tr>
         </tbody>
@@ -45,11 +45,11 @@
         >
           Previous
         </button>
-        <span>Strana {{ currentPage }}</span>
+        <span class="pagination-current">Strana {{ currentPage }}</span>
         <button
           class="btn btn-primary"
-          @click="currentPage < Math.ceil(totalWorks / perPage) && (currentPage++)"
-          :disabled="currentPage === Math.ceil(totalWorks / perPage)"
+          @click="currentPage < totalPages && (currentPage++)"
+          :disabled="currentPage === totalPages || remainingItems <= perPage"
         >
           Next
         </button>
@@ -57,8 +57,9 @@
     </footer>
   </div>
 </template>
+
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, computed } from "vue";
 
 interface Work {
   name: string;
@@ -79,8 +80,22 @@ export default defineComponent({
       ] as Work[],
       currentPage: 1,
       perPage: 10,
-      totalWorks: 50,  //toto potom zmeniť
+      totalWorks: 50,
     };
+  },
+  computed: {
+    totalPages() {
+      return Math.ceil(this.totalWorks / this.perPage);
+    },
+    paginatedWorks() {
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      return this.works.slice(startIndex, startIndex + this.perPage);
+    },
+    remainingItems() {
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      const remaining = this.works.length - startIndex;
+      return remaining;
+    },
   },
   methods: {
     formatTimestamp(timestamp: number): string {
@@ -89,15 +104,13 @@ export default defineComponent({
     },
     viewReview(work: Work): void {
       alert(`Viewing review for: ${work.name}`);
-
     },
     editWork(work: Work): void {
       alert(`Editing work: ${work.name}`);
-
     },
   },
 });
 </script>
-<style scoped>
 
+<style scoped>
 </style>
