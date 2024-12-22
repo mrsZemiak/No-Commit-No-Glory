@@ -17,7 +17,7 @@ $black: #000;
 $black: #000;
 $white: #FFF;
 
-
+$border-radius-8: 8px;
 
 .layout {
   display: flex;
@@ -47,7 +47,7 @@ $white: #FFF;
 .modal-container {
   background: white;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: $border-radius-8;
   max-width: 500px;
   width: 100%;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -56,7 +56,7 @@ $white: #FFF;
 
 .card {
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: $border-radius-8;
   overflow: hidden;
   margin: 20px auto;
   max-width: 800px;
@@ -101,7 +101,7 @@ $white: #FFF;
 
 .badge {
   padding: 5px 10px;
-  border-radius: 5px;
+  border-radius: $border-radius-8;
   font-size: 12px;
   color: white;
 }
@@ -126,7 +126,7 @@ $white: #FFF;
 .btn {
   padding: 6px 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: $border-radius-8;
   cursor: pointer;
   font-size: 0.9rem;
 }
@@ -194,7 +194,7 @@ button:disabled {
   padding: 20px;
   background: #f9f9f9;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: $border-radius-8;
 }
 
 .form-group {
@@ -214,7 +214,7 @@ button:disabled {
   padding: 8px;
   font-size: 14px;
   border: 1px solid #ccc;
-  border-radius: 4px;
+  border-radius: $border-radius-8;
 }
 
 .author-row {
@@ -252,7 +252,7 @@ button:disabled {
   padding: 10px 15px;
   margin-bottom: 10px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: $border-radius-8;
   transition: background-color 0.3s;
 }
 
@@ -290,7 +290,7 @@ button:disabled {
   background-color: #007bff;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: $border-radius-8;
 }
 
 .pagination button:disabled {
@@ -307,7 +307,7 @@ button:disabled {
   padding: 20px;
   background-color: #f8f9fa;
   border: 1px solid #ddd;
-  border-radius: 8px;
+  border-radius: $border-radius-8;
 }
 
 .card-profile-image {
@@ -318,7 +318,7 @@ button:disabled {
 .table-card {
   border: rgb(0 0 0 / 18%) 1px solid;
   padding: 1rem 0 1rem 0;
-  border-radius: 0.375rem;
+  border-radius: $border-radius-8;
 }
 
 .table-card .card-header {
@@ -341,6 +341,44 @@ button:disabled {
   cursor: pointer;
   transition: background-color 0.3s ease;
   text-align: center;
-  font-weight: normal !important;
+  font-weight: normal;
   width: fit-content;
+}
+
+.filter-group {
+  margin-bottom: 0.5rem;
+}
+
+.filter-dropdown {
+  position: relative;
+}
+
+.dropdown-content {
+  position: absolute;
+  background-color: $white;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  padding: 10px;
+  width: 250px;
+  border-radius: $border-radius-8;
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-group .filter-checkbox{
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  align-items: center;
+}
+.filter-checkbox input[type="checkbox"] {
+  accent-color: $primary-color;
+  margin-right: 10px;
+}
+.filter-checkbox label {
+  margin-right: 20px;
+}
+
+.filter-dropdown .btn {
+  margin:  0 0 1rem 1rem;
 }

@@ -163,14 +163,6 @@ export default defineComponent({
     closeModal() {
       this.showModal = false;
     },
-
-    prevPage() {
-      if (this.currentPage > 1) this.currentPage--;
-    },
-
-    nextPage() {
-      if (this.currentPage * this.itemsPerPage < this.categories.length) this.currentPage++;
-    },
   },
 
 });

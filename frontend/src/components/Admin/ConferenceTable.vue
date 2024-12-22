@@ -5,6 +5,53 @@
       <button class="btn btn-primary" @click="addConference">Pridať konferenciu</button>
     </div>
 
+    <div class="filters">
+      <div class="filter-dropdown">
+        <button @click="dropdownOpen = !dropdownOpen" class="btn btn-primary">
+          Filter
+        </button>
+        <div v-if="dropdownOpen" class="dropdown-content">
+          <div class="filter-group">
+            <label class="fw-bold">Názov konferencie:</label>
+            <input type="text" class="form-control" v-model="filters.name" placeholder="Filtrovať podľa názvu" />
+          </div>
+
+          <div class="filter-group">
+            <label class="fw-bold">Rok:</label>
+            <input type="number" class="form-control" v-model="filters.year" placeholder="Filtrovať podľa roku" />
+          </div>
+
+          <div class="filter-group">
+            <label class="fw-bold">Miesto:</label>
+            <input type="text" class="form-control" v-model="filters.location" placeholder="Filtrovať podľa miesta" />
+          </div>
+
+          <div class="filter-group">
+            <label class="fw-bold">Stav:</label>
+            <div class="filter-checkbox">
+              <input
+                type="checkbox"
+                value="True"
+                v-model="filters.selectedStatus"
+              />
+              <label>Aktuálna</label>
+              <input
+                type="checkbox"
+                value="False"
+                v-model="filters.selectedStatus"
+              />
+              <label>Skončená</label>
+            </div>
+          </div>
+
+
+          <div class="filter-group">
+            <button @click="resetFilters" class="btn btn-primary btn-sm">Zrušiť filtrovanie</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="table-responsive">
       <table class="table">
         <thead>
@@ -92,6 +139,10 @@ export default defineComponent({
           location: "New York",
           conferenceDate: new Date("2023-06-01"),
           submissionDeadline: new Date("2023-04-01"),
+          reviewDeadline: new Date("2023-04-15"),
+          revisionDeadline: new Date("2023-05-01"),
+          postConferenceRevisionDeadline: new Date("2023-07-01"),
+          categories: ["67533541dfd23a313e7afe41","67533541dfd23a313e7afe43"],
         },
         {
           name: "Tech Innovations Conference 2024",
@@ -99,12 +150,33 @@ export default defineComponent({
           location: "San Francisco",
           conferenceDate: new Date("2024-08-20"),
           submissionDeadline: new Date("2024-06-01"),
+          reviewDeadline: new Date("2024-06-15"),
+          revisionDeadline: new Date("2024-07-01"),
+          postConferenceRevisionDeadline: new Date("2024-09-01"),
+          categories: ["67533541dfd23a313e7afe44", "67533541dfd23a313e7afe41"],
+        },
+        {
+          name: "Innovations Conference 2024",
+          year: 2024,
+          location: "San Francisco",
+          conferenceDate: new Date("2024-08-20"),
+          submissionDeadline: new Date("2024-06-01"),
+          reviewDeadline: new Date("2024-06-15"),
+          revisionDeadline: new Date("2024-07-01"),
+          postConferenceRevisionDeadline: new Date("2024-09-01"),
+          categories: ["67533541dfd23a313e7afe44", "67533541dfd23a313e7afe43"],
         },
       ] as ConferenceAdmin[],
       categories: [] as CategoryAdmin[],
+      filters: {
+        name: "",
+        year: "",
+        location: "",
+        selectedStatus: [] as string[],
+      },
+      dropdownOpen: false,
       currentPage: 1,
       perPage: 10,
-      totalConferences: 50, //oprav
       showModal: false,
       selectedConference: null as ConferenceAdmin | null,
       modalMode: "add" as "add" | "edit",
@@ -115,23 +187,41 @@ export default defineComponent({
   },
   computed: {
     totalPages() {
-      return Math.ceil(this.totalConferences / this.perPage);
+      return Math.ceil(this.filteredConferences.length / this.perPage);
     },
     paginatedConferences() {
       const startIndex = (this.currentPage - 1) * this.perPage;
-      return this.conferences.slice(startIndex, startIndex + this.perPage);
+      return this.filteredConferences.slice(startIndex, startIndex + this.perPage);
     },
     remainingItems() {
       const startIndex = (this.currentPage - 1) * this.perPage;
-      const remaining = this.conferences.length - startIndex;
+      const remaining = this.filteredConferences.length - startIndex;
       return remaining;
+    },
+    filteredConferences() {
+      return this.conferences.filter((conference) => {
+        const matchesName = this.filters.name
+          ? conference.name.toLowerCase().includes(this.filters.name.toLowerCase())
+          : true;
+        const matchesYear = this.filters.year
+          ? conference.year === parseInt(this.filters.year)
+          : true;
+        const matchesLocation = this.filters.location
+          ? conference.location.toLowerCase().includes(this.filters.location.toLowerCase())
+          : true;
+        const matchesStatus = this.filters.selectedStatus.length
+          ? this.filters.selectedStatus.includes(this.isOngoing(conference) ? "True" : "False")
+          : true;
+
+        return matchesName && matchesYear && matchesLocation && matchesStatus;
+      });
     },
   },
   methods: {
     async fetchCategories() {
       try {
         const response = await axios.get("http://localhost:3000/api/categories");
-        this.categories = response.data; // Assign fetched categories
+        this.categories = response.data;
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -174,11 +264,13 @@ export default defineComponent({
     closeModal() {
       this.showModal = false;
     },
-    prevPage() {
-      if (this.currentPage > 1) this.currentPage--;
-    },
-    nextPage() {
-      if (this.currentPage < this.totalPages) this.currentPage++;
+    resetFilters() {
+      this.filters = {
+        name: "",
+        year: "",
+        location: "",
+        selectedStatus: [],
+      };
     },
   },
 });

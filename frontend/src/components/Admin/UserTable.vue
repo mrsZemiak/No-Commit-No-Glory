@@ -5,6 +5,81 @@
         <h3>Správa používateľov</h3>
       </div>
 
+      <div class="filters">
+        <div class="filter-dropdown">
+          <button @click="dropdownOpen = !dropdownOpen" class="btn btn-primary">
+            Filter
+          </button>
+          <div v-if="dropdownOpen" class="dropdown-content">
+            <div class="filter-group">
+              <label class="fw-bold">Meno:</label>
+              <input type="text" class="form-control" v-model="filters.firstName" placeholder="Filtrovať podľa mena" />
+            </div>
+
+            <div class="filter-group">
+              <label class="fw-bold">Priezvisko:</label>
+              <input type="text" class="form-control" v-model="filters.lastName" placeholder="Filtrovať podľa priezviska" />
+            </div>
+
+            <div class="filter-group">
+              <label class="fw-bold">Email:</label>
+              <input type="text" class="form-control" v-model="filters.email" placeholder="Filtrovať podľa emailu" />
+            </div>
+
+            <div class="filter-group">
+              <label class="fw-bold">Univerzita:</label>
+              <input type="text" class="form-control" v-model="filters.university" placeholder="Filtrovať podľa univerzity" />
+            </div>
+
+            <div class="filter-group">
+              <label class="fw-bold">Stav:</label>
+              <div class="filter-checkbox">
+                <input
+                  type="checkbox"
+                  value="True"
+                  v-model="filters.selectedStatus"
+                />
+                <label>Aktívny</label>
+                <input
+                  type="checkbox"
+                  value="False"
+                  v-model="filters.selectedStatus"
+                />
+                <label>Neaktívny</label>
+              </div>
+            </div>
+            <div class="filter-group">
+              <label class="fw-bold">Rola:</label>
+              <div class="filter-checkbox">
+                <input
+                  type="checkbox"
+                  value="participant"
+                  v-model="filters.selectedRole"
+                />
+                <label>Študent</label>
+                <input
+                  type="checkbox"
+                  value="reviewer"
+                  v-model="filters.selectedRole"
+                />
+                <label>Recenzent</label>
+                <input
+                  type="checkbox"
+                  value="admin"
+                  v-model="filters.selectedRole"
+                />
+                <label>Admin</label>
+              </div>
+            </div>
+
+
+            <div class="filter-group">
+              <button @click="resetFilters" class="btn btn-primary btn-sm">Zrušiť filtrovanie</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="table-responsive">
         <table class="table">
           <thead>
@@ -103,25 +178,58 @@ export default defineComponent({
         { firstName: 'Alice', lastName: 'Johnson', email: 'alice.johnson@example.com', university: 'University A', status: 'active', roles: ['participant', 'reviewer'] },
         { firstName: 'Bob', lastName: 'Smith', email: 'bob.smith@example.com', university: 'University B', status: 'inactive', roles: ['admin'] },
       ] as User[],
+      filters: {
+        firstName: '',
+        lastName: '',
+        email: '',
+        university: '',
+        selectedStatus: [] as string[],
+        selectedRole: [] as string[],
+      },
+      dropdownOpen: false,
       currentPage: 1,
       perPage: 10,
-      totalUsers: 50,
       isModalVisible: false,
       selectedUser: {} as User,
     };
   },
   computed: {
     totalPages() {
-      return Math.ceil(this.totalUsers / this.perPage);
+      return Math.ceil(this.filteredUsers.length / this.perPage);
     },
     paginatedUsers() {
       const startIndex = (this.currentPage - 1) * this.perPage;
-      return this.users.slice(startIndex, startIndex + this.perPage);
+      return this.filteredUsers.slice(startIndex, startIndex + this.perPage);
     },
     remainingItems() {
       const startIndex = (this.currentPage - 1) * this.perPage;
-      const remaining = this.users.length - startIndex;
+      const remaining = this.filteredUsers.length - startIndex;
       return remaining;
+    },
+    filteredUsers() {
+      return this.users.filter((user) => {
+        const matchesFirstName = this.filters.firstName
+          ? user.firstName.toLowerCase().includes(this.filters.firstName.toLowerCase())
+          : true;
+        const matchesLastName = this.filters.lastName
+          ? user.lastName.toLowerCase().includes(this.filters.lastName.toLowerCase())
+          : true;
+        const matchesEmail = this.filters.email
+          ? user.email.toLowerCase().includes(this.filters.email.toLowerCase())
+          : true;
+        const matchesUniversity = this.filters.university
+          ? user.university.toLowerCase().includes(this.filters.university.toLowerCase())
+          : true;
+        const matchesStatus = this.filters.selectedStatus.length
+          ? this.filters.selectedStatus.includes(user.status === 'active' ? 'True' : 'False')
+          : true;
+        const matchesRole = this.filters.selectedRole.length
+          ? this.filters.selectedRole.some((role) => user.roles.includes(role))
+          : true;
+
+
+        return matchesFirstName && matchesLastName && matchesEmail && matchesUniversity && matchesStatus && matchesRole;
+      });
     },
   },
   methods: {
@@ -141,6 +249,16 @@ export default defineComponent({
     },
     deleteUser(user: User): void {
       alert(`Deleting user: ${user.firstName} ${user.lastName}`);
+    },
+    resetFilters() {
+      this.filters = {
+        firstName: '',
+        lastName: '',
+        email: '',
+        university: '',
+        selectedStatus: [],
+        selectedRole: [],
+      };
     },
   },
 });

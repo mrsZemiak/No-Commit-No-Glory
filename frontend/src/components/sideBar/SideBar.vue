@@ -38,6 +38,10 @@ const adminLinks: Link[] = [
     name: "Používatelia",
     path: "/auth/users",
   },
+  {
+    name: "Práce",
+    path: "/auth/works"
+  }
 ];
 
 const generalLinksTop: Link[] = [
