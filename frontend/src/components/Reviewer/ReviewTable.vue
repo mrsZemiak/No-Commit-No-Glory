@@ -28,7 +28,7 @@
           </td>
           <td>
             <router-link :to="{ name: 'ReviewForm', params: { id: work.timestamp } }">
-              <button class="btn btn-edit">Hodnotiť</button>
+              <button class="btn btn-edit btn-sm">Hodnotiť</button>
             </router-link>
           </td>
         </tr>
@@ -39,17 +39,17 @@
     <footer class="pagination-footer">
       <div class="pagination">
         <button
-          class="btn-primary"
+          class="btn btn-primary"
           @click="currentPage > 1 && (currentPage--)"
           :disabled="currentPage === 1"
         >
           Previous
         </button>
-        <span>Page {{ currentPage }}</span>
+        <span class="pagination-current">Strana {{ currentPage }}</span>
         <button
-          class="btn-primary"
-          @click="currentPage < Math.ceil(totalWorks / perPage) && (currentPage++)"
-          :disabled="currentPage === Math.ceil(totalWorks / perPage)"
+          class="btn btn-primary"
+          @click="currentPage < totalPages && (currentPage++)"
+          :disabled="currentPage === totalPages || remainingItems <= perPage"
         >
           Next
         </button>
@@ -80,6 +80,20 @@ export default defineComponent({
       perPage: 10,
       totalWorks: 50,  //toto potom zmeniť
     };
+  },
+  computed: {
+    totalPages() {
+      return Math.ceil(this.totalWorks / this.perPage);
+    },
+    paginatedWorks() {
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      return this.works.slice(startIndex, startIndex + this.perPage);
+    },
+    remainingItems() {
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      const remaining = this.works.length - startIndex;
+      return remaining;
+    },
   },
   methods: {
     formatTimestamp(timestamp: number): string {

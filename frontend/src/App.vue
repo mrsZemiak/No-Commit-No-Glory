@@ -10,9 +10,13 @@ import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'App',
+
 });
+
+
+
 </script>
 
 <style lang="scss">
-@use "../src/assets/styles/main.scss";
+@import "@/assets/styles/main.scss";
 </style>

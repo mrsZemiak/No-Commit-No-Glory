@@ -5,6 +5,53 @@
       <button class="btn btn-primary" @click="addConference">Pridať konferenciu</button>
     </div>
 
+    <div class="filters">
+      <div class="filter-dropdown">
+        <button @click="dropdownOpen = !dropdownOpen" class="btn btn-primary">
+          Filter
+        </button>
+        <div v-if="dropdownOpen" class="dropdown-content">
+          <div class="filter-group">
+            <label class="fw-bold">Názov konferencie:</label>
+            <input type="text" class="form-control" v-model="filters.name" placeholder="Filtrovať podľa názvu" />
+          </div>
+
+          <div class="filter-group">
+            <label class="fw-bold">Rok:</label>
+            <input type="number" class="form-control" v-model="filters.year" placeholder="Filtrovať podľa roku" />
+          </div>
+
+          <div class="filter-group">
+            <label class="fw-bold">Miesto:</label>
+            <input type="text" class="form-control" v-model="filters.location" placeholder="Filtrovať podľa miesta" />
+          </div>
+
+          <div class="filter-group">
+            <label class="fw-bold">Stav:</label>
+            <div class="filter-checkbox">
+              <input
+                type="checkbox"
+                value="True"
+                v-model="filters.selectedStatus"
+              />
+              <label>Aktuálna</label>
+              <input
+                type="checkbox"
+                value="False"
+                v-model="filters.selectedStatus"
+              />
+              <label>Skončená</label>
+            </div>
+          </div>
+
+
+          <div class="filter-group">
+            <button @click="resetFilters" class="btn btn-primary btn-sm">Zrušiť filtrovanie</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="table-responsive">
       <table class="table">
         <thead>
@@ -13,7 +60,7 @@
           <th>Rok</th>
           <th>Miesto</th>
           <th>Dátum konferencie</th>
-          <th>Uzávierka prihlášok</th>
+          <th>Odovzdanie prác</th>
           <th>Stav</th>
           <th>Akcie</th>
         </tr>
@@ -26,29 +73,39 @@
           <td>{{ formatTimestamp(conference.conferenceDate) }}</td>
           <td>{{ formatTimestamp(conference.submissionDeadline) }}</td>
           <td>
-              <span
-                :class="`badge ${isOngoing(conference) ? 'badge-success' : 'badge-secondary'}`"
-              >
+              <span :class="`badge ${isOngoing(conference) ? 'badge-success' : 'badge-secondary'}`">
                 {{ isOngoing(conference) ? 'Aktuálna' : 'Skončená' }}
               </span>
           </td>
           <td>
-            <button class="btn btn-edit btn-sm" @click="editConference(conference)">
-              Upraviť
-            </button>
+            <button class="btn btn-edit btn-sm ml-2" @click="editConference(conference)">Upraviť</button>
           </td>
         </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="card-footer">
-      <button class="btn btn-primary" @click="prevPage" :disabled="currentPage === 1">Previous</button>
-      <button class="btn btn-primary" @click="nextPage" :disabled="currentPage * itemsPerPage >= totalConferences">
-        Next
-      </button>
-    </div>
+    <footer class="pagination-footer">
+      <div class="pagination">
+        <button
+          class="btn btn-primary"
+          @click="currentPage > 1 && (currentPage--)"
+          :disabled="currentPage === 1"
+        >
+          Previous
+        </button>
+        <span class="pagination-current">Strana {{ currentPage }}</span>
+        <button
+          class="btn btn-primary"
+          @click="currentPage < totalPages && (currentPage++)"
+          :disabled="currentPage === totalPages || remainingItems <= perPage"
+        >
+          Next
+        </button>
+      </div>
+    </footer>
   </div>
+
   <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
     <div class="modal-container">
       <ModalConference
@@ -62,22 +119,17 @@
       />
     </div>
   </div>
-
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
 import ModalConference from "@/components/Admin/modalConference.vue";
-import type {ConferenceAdmin, CategoryAdmin} from "@/types/conference";
-import ModalEditUser from "@/components/Admin/modalEditUser.vue";
+import type { ConferenceAdmin, CategoryAdmin } from "@/types/conference";
 import axios from "axios";
-
-
-
 
 export default defineComponent({
   name: "ConferenceTable",
-  components: {ModalEditUser, ModalConference },
+  components: { ModalConference },
   data() {
     return {
       conferences: [
@@ -89,8 +141,8 @@ export default defineComponent({
           submissionDeadline: new Date("2023-04-01"),
           reviewDeadline: new Date("2023-04-15"),
           revisionDeadline: new Date("2023-05-01"),
-          postConferenceRevisionDeadline: new Date("2023-06-15"),
-          categories: ["67533541dfd23a313e7afe41", "67533541dfd23a313e7afe45"],
+          postConferenceRevisionDeadline: new Date("2023-07-01"),
+          categories: ["67533541dfd23a313e7afe41","67533541dfd23a313e7afe43"],
         },
         {
           name: "Tech Innovations Conference 2024",
@@ -98,16 +150,33 @@ export default defineComponent({
           location: "San Francisco",
           conferenceDate: new Date("2024-08-20"),
           submissionDeadline: new Date("2024-06-01"),
-          reviewDeadline: new Date("2024-06-20"),
+          reviewDeadline: new Date("2024-06-15"),
           revisionDeadline: new Date("2024-07-01"),
           postConferenceRevisionDeadline: new Date("2024-09-01"),
-          categories: ["67533541dfd23a313e7afe46"],
+          categories: ["67533541dfd23a313e7afe44", "67533541dfd23a313e7afe41"],
+        },
+        {
+          name: "Innovations Conference 2024",
+          year: 2024,
+          location: "San Francisco",
+          conferenceDate: new Date("2024-08-20"),
+          submissionDeadline: new Date("2024-06-01"),
+          reviewDeadline: new Date("2024-06-15"),
+          revisionDeadline: new Date("2024-07-01"),
+          postConferenceRevisionDeadline: new Date("2024-09-01"),
+          categories: ["67533541dfd23a313e7afe44", "67533541dfd23a313e7afe43"],
         },
       ] as ConferenceAdmin[],
       categories: [] as CategoryAdmin[],
+      filters: {
+        name: "",
+        year: "",
+        location: "",
+        selectedStatus: [] as string[],
+      },
+      dropdownOpen: false,
       currentPage: 1,
-      itemsPerPage: 10,
-      totalConferences: 30,
+      perPage: 10,
       showModal: false,
       selectedConference: null as ConferenceAdmin | null,
       modalMode: "add" as "add" | "edit",
@@ -117,17 +186,42 @@ export default defineComponent({
     this.fetchCategories();
   },
   computed: {
+    totalPages() {
+      return Math.ceil(this.filteredConferences.length / this.perPage);
+    },
     paginatedConferences() {
-      const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-      const endIndex = this.currentPage * this.itemsPerPage;
-      return this.conferences.slice(startIndex, endIndex);
-    }
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      return this.filteredConferences.slice(startIndex, startIndex + this.perPage);
+    },
+    remainingItems() {
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      const remaining = this.filteredConferences.length - startIndex;
+      return remaining;
+    },
+    filteredConferences() {
+      return this.conferences.filter((conference) => {
+        const matchesName = this.filters.name
+          ? conference.name.toLowerCase().includes(this.filters.name.toLowerCase())
+          : true;
+        const matchesYear = this.filters.year
+          ? conference.year === parseInt(this.filters.year)
+          : true;
+        const matchesLocation = this.filters.location
+          ? conference.location.toLowerCase().includes(this.filters.location.toLowerCase())
+          : true;
+        const matchesStatus = this.filters.selectedStatus.length
+          ? this.filters.selectedStatus.includes(this.isOngoing(conference) ? "True" : "False")
+          : true;
+
+        return matchesName && matchesYear && matchesLocation && matchesStatus;
+      });
+    },
   },
   methods: {
     async fetchCategories() {
       try {
         const response = await axios.get("http://localhost:3000/api/categories");
-        this.categories = response.data; // Assign fetched categories
+        this.categories = response.data;
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -135,14 +229,11 @@ export default defineComponent({
     formatTimestamp(value: number | Date | null): string {
       if (!value) return "N/A";
       const date = value instanceof Date ? value : new Date(value);
-
       const year = date.getFullYear();
       const month = (date.getMonth() + 1).toString().padStart(2, "0");
       const day = date.getDate().toString().padStart(2, "0");
-
       return `${year}-${month}-${day}`;
     },
-
     isOngoing(conference: ConferenceAdmin): boolean {
       const now = new Date().getTime();
       return new Date(conference.conferenceDate).getTime() > now;
@@ -152,44 +243,45 @@ export default defineComponent({
       this.selectedConference = null;
       this.showModal = true;
     },
-
     editConference(conference: ConferenceAdmin) {
       this.modalMode = "edit";
       this.selectedConference = { ...conference };
       this.showModal = true;
     },
-
     addNewConference(newConference: ConferenceAdmin) {
       this.conferences.push(newConference);
       this.closeModal();
     },
-
     updateConference(updatedConference: ConferenceAdmin) {
       const index = this.conferences.findIndex(
         (conf) => conf.name === updatedConference.name && conf.year === updatedConference.year
       );
-
       if (index !== -1) {
         this.conferences[index] = updatedConference;
       }
-
       this.closeModal();
     },
-
     closeModal() {
       this.showModal = false;
     },
-    prevPage() {
-      if (this.currentPage > 1) this.currentPage--;
+    resetFilters() {
+      this.filters = {
+        name: "",
+        year: "",
+        location: "",
+        selectedStatus: [],
+      };
     },
-    nextPage() {
-      if (this.currentPage * this.itemsPerPage < this.totalConferences) this.currentPage++;
-    },
-  }
+  },
 });
-
 </script>
 
 <style scoped>
+.pagination-footer {
+  margin-top: 20px;
+}
 
+.pagination button {
+  margin: 0 10px;
+}
 </style>

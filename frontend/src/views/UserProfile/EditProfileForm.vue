@@ -52,13 +52,13 @@
         <b-row>
           <b-col lg="6">
             <div class="form-group">
-              <label for="position">Pozícia</label>
+              <label for="position">Univerzita</label>
               <input
                 type="text"
                 id="position"
                 class="form-control"
                 placeholder="Vaša pozícia"
-                v-model="profile.position"
+                v-model="profile.university"
                 required
               />
             </div>
@@ -80,7 +80,7 @@
 
         <b-row class="mt-4">
           <b-col lg="12" class="text-center">
-            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="submit" class="btn btn-primary">Uložiť zmeny</button>
           </b-col>
         </b-row>
       </form>

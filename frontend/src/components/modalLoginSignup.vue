@@ -74,6 +74,18 @@
           <label class="form-label" for="registerEmail">Email</label>
         </div>
 
+        <div data-mdb-input-init class="form-outline mb-4 form-group" >
+
+          <select id="university" style="border: #dee2e6 solid 1px;" required>
+            <option value="ukf">UKF</option>
+            <option value="umb">UMB</option>
+            <option value="ucm">UCM</option>
+
+          </select>
+          <label class="form-label" style="font-weight: normal !important;" for="university">Univerzita</label>
+        </div>
+
+
 
         <div data-mdb-input-init class="form-outline mb-4">
           <input type="password" id="registerPassword" class="form-control" />
@@ -100,6 +112,7 @@
       aria-labelledby="tab-forgot-password"
     >
       <form>
+        <p>Zabudnuté heslo?</p>
         <div data-mdb-input-init class="form-outline mb-4">
           <input type="email" id="forgotPasswordEmail" class="form-control" />
           <label class="form-label" for="forgotPasswordEmail">Email</label>

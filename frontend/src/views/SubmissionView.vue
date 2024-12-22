@@ -93,13 +93,22 @@
 
       <div class="form-group">
         <label for="projectFile">Projektový súbor</label>
-        <input
-          type="file"
-          id="projectFile"
-          @change="handleFileChange"
-          accept=".pdf,.docx"
-          required
-        />
+        <div class="file-upload">
+          <input
+            type="file"
+            id="projectFile"
+            @change="handleFileChange"
+            accept=".pdf,.docx"
+            required
+            class="file-input-submit"
+          />
+          <label for="projectFile" class="custom-file-label btn btn-edit">
+            Vložiť súbor
+          </label>
+          <p v-if="fileName" class="file-name">
+            Vložený súbor: {{ fileName }}
+          </p>
+        </div>
         <small class="form-text text-muted">Akceptované formáty: PDF, Word (.docx)</small>
       </div>
 
@@ -115,6 +124,7 @@ import axios from 'axios';
 
 
 const categories = ref([] as { id: string; name: string }[]);
+const fileName = ref<string>('');
 const conferences = ref([
   { id: "101", name: "Konferencia A" },
   { id: "102", name: "Konferencia B" },
@@ -156,6 +166,7 @@ function handleFileChange(event: Event) {
   const fileInput = event.target as HTMLInputElement;
   const file = fileInput.files ? fileInput.files[0] : null;
   form.value.projectFile = file;
+  fileName.value = file ? file.name : '';
 }
 
 function handleSubmit() {
