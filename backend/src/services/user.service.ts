@@ -1,7 +1,10 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { config } from '../config';
 import User from '../models/User';
 import UserSchema from "../models/User";
+
+
 
 export const findByEmail = async (email: string) => {
     return User.findOne({ email });
@@ -13,9 +16,9 @@ export const verifyPassword = async (plainPassword: string, hashedPassword: stri
 
 export const generateToken = (user: any) => {
     return jwt.sign(
-        { userId: user._id, role: user.role }, // Payload
-        process.env.JWT_SECRET!,             // Secret key
-        { expiresIn: '1h' }                  // Expiry time
+        { userId: user._id, role: user.role },
+        config.jwtSecret!,
+        { expiresIn: '1h' }
     );
 };
 
