@@ -37,4 +37,9 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/participants', participantRoutes);
 app.use('/api/reviewers', reviewerRoutes);
 
+// Default root route
+app.get('/', (req, res) => {
+  res.send('Welcome to the API!');
+});
+
 export default app;

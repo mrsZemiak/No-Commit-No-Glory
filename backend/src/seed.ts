@@ -5,18 +5,40 @@ import User from './models/User';
 import Conference from './models/Conference';
 import Paper from './models/Paper';
 import Review from './models/Review';
-import Question from "./models/Question";
-import Database from "./config/db";
+import Question from './models/Question';
+import Database from './config/db';
+import mongoose from 'mongoose';
 
 dotenv.config();
 
-// Async function for DB connection, seeding and collection creation
+const SEED_LOG_COLLECTION = 'seeding_log';
+
+// Function to check if seeding has already been performed
+const hasAlreadySeeded = async (): Promise<boolean> => {
+    const connection = Database.getInstance().getConnection();
+    const log = await connection.collection(SEED_LOG_COLLECTION).findOne({ seedName: 'initialSeed' });
+    return !!log; // Returns true if the log exists
+};
+
+// Function to mark seeding as complete
+const markAsSeeded = async (): Promise<void> => {
+    const connection = Database.getInstance().getConnection();
+    await connection.collection(SEED_LOG_COLLECTION).insertOne({ seedName: 'initialSeed', date: new Date() });
+};
+
 const prepareDatabase = async () => {
     try {
-        // Initialize the database connection
         const db = Database.getInstance();
-        await db.connect(); // Explicitly wait for the connection to be established
+        await db.connect();
         console.log('Connected to MongoDB.');
+
+        // Check if seeding has already been performed
+        if (await hasAlreadySeeded()) {
+            console.log('Database already seeded. Skipping...');
+            return;
+        }
+
+        console.log('Seeding database...');
 
         // Insert roles
         await Role.insertMany([
@@ -203,6 +225,13 @@ const prepareDatabase = async () => {
         console.log('Questions inserted successfully.');
 
         console.log('Database preparation complete.');
+
+        // Mark as seeded
+        await markAsSeeded();
+        console.log('Seeding marked as complete.');
+
+        // Disconnect from the database
+        await mongoose.disconnect();
 
         // Exit the script successfully
         process.exit(0);
