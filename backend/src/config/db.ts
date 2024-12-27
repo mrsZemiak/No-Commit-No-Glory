@@ -4,10 +4,8 @@ class Database {
     private static instance: Database;
     private connection!: mongoose.Connection;
 
-    //No direct initiation
     private constructor() {}
 
-    //Getting single instance
     public static getInstance(): Database {
         if (!Database.instance) {
             Database.instance = new Database();
@@ -15,20 +13,22 @@ class Database {
         return Database.instance;
     }
 
-    // Connect to the database
     public async connect(): Promise<void> {
-        const dbUri: string = process.env.MONGO_URI || 'mongodb://mongodb:27017/scisubmit';
+        const dbUri = process.env.MONGO_URI;
+        if (!dbUri) {
+            throw new Error('MONGO_URI is not defined in the environment variables');
+        }
+
         try {
-            const connection = await mongoose.connect(dbUri);
+            const connection = await mongoose.connect(dbUri); // No additional options are needed in Mongoose 6+
             this.connection = connection.connection;
-            console.log('Database connected successfully');
-        } catch (err) {
-            console.error('Database connection error:', err);
-            throw new Error('Failed to connect to the database');
+            console.log('Connected to MongoDB Atlas');
+        } catch (error) {
+            console.error('Failed to connect to MongoDB Atlas:', error);
+            throw error;
         }
     }
 
-    // Get the connection object
     public getConnection(): mongoose.Connection {
         if (!this.connection) {
             throw new Error('Database connection has not been established.');

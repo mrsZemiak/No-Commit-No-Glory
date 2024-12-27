@@ -6,26 +6,11 @@ services:
     container_name: backend
     ports:
       - "3000:3000"
-    depends_on:
-      - mongodb
     env_file:
       - ./backend/.env
-    volumes:
-      - ./backend/node_modules:/usr/src/app/node_modules  # Avoid rebuilding dependencies every time
-    restart: always  # Automatically restart the backend on failure
-
-  mongodb:
-    #image: mongo:6
-    build:
-      context: ./backend
-      dockerfile: Dockerfile_mongo # Use a separate Dockerfile for MongoDB
-    container_name: mongodb
-    ports:
-      - "27017:27017"
-    volumes:
-      - ./data/db:/data/db
-      - ./backend/seed.archive:/seed.archive # Mount the seed archive for restoring
-    restart: always  # Ensure MongoDB restarts automatically
+    restart: always
+    depends_on:
+      - frontend
 
   frontend:
     build:
@@ -33,7 +18,5 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - "8080:80"  # Host port 8080 -> Nginx port 80
-    depends_on:
-      - backend
+      - "8080:80"
     restart: always
