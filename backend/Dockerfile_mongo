@@ -1,0 +1,8 @@
+# Use the official MongoDB image
+FROM mongo:6
+
+# Copy the dump file from the backend folder into the container
+COPY seed.archive /seed.archive
+
+# Restore the dump file into the database when the container starts
+CMD ["sh", "-c", "mongorestore --archive=/seed.archive && mongod"]
