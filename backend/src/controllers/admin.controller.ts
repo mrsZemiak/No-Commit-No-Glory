@@ -3,10 +3,11 @@ import User from '../models/User';
 import Conference from '../models/Conference'
 import Category from '../models/Category';
 
+
 //Get all users
 export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
     try {
-        const users = await User.find().populate('role');
+        const users = await User.find();//.populate('role');
         res.status(200).json(users);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch users', error });
@@ -46,6 +47,60 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
         res.status(500).json({ message: 'Failed to create category', error });
     }
 };
+
+//Get all categories
+export const getAllCategories = async (req: Request, res: Response) => {
+    try {
+        const categories = await Category.find();
+        res.json(categories);
+    } catch (err) {
+        console.error('Error fetching categories:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+// Update a category
+export const updateCategory = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { categoryId } = req.params;
+        const { name } = req.body;
+
+        const updatedCategory = await Category.findByIdAndUpdate(
+            categoryId,
+            { name },
+            { new: true }
+        );
+        if (!updatedCategory) {
+            res.status(404).json({ message: 'Category not found' });
+            return;
+        }
+
+        res.status(200).json({ message: 'Category updated successfully', category: updatedCategory });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to update category', error });
+    }
+};
+
+// Delete a category
+export const deleteCategory = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { categoryId } = req.params;
+
+        const deletedCategory = await Category.findByIdAndDelete(categoryId);
+
+        if (!deletedCategory) {
+            res.status(404).json({ message: 'Category not found' });
+            return;
+        }
+
+        res.status(200).json({ message: 'Category deleted successfully', category: deletedCategory });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Failed to delete category', error });
+    }
+};
+
 
 //Get all conferences
 export const getAllConferences = async (_req: Request, res: Response): Promise<void> => {
@@ -114,6 +169,8 @@ export const updateConference = async (req: Request, res: Response): Promise<voi
         res.status(500).json({ message: 'Failed to update conference', error });
     }
 };
+
+
 
 /*
 //Delete conference

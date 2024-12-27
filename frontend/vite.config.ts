@@ -5,15 +5,6 @@ import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
   plugins: [vue()],
-  build: {
-    rollupOptions: {
-      external: [
-        'vue-flatpickr-component',
-        'flatpickr/dist/flatpickr.min.css',
-        ],
-
-    },
-  },
 
   server: {
     proxy: {

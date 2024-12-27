@@ -4,22 +4,22 @@
     <form @submit.prevent="handleSubmit">
 
       <div class="form-group">
-        <label for="firstName">Meno</label>
+        <label for="first_name">Meno</label>
         <input
           type="text"
-          id="firstName"
-          v-model="form.firstName"
+          id="first_name"
+          v-model="form.first_name"
           placeholder="Vaše meno"
           required
         />
       </div>
 
       <div class="form-group">
-        <label for="lastName">Priezvisko</label>
+        <label for="last_name">Priezvisko</label>
         <input
           type="text"
-          id="lastName"
-          v-model="form.lastName"
+          id="last_name"
+          v-model="form.last_name"
           placeholder="Vaše priezvisko"
           required
         />
@@ -132,8 +132,8 @@ const conferences = ref([
 ]);
 
 const form = ref({
-  firstName: "",
-  lastName: "",
+  first_name: "",
+  last_name: "",
   submissionName: "",
   otherAuthors: [] as string[],
   keywords: "",
@@ -145,7 +145,7 @@ const form = ref({
 
 onMounted(async () => {
   try {
-    const response = await axios.get("http://localhost:3000/api/categories"); // Adjust the URL to your API
+    const response = await axios.get("http://localhost:3000/api/admin/categories"); // Adjust the URL to your API
     categories.value = response.data.map((category: any) => ({
       id: category._id.$oid,
       name: category.name,
@@ -180,8 +180,8 @@ function handleSubmit() {
   alert("Form submitted successfully!");
 
   form.value = {
-    firstName: "",
-    lastName: "",
+    first_name: "",
+    last_name: "",
     submissionName: "",
     otherAuthors: [],
     keywords: "",

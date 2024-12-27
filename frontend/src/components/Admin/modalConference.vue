@@ -102,6 +102,7 @@ import type { PropType } from 'vue';
 import type { ConferenceAdmin, CategoryAdmin } from "@/types/conference";
 import flatpickr from 'vue-flatpickr-component';
 
+
 export default defineComponent({
   name: "ModalConference",
   components: {

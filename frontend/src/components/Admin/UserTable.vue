@@ -13,12 +13,12 @@
           <div v-if="dropdownOpen" class="dropdown-content">
             <div class="filter-group">
               <label class="fw-bold">Meno:</label>
-              <input type="text" class="form-control" v-model="filters.firstName" placeholder="Filtrovať podľa mena" />
+              <input type="text" class="form-control" v-model="filters.first_name" placeholder="Filtrovať podľa mena" />
             </div>
 
             <div class="filter-group">
               <label class="fw-bold">Priezvisko:</label>
-              <input type="text" class="form-control" v-model="filters.lastName" placeholder="Filtrovať podľa priezviska" />
+              <input type="text" class="form-control" v-model="filters.last_name" placeholder="Filtrovať podľa priezviska" />
             </div>
 
             <div class="filter-group">
@@ -36,18 +36,19 @@
               <div class="filter-checkbox">
                 <input
                   type="checkbox"
-                  value="True"
+                  value="true"
                   v-model="filters.selectedStatus"
                 />
                 <label>Aktívny</label>
                 <input
                   type="checkbox"
-                  value="False"
+                  value="false"
                   v-model="filters.selectedStatus"
                 />
                 <label>Neaktívny</label>
               </div>
             </div>
+
             <div class="filter-group">
               <label class="fw-bold">Rola:</label>
               <div class="filter-checkbox">
@@ -72,7 +73,6 @@
               </div>
             </div>
 
-
             <div class="filter-group">
               <button @click="resetFilters" class="btn btn-primary btn-sm">Zrušiť filtrovanie</button>
             </div>
@@ -95,22 +95,22 @@
           </thead>
           <tbody>
           <tr v-for="(user, index) in paginatedUsers" :key="index">
-            <td>{{ user.firstName }}</td>
-            <td>{{ user.lastName }}</td>
+            <td>{{ user.first_name }}</td>
+            <td>{{ user.last_name }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.university }}</td>
             <td>
-                <span :class="{
-                  'badge badge-success': user.status === 'active',
-                  'badge badge-secondary': user.status === 'inactive',
-                  'badge badge-warning': user.status !== 'active' && user.status !== 'inactive'
-                }">
-                  {{ user.status === 'active' ? 'aktívny' : (user.status === 'inactive' ? 'neaktívny' : user.status) }}
-                </span>
+                 <span :class="{
+                    'badge badge-success': user.status === 'active',
+                    'badge badge-secondary': user.status === 'inactive',
+                    'badge badge-warning': user.status !== 'active' && user.status !== 'inactive'
+                  }">
+                    {{ user.status === 'active' ? 'aktívny' : (user.status === 'inactive' ? 'neaktívny' : user.status) }}
+                  </span>
             </td>
             <td>
-                <span v-for="(role, i) in user.roles" :key="i" class="badge badge-info">
-                  {{ role }}
+                <span class="badge badge-info">
+                  {{ user.role.name }}
                 </span>
             </td>
             <td>
@@ -152,19 +152,18 @@
   </div>
 </template>
 
-
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import ModalEditUser from './modalEditUser.vue';
 import axios from "axios";
 
 interface User {
-  firstName: string;
-  lastName: string;
+  first_name: string;
+  last_name: string;
   email: string;
   university: string;
   status: string;
-  roles: string[];
+  role: { name: string };
 }
 
 export default defineComponent({
@@ -174,13 +173,10 @@ export default defineComponent({
   },
   data() {
     return {
-      users: [
-        { firstName: 'Alice', lastName: 'Johnson', email: 'alice.johnson@example.com', university: 'University A', status: 'active', roles: ['participant', 'reviewer'] },
-        { firstName: 'Bob', lastName: 'Smith', email: 'bob.smith@example.com', university: 'University B', status: 'inactive', roles: ['admin'] },
-      ] as User[],
+      users: [] as User[],
       filters: {
-        firstName: '',
-        lastName: '',
+        first_name: '',
+        last_name: '',
         email: '',
         university: '',
         selectedStatus: [] as string[],
@@ -208,11 +204,11 @@ export default defineComponent({
     },
     filteredUsers() {
       return this.users.filter((user) => {
-        const matchesFirstName = this.filters.firstName
-          ? user.firstName.toLowerCase().includes(this.filters.firstName.toLowerCase())
+        const matchesfirst_name = this.filters.first_name
+          ? user.first_name.toLowerCase().includes(this.filters.first_name.toLowerCase())
           : true;
-        const matchesLastName = this.filters.lastName
-          ? user.lastName.toLowerCase().includes(this.filters.lastName.toLowerCase())
+        const matcheslast_name = this.filters.last_name
+          ? user.last_name.toLowerCase().includes(this.filters.last_name.toLowerCase())
           : true;
         const matchesEmail = this.filters.email
           ? user.email.toLowerCase().includes(this.filters.email.toLowerCase())
@@ -221,18 +217,25 @@ export default defineComponent({
           ? user.university.toLowerCase().includes(this.filters.university.toLowerCase())
           : true;
         const matchesStatus = this.filters.selectedStatus.length
-          ? this.filters.selectedStatus.includes(user.status === 'active' ? 'True' : 'False')
+          ? this.filters.selectedStatus.includes(user.status ? 'true' : 'false')
           : true;
         const matchesRole = this.filters.selectedRole.length
-          ? this.filters.selectedRole.some((role) => user.roles.includes(role))
+          ? this.filters.selectedRole.includes(user.role.name.toLowerCase())
           : true;
 
-
-        return matchesFirstName && matchesLastName && matchesEmail && matchesUniversity && matchesStatus && matchesRole;
+        return matchesfirst_name && matcheslast_name && matchesEmail && matchesUniversity && matchesStatus && matchesRole;
       });
     },
   },
   methods: {
+    async fetchUsers() {
+      try {
+        const response = await axios.get("http://localhost:3000/api/admin/users")
+        this.users = response.data;
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    },
     editUser(user: User): void {
       this.selectedUser = { ...user };
       this.isModalVisible = true;
@@ -248,18 +251,21 @@ export default defineComponent({
       this.closeModal();
     },
     deleteUser(user: User): void {
-      alert(`Deleting user: ${user.firstName} ${user.lastName}`);
+      alert(`Deleting user: ${user.first_name} ${user.last_name}`);
     },
     resetFilters() {
       this.filters = {
-        firstName: '',
-        lastName: '',
+        first_name: '',
+        last_name: '',
         email: '',
         university: '',
         selectedStatus: [],
         selectedRole: [],
       };
     },
+  },
+  mounted() {
+    this.fetchUsers();
   },
 });
 </script>

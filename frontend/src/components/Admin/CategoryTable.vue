@@ -99,9 +99,9 @@ export default defineComponent({
   methods: {
     async fetchCategories() {
       try {
-        const response = await axios.get("http://localhost:3000/api/categories");
+        const response = await axios.get("http://localhost:3000/api/admin/categories");
         this.categories = response.data.map((category: CategoryAdmin) => ({
-          id: category._id,
+          _id: category._id,
           name: category.name,
         }));
       } catch (error) {
@@ -123,13 +123,17 @@ export default defineComponent({
 
     async addNewCategory(newCategory: CategoryAdmin) {
       try {
-        const response = await axios.post("http://localhost:3000/api/categories", {
+        const response = await axios.post("http://localhost:3000/api/admin/categories", {
           name: newCategory.name,
         });
-        this.categories.push({
-          _id: response.data._id.$oid,
+
+        const addedCategory = {
+          _id: response.data.id,
           name: newCategory.name,
-        });
+        };
+
+        this.categories.push(addedCategory);
+        this.totalCategories += 1;
         this.closeModal();
       } catch (error) {
         console.error("Error adding category:", error);
@@ -138,7 +142,7 @@ export default defineComponent({
 
     async updateCategory(updatedCategory: CategoryAdmin) {
       try {
-        const response = await axios.put(`http://localhost:3000/api/categories/${updatedCategory._id}`, {
+        const response = await axios.put(`http://localhost:3000/api/admin/categories/${updatedCategory._id}`, {
           name: updatedCategory.name,
         });
         const index = this.categories.findIndex((category) => category._id === updatedCategory._id);
@@ -153,7 +157,7 @@ export default defineComponent({
 
     async deleteCategory(categoryId: string) {
       try {
-        await axios.delete(`http://localhost:3000/api/categories/${categoryId}`);
+        await axios.delete(`http://localhost:3000/api/admin/categories/${categoryId}`);
         this.categories = this.categories.filter((category) => category._id !== categoryId);
       } catch (error) {
         console.error("Error deleting category:", error);

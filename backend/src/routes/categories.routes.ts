@@ -1,3 +1,4 @@
+/*
 import { Router, Request, Response } from 'express';
 import Category from '../models/Category';
 
@@ -26,7 +27,7 @@ router.post('/categories', async (req: Request, res: Response) => {
     }
 });
 
-/* treba toto pozrieť
+/!* treba toto pozrieť
 
 router.put('/categories/:id', async (req: Request, res: Response) => {
     try {
@@ -57,6 +58,7 @@ router.delete('/categories/:id', async (req: Request, res: Response) => {
         console.error('Error deleting category:', err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
-});*/
+});*!/
 
 export default router;
+*/

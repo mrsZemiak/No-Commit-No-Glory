@@ -3,12 +3,12 @@
     <h4>Úprava používateľa</h4>
     <form @submit.prevent="updateUser">
       <div class="form-group">
-        <label for="firstName">Meno</label>
-        <input type="text" v-model="user.firstName" id="firstName" required />
+        <label for="first_name">Meno</label>
+        <input type="text" v-model="user.first_name" id="first_name" required />
       </div>
       <div class="form-group">
-        <label for="lastName">Priezvisko</label>
-        <input type="text" v-model="user.lastName" id="lastName" required />
+        <label for="last_name">Priezvisko</label>
+        <input type="text" v-model="user.last_name" id="last_name" required />
       </div>
       <div class="form-group">
         <label for="email">Email</label>
