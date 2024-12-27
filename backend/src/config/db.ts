@@ -5,9 +5,7 @@ class Database {
     private connection!: mongoose.Connection;
 
     //No direct initiation
-    private constructor() {
-        this.connect();
-    }
+    private constructor() {}
 
     //Getting single instance
     public static getInstance(): Database {
@@ -17,22 +15,24 @@ class Database {
         return Database.instance;
     }
 
-    //Connection to database
-    private connect(): void {
-        const dbUri: string = process.env.DB_URI || 'mongodb://localhost:27017/scisubmit';
-        mongoose
-            .connect(dbUri)
-            .then(() => {
-                console.log('Database connected successfully');
-                this.connection = mongoose.connection;
-            })
-            .catch(err => {
-                console.error('Database connection error:', err);
-            });
+    // Connect to the database
+    public async connect(): Promise<void> {
+        const dbUri: string = process.env.MONGO_URI || 'mongodb://mongodb:27017/scisubmit';
+        try {
+            const connection = await mongoose.connect(dbUri);
+            this.connection = connection.connection;
+            console.log('Database connected successfully');
+        } catch (err) {
+            console.error('Database connection error:', err);
+            throw new Error('Failed to connect to the database');
+        }
     }
 
-    //Get object from connection
+    // Get the connection object
     public getConnection(): mongoose.Connection {
+        if (!this.connection) {
+            throw new Error('Database connection has not been established.');
+        }
         return this.connection;
     }
 }
