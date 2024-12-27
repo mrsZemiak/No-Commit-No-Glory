@@ -117,9 +117,9 @@
 
 
 <script lang="ts">
-import { defineComponent, computed } from "vue";
+import { defineComponent } from "vue";
 
-interface Work {
+export interface Work {
   name: string;
   conference: string;
   timestamp: number;
@@ -160,7 +160,6 @@ export default defineComponent({
       const remaining = this.filteredWorks.length - startIndex;
       return remaining;
     },
-
     filteredWorks() {
       return this.works.filter((work) => {
         const matchesName =
