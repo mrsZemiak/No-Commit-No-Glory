@@ -14,12 +14,9 @@ dotenv.config();
 const prepareDatabase = async () => {
     try {
         // Initialize the database connection
-        Database.getInstance();
+        const db = Database.getInstance();
+        await db.connect(); // Explicitly wait for the connection to be established
         console.log('Connected to MongoDB.');
-
-        // Clear the roles collection
-        await Role.deleteMany({});
-        console.log('Cleared the roles collection.');
 
         // Insert roles
         await Role.insertMany([

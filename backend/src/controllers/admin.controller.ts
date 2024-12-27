@@ -1,10 +1,7 @@
 import { Request, Response } from 'express';
-import Database from '../config/db';
-
-const db = Database.getInstance();
-const User = db.getConnection().model('User');
-const Conference = db.getConnection().model('Conference');
-const Category = db.getConnection().model('Category');
+import User from '../models/User';
+import Conference from '../models/Conference'
+import Category from '../models/Category';
 
 //Get all users
 export const getAllUsers = async (req: Request, res: Response): Promise<void> => {

@@ -11,10 +11,24 @@ dotenv.config(); //Load environment variables from .env
 
 const app = express();
 
-Database.getInstance(); //Initialize database
-
 //Middleware
 app.use(express.json());
+
+// Initialize database
+const initializeDatabase = async () => {
+  try {
+    const db = Database.getInstance();
+    await db.connect(); // Wait for the database to connect
+  } catch (error) {
+    console.error('Failed to connect to the database:', error);
+    process.exit(1); // Exit the process if the database connection fails
+  }
+};
+
+initializeDatabase().catch((error) => {
+  console.error('Database initialization error:', error);
+  process.exit(1);
+});
 
 //Routes
 app.use('/api/users', userRoutes);
@@ -23,5 +37,4 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/participants', participantRoutes);
 app.use('/api/reviewers', reviewerRoutes);
 
-//Export the app for testing or server use
 export default app;

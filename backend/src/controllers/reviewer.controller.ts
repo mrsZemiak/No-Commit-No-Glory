@@ -1,9 +1,6 @@
 import { Request, Response } from 'express';
-import Database from '../config/db';
-
-const db = Database.getInstance();
-const Review = db.getConnection().model('Review');
-const Paper = db.getConnection().model('Paper');
+import Review from '../models/Review';
+import Paper from '../models/Paper';
 
 // Reviewer: View assigned papers
 export const viewAssignedPapers = async (req: Request, res: Response): Promise<void> => {

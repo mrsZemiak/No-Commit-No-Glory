@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import argon2 from 'argon2';
 import {config} from "../config";
 import User from '../models/User';
 
@@ -16,7 +16,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         }
 
         // Verify password
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await argon2.verify(password, user.password);
         if (!isMatch) {
             res.status(401).json({ message: 'Invalid credentials' });
             return;

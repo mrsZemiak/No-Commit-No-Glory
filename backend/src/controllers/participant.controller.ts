@@ -1,8 +1,5 @@
 import { Request, Response } from 'express';
-import Database from '../config/db';
-
-const db = Database.getInstance();
-const Paper = db.getConnection().model('Paper');
+import Paper from '../models/Paper'
 
 // Participant: Submit a new paper
 export const submitPaper = async (req: Request, res: Response): Promise<void> => {

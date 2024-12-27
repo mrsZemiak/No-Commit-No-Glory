@@ -6,6 +6,7 @@ import {
     validateRequest,
     verifyEmailValidationRules
 } from '../middleware/validation';
+import { authenticateToken } from '../middleware/authenticateToken'
 
 const router = Router();
 
@@ -13,10 +14,10 @@ const router = Router();
 router.post('/register', registerValidationRules, validateRequest, registerUser);
 router.get('/verify-email/:token', verifyEmailValidationRules, verifyEmail);
 // Get user profile
-router.get('/profile', getUserProfile);
+router.get('/profile', authenticateToken, getUserProfile);
 
 // Update user profile
-router.put('/profile', updateProfileValidationRules, validateRequest, updateUserProfile);
+router.put('/profile', authenticateToken, updateProfileValidationRules, validateRequest, updateUserProfile);
 
 
 export default router;
