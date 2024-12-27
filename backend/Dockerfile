@@ -2,7 +2,7 @@
 FROM node:20
 
 # Create and set the working directory
-WORKDIR usr/src/app
+WORKDIR /usr/src/app
 
 # Copy packages for dependencies installation first
 COPY package*.json ./
@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 3000
 
 # Start the application using server.ts
-CMD ["npm", "start"]
+CMD ["npx", "ts-node", "src/server.ts"]
