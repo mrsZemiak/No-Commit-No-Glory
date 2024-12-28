@@ -13,6 +13,7 @@ import ConferenceTable from "@/components/Admin/ConferenceTable.vue";
 import CategoryTable from "@/components/Admin/CategoryTable.vue";
 import UserTable from "@/components/Admin/UserTable.vue";
 import WorksTable from "@/components/Admin/WorksTable.vue";
+import ReviewResult from "@/components/Participant/ReviewResult.vue";
 
 
 const routes = [
@@ -43,6 +44,12 @@ const routes = [
         name: 'ReviewForm',
         component: ReviewForm,
         props: true
+      },
+      {
+        path: 'review-result/:id',
+        name: 'ReviewResult',
+        component: ReviewResult,
+        props: true,
       },
     ],
   },

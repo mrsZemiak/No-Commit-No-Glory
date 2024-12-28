@@ -25,9 +25,9 @@ export const submitPaper = async (req: Request, res: Response): Promise<void> =>
 // Participant: View all papers submitted by the user
 export const viewMyPapers = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { userId } = req.body;
+        const { userId } = req.query; //body;
 
-        const papers = await Paper.find({ user: userId });
+        const papers = await Paper.find({ user: userId }).populate('category', 'name');
         res.status(200).json(papers);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch papers', error });

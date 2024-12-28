@@ -1,4 +1,4 @@
-<template xmlns="http://www.w3.org/1999/html">
+<template>
   <div class="table-card">
     <div class="card-header">
       <header class="table-header">
@@ -18,40 +18,54 @@
             <input
               type="text"
               class="form-control"
-              v-model="filters.name"
+              v-model="filters.title"
               placeholder="Filtrovať podľa názvu"
             />
           </div>
 
           <div class="filter-group">
-            <label class="fw-bold">Konferencia:</label>
+            <label class="fw-bold">Kategória:</label>
             <input
               type="text"
               class="form-control"
-              v-model="filters.conference"
+              v-model="filters.category"
               placeholder="Filtrovať podľa konferencie"
             />
           </div>
 
           <div class="filter-group">
-            <div class="filter-checkbox">
-              <label class="fw-bold">Hodnotenie:</label>
-              <div>
-                <input
-                  type="checkbox"
-                  value="true"
-                  v-model="filters.selectedReviews"
-                />
-                <label>Ohodnotené</label>
-              </div>
-              <div>
-                <input
-                  type="checkbox"
-                  value="false"
-                  v-model="filters.selectedReviews"
-                />
-                <label>Neohodnotené</label>
-              </div>
+            <label class="fw-bold">Stav práce:</label>
+            <div>
+              <input
+                type="checkbox"
+                value="submitted"
+                v-model="filters.selectedReviews"
+              />
+              <label>Odoslané</label>
+            </div>
+            <div>
+              <input
+                type="checkbox"
+                value="under_review"
+                v-model="filters.selectedReviews"
+              />
+              <label>V procese hodnotenia</label>
+            </div>
+            <div>
+              <input
+                type="checkbox"
+                value="approved"
+                v-model="filters.selectedReviews"
+              />
+              <label>Schválené</label>
+            </div>
+            <div>
+              <input
+                type="checkbox"
+                value="rejected"
+                v-model="filters.selectedReviews"
+              />
+              <label>Zamietnuté</label>
             </div>
           </div>
 
@@ -67,7 +81,7 @@
         <thead>
         <tr>
           <th>Názov</th>
-          <th>Konferencia</th>
+          <th>Kategória</th>
           <th>Čas poslania</th>
           <th>Hodnotenie</th>
           <th>Akcie</th>
@@ -75,12 +89,19 @@
         </thead>
         <tbody>
         <tr v-for="(work, index) in paginatedWorks" :key="index">
-          <td>{{ work.name }}</td>
-          <td>{{ work.conference }}</td>
-          <td>{{ formatTimestamp(work.timestamp) }}</td>
+          <td>{{ work.title }}</td>
+          <td>{{ work.category.name }}</td>
+          <td>{{ formatTimestamp(work.submission_date) }}</td>
           <td>
-              <span :class="work.reviewed ? 'badge badge-success' : 'badge badge-secondary'">
-                {{ work.reviewed ? "Ohodnotené" : "Neohodnotené" }}
+            <span
+              :class="{
+                  'badge badge-secondary': work.status === 'submitted',
+                  'badge badge-warning': work.status === 'under_review',
+                  'badge badge-success': work.status === 'approved',
+                  'badge badge-danger': work.status === 'rejected',
+                }"
+            >
+                {{ statusLabels[work.status] || "Neznámy stav" }}
               </span>
           </td>
           <td>
@@ -118,33 +139,35 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import axios from "axios";
 
-export interface Work {
-  name: string;
-  conference: string;
-  timestamp: number;
-  reviewed: boolean;
+export interface Paper {
+  title: string;
+  category: { name: string };
+  submission_date: number;
+  status: 'submitted' | 'under_review' | 'approved' | 'rejected';
 }
 
 export default defineComponent({
   name: "ParticipantWorksTable",
   data() {
     return {
-      works: [
-        { name: "Math Assignment 1", conference: "A", timestamp: 1678901234000, reviewed: true },
-        { name: "History Essay", conference: "B", timestamp: 1678992345000, reviewed: false },
-        { name: "Physics Lab Report", conference: "A", timestamp: 1679083456000, reviewed: true },
-        { name: "Literature Review", conference: "A", timestamp: 1679174567000, reviewed: false },
-        { name: "Literature Review", conference: "A", timestamp: 1679174567000, reviewed: false },
-      ] as Work[],
+      works: [] as Paper[],
       filters: {
-        name: "",
-        conference: "",
+        title: "",
+        category: "",
         selectedReviews: [] as string[],
       },
       dropdownOpen: false,
       currentPage: 1,
       perPage: 10,
+      error: "",
+      statusLabels: {
+        submitted: "Odoslané",
+        under_review: "V procese hodnotenia",
+        approved: "Schválené",
+        rejected: "Zamietnuté",
+      },
     };
   },
   computed: {
@@ -163,35 +186,48 @@ export default defineComponent({
     filteredWorks() {
       return this.works.filter((work) => {
         const matchesName =
-          this.filters.name === "" ||
-          work.name.toLowerCase().includes(this.filters.name.toLowerCase());
+          this.filters.title === "" ||
+          work.title.toLowerCase().includes(this.filters.title.toLowerCase());
         const matchesConference =
-          this.filters.conference.length === 0 ||
-          this.filters.conference.includes(work.conference);
+          this.filters.category.length === 0 ||
+          this.filters.category.includes(work.category.name);
         const matchesReviewed =
           this.filters.selectedReviews.length === 0 ||
-          this.filters.selectedReviews.includes(String(work.reviewed));
+          this.filters.selectedReviews.includes(String(work.status));
         return matchesName && matchesConference && matchesReviewed;
       });
     },
   },
   methods: {
+    async fetchPapers() {
+      try {
+        const response = await axios.get("http://localhost:3000/api/participants/papers", {
+          params: {userId: "676edcaa19ea5a907dc17565"}, // vymaž po logine
+        });
+        this.works = response.data;
+      } catch (err) {
+        this.error = "Nepodarilo sa načítať práce.";
+      }
+    },
     formatTimestamp(timestamp: number): string {
       const date = new Date(timestamp);
       return date.toLocaleString();
     },
-    viewReview(work: Work): void {
-      alert(`Viewing review for: ${work.name}`);
+    viewReview(work: Paper): void {
+        this.$router.push({ name: 'ReviewResult', params: { id: work.title } }); //zmeň
     },
-    editWork(work: Work): void {
-      alert(`Editing work: ${work.name}`);
+    editWork(work: Paper): void {
+      alert(`Editing work: ${work.title}`);
     },
     resetFilters(): void {
-      this.filters.name = "";
-      this.filters.conference = "";
+      this.filters.title = "";
+      this.filters.category = "";
       this.filters.selectedReviews = [];
     },
   },
+  mounted() {
+    this.fetchPapers();
+  }
 });
 </script>
 
