@@ -33,6 +33,6 @@ const ConferenceSchema: Schema = new Schema({
     deadline_review: { type: Date, required: true },
     created_at: { type: Date, default: Date.now },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User',required: true }  //Admin who created the conference
-});
+}, { collection: 'conferences' });
 
 export default mongoose.model<IConference>('Conference', ConferenceSchema);

@@ -25,6 +25,6 @@ const UserSchema: Schema = new Schema({
     created_at: { type: Date, default: Date.now },
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String, required: false },
-});
+}, { collection: 'users' });
 
 export default mongoose.model<IUser>('User', UserSchema);
