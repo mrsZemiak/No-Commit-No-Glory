@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import User from './User'; // Import the User model
-import Role from './Role'; // Import the Role model
+import User from './User';
+import Role from './Role';
 
 export interface IConference extends Document {
     year: number;
@@ -26,6 +26,9 @@ const ConferenceSchema: Schema = new Schema({
             },
             message: 'Year must be a valid four-digit year.'
         }},
+    location: { type: String, required: true },
+    university: { type: String, required: true },
+    status: { type: String, required: true, default: 'upcoming' },
     start_date: { type: Date, required: true },
     end_date: { type: Date, required: true },
     categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],  //Reusing global categories

@@ -2,12 +2,13 @@ import { Request, Response } from 'express';
 import User from '../models/User';
 import Conference from '../models/Conference'
 import Category from '../models/Category';
+import Paper from "../models/Paper";
 
 
 //Get all users
 export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
     try {
-        const users = await User.find();//.populate('role');
+        const users = await User.find(); //.populate('role'); Oprav
         res.status(200).json(users);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch users', error });
@@ -116,6 +117,7 @@ export const getAllConferences = async (_req: Request, res: Response): Promise<v
 //Create a new conference
 export const createConference = async (req: Request, res: Response): Promise<void> => {
     try {
+        console.log('Received data:', req.body);
         const {
             year,
             location,
@@ -169,7 +171,15 @@ export const updateConference = async (req: Request, res: Response): Promise<voi
         res.status(500).json({ message: 'Failed to update conference', error });
     }
 };
-
+//Get all papers
+export const viewAllPapers = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const papers = await Paper.find().populate('category', 'name').populate('conference', 'year location university status').populate('user', 'first_name last_name');
+        res.status(200).json(papers);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch papers', error });
+    }
+};
 
 
 /*

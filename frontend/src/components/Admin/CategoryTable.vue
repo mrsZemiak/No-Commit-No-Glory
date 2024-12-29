@@ -14,7 +14,7 @@
       </thead>
       <tbody>
       <tr v-for="category in paginatedCategories" :key="category._id">
-        <td>{{ category.name }}</td>
+        <td>{{ category.name }} </td>
         <td>
           <button class="btn btn-edit btn-sm" @click="openEditModal(category)">Upraviť</button>
           <button class="btn btn-delete btn-sm" @click="deleteCategory(category._id)">Odstrániť</button>

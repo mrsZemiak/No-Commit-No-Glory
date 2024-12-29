@@ -8,10 +8,10 @@ export interface IPaper extends Document {
     final_submission: boolean;
     user: mongoose.Schema.Types.ObjectId;
     category: mongoose.Schema.Types.ObjectId;
-    conference: mongoose.Schema.Types.ObjectId; // Link to conference
-    abstract: string; // New field for paper abstract
-    keywords: string[]; // New field for paper keywords
-    authors: { firstName: string; lastName: string }[]; // New field for additional authors
+    conference: mongoose.Schema.Types.ObjectId;
+    abstract: string;
+    keywords: string[];
+    authors: { firstName: string; lastName: string }[];
     created_at: Date;
     updated_at: Date;
 }

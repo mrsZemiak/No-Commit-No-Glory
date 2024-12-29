@@ -110,7 +110,7 @@
             </td>
             <td>
                 <span class="badge badge-info">
-                  {{ user.role.name }}
+                  {{ user.role}}
                 </span>
             </td>
             <td>
@@ -163,7 +163,7 @@ interface User {
   email: string;
   university: string;
   status: string;
-  role: { name: string };
+  role: string;
 }
 
 export default defineComponent({
@@ -220,7 +220,7 @@ export default defineComponent({
           ? this.filters.selectedStatus.includes(user.status ? 'true' : 'false')
           : true;
         const matchesRole = this.filters.selectedRole.length
-          ? this.filters.selectedRole.includes(user.role.name.toLowerCase())
+          ? this.filters.selectedRole.includes(user.role.toLowerCase())
           : true;
 
         return matchesfirst_name && matcheslast_name && matchesEmail && matchesUniversity && matchesStatus && matchesRole;

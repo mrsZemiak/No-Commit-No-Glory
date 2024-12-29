@@ -29,7 +29,17 @@
               type="text"
               class="form-control"
               v-model="filters.category"
-              placeholder="Filtrovať podľa konferencie"
+              placeholder="Filtrovať podľa kategórie"
+            />
+          </div>
+
+          <div class="filter-group">
+            <label class="fw-bold">Rok konferencie:</label>
+            <input
+              type="number"
+              class="form-control"
+              v-model="filters.year"
+              placeholder="Filtrovať podľa roka konferencie"
             />
           </div>
 
@@ -83,6 +93,7 @@
           <th>Názov</th>
           <th>Kategória</th>
           <th>Čas poslania</th>
+          <th>Rok konferencie</th>
           <th>Hodnotenie</th>
           <th>Akcie</th>
         </tr>
@@ -92,13 +103,15 @@
           <td>{{ work.title }}</td>
           <td>{{ work.category.name }}</td>
           <td>{{ formatTimestamp(work.submission_date) }}</td>
+          <td>{{ work.conference.year }}</td>
           <td>
             <span
               :class="{
                   'badge badge-secondary': work.status === 'submitted',
-                  'badge badge-warning': work.status === 'under_review',
-                  'badge badge-success': work.status === 'approved',
+                  'badge badge-warning': work.status === 'under review',
+                  'badge badge-success': work.status === 'accepted',
                   'badge badge-danger': work.status === 'rejected',
+                  'badge badge-primary': work.status === 'draft',
                 }"
             >
                 {{ statusLabels[work.status] || "Neznámy stav" }}
@@ -145,7 +158,8 @@ export interface Paper {
   title: string;
   category: { name: string };
   submission_date: number;
-  status: 'submitted' | 'under_review' | 'approved' | 'rejected';
+  status: 'submitted' | 'under review' | 'accepted' | 'rejected' | 'draft' ;
+  conference: { year: number };
 }
 
 export default defineComponent({
@@ -157,17 +171,19 @@ export default defineComponent({
         title: "",
         category: "",
         selectedReviews: [] as string[],
+        year: null as number | null,
       },
       dropdownOpen: false,
       currentPage: 1,
       perPage: 10,
       error: "",
       statusLabels: {
+        draft: "Návrh",
         submitted: "Odoslané",
-        under_review: "V procese hodnotenia",
-        approved: "Schválené",
+        'under review': "V procese hodnotenia",
+        accepted: "Schválené",
         rejected: "Zamietnuté",
-      },
+      }
     };
   },
   computed: {
@@ -188,13 +204,15 @@ export default defineComponent({
         const matchesName =
           this.filters.title === "" ||
           work.title.toLowerCase().includes(this.filters.title.toLowerCase());
-        const matchesConference =
+        const matchesCategory =
           this.filters.category.length === 0 ||
           this.filters.category.includes(work.category.name);
+        const matchesYear =
+          this.filters.year === null || work.conference.year === this.filters.year;
         const matchesReviewed =
           this.filters.selectedReviews.length === 0 ||
           this.filters.selectedReviews.includes(String(work.status));
-        return matchesName && matchesConference && matchesReviewed;
+        return matchesName && matchesCategory && matchesYear && matchesReviewed;
       });
     },
   },
@@ -223,6 +241,7 @@ export default defineComponent({
       this.filters.title = "";
       this.filters.category = "";
       this.filters.selectedReviews = [];
+      this.filters.year = null;
     },
   },
   mounted() {
