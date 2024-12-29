@@ -1,6 +1,4 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import User from './User';
-import Role from './Role';
 
 export interface IConference extends Document {
     year: number;
@@ -25,10 +23,11 @@ const ConferenceSchema: Schema = new Schema({
                 return value >= 2010 && value <= currentYear + 5;  //Allows years up to 5 years into the future
             },
             message: 'Year must be a valid four-digit year.'
-        }},
-    location: { type: String, required: true },
-    university: { type: String, required: true },
-    status: { type: String, required: true, default: 'upcoming' },
+        }
+    },
+    location: { type: String, required: true }, // Add location
+    university: { type: String, required: true }, // Add university
+    status: { type: String, default: 'upcoming' }, // Add status with default
     start_date: { type: Date, required: true },
     end_date: { type: Date, required: true },
     categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],  //Reusing global categories

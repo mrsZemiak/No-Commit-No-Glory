@@ -20,6 +20,6 @@ const QuestionSchema: Schema = new Schema({
         choices: [{ type: String }],
     },
     category: { type: String },
-});
+}, { collection: 'questions' });
 
 export default mongoose.model<IQuestion>('Question', QuestionSchema);

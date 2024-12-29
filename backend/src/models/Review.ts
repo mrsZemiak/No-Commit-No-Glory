@@ -30,6 +30,6 @@ const ReviewSchema: Schema = new Schema({
         required: true,
     },
     created_at: { type: Date, default: Date.now },
-});
+},{ collection: 'reviews' });
 
 export default mongoose.model<IReview>('Review', ReviewSchema);
