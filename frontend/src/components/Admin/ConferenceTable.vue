@@ -228,14 +228,13 @@ export default defineComponent({
       this.closeModal();
     },
     updateConference(updatedConference: ConferenceAdmin) {
-      if (!updatedConference._id) {
-        console.error("Updated conference lacks an _id");
-        return;
-      }
       const index = this.conferences.findIndex((conf) => conf._id === updatedConference._id);
       if (index !== -1) {
         this.conferences[index] = updatedConference;
+        this.conferences = [...this.conferences];
       }
+      this.fetchConferences();
+
       this.closeModal();
     },
     closeModal() {

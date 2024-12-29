@@ -67,23 +67,15 @@
 
       <div class="form-group">
         <label for="categories">Kategórie</label>
-        <div id="categories">
-          <div
-            v-for="category in availableCategories"
-            :key="category._id"
-            class="form-check"
-          >
-            <input
-              type="checkbox"
-              :id="`category-${category._id}`"
-              :value="category._id"
-              v-model="localConference.categories"
-            />
-            <label :for="`category-${category._id}`" class="form-check-label">
-              {{ category.name }}
-            </label>
-          </div>
-        </div>
+        <VueMultiselect
+          v-model="localConference.categories"
+          :options="availableCategories"
+          label="name"
+          track-by="_id"
+          placeholder="Vyberte kategórie"
+          multiple
+          close-on-select
+        />
       </div>
 
       <button type="submit" class="btn btn-primary">
@@ -94,16 +86,19 @@
 </template>
 
 
+
 <script lang="ts">
 import { defineComponent } from "vue";
 import type { PropType } from "vue";
 import type { ConferenceAdmin, CategoryAdmin } from "@/types/conference";
 import flatpickr from "vue-flatpickr-component";
+import VueMultiselect from 'vue-multiselect';
 
 export default defineComponent({
   name: "ModalConference",
   components: {
     flatpickr,
+    VueMultiselect
   },
   props: {
     conference: {
@@ -173,7 +168,7 @@ export default defineComponent({
           reviewDeadline: new Date(newConference.deadline_review),
           start_date: new Date(newConference.start_date),
           end_date: new Date(newConference.end_date),
-          categories: this.localConference.categories,
+          categories: newConference.categories ? [...newConference.categories] : [],
         };
       }
     },
@@ -194,7 +189,7 @@ export default defineComponent({
         categories: this.localConference.categories,
         user: "676edcaa19ea5a907dc17565",
       };
-
+      console.log(payload.categories);
       const apiUrl = this.isEditMode
         ? `http://localhost:3000/api/admin/conferences/${this.localConference._id}`
         : `http://localhost:3000/api/admin/conferences`;
@@ -213,6 +208,8 @@ export default defineComponent({
         }
 
         const savedConference = await response.json();
+
+
         this.$emit(this.isEditMode ? "update" : "add", savedConference.conference);
         this.closeModal();
       } catch (error) {
@@ -228,7 +225,9 @@ export default defineComponent({
 </script>
 
 
+<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
 <style scoped>
 
-
 </style>
+
+

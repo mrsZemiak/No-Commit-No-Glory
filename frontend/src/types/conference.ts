@@ -6,7 +6,7 @@ export interface ConferenceAdmin {
   status: string;
   start_date: Date;
   end_date: Date;
-  categories: string[];
+  categories: CategoryAdmin[];
   deadline_submission: Date;
   deadline_review: Date;
   created_at: Date;
