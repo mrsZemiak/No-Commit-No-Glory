@@ -1,6 +1,4 @@
 import mongoose, { Schema, Document } from 'mongoose';
-import User from './User'; // Import the User model
-import Role from './Role'; // Import the Role model
 
 export interface IConference extends Document {
     year: number;
@@ -17,22 +15,28 @@ export interface IConference extends Document {
 }
 
 const ConferenceSchema: Schema = new Schema({
-    year: { type: Number, required: true,
+    year: {
+        type: Number,
+        required: true,
         validate: {
             validator: (value: number) => {
-                //Validate that the year is a four-digit number between 2010 and the current year
+                // Validate that the year is a four-digit number between 2010 and the current year
                 const currentYear = new Date().getFullYear();
-                return value >= 2010 && value <= currentYear + 5;  //Allows years up to 5 years into the future
+                return value >= 2010 && value <= currentYear + 5; // Allows years up to 5 years into the future
             },
             message: 'Year must be a valid four-digit year.'
-        }},
+        }
+    },
+    location: { type: String, required: true }, // Add location
+    university: { type: String, required: true }, // Add university
+    status: { type: String, default: 'upcoming' }, // Add status with default
     start_date: { type: Date, required: true },
     end_date: { type: Date, required: true },
-    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],  //Reusing global categories
+    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }], // Reusing global categories
     deadline_submission: { type: Date, required: true },
     deadline_review: { type: Date, required: true },
     created_at: { type: Date, default: Date.now },
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User',required: true }  //Admin who created the conference
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true } // Admin who created the conference
 }, { collection: 'conferences' });
 
 export default mongoose.model<IConference>('Conference', ConferenceSchema);
