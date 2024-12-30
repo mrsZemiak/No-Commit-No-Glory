@@ -235,7 +235,7 @@ export default defineComponent({
     async fetchPapers() {
       try {
         const response = await axios.get(
-          "http://localhost:3000/api/participants/papers",
+          "http://localhost:3000/api/participant/papers",
           {
             params: { userId: "676edcaa19ea5a907dc17565" },
           }

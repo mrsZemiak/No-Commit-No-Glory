@@ -159,7 +159,7 @@ onMounted(async () => {
     }));
 
     if (workId) {
-      const response = await axios.get(`http://localhost:3000/api/participants/papers/${workId}`);
+      const response = await axios.get(`http://localhost:3000/api/participant/papers/${workId}`);
       const data = response.data;
       console.log(data);
       form.value.submissionName = data.title;

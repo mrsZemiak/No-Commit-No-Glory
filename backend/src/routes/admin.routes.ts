@@ -3,7 +3,7 @@ import {
     getAllUsers, editUserDetails,
     getAllCategories, createCategory, updateCategory,
     getAllConferences, createConference, updateConference,
-    getAllPapers, assignReviewer, downloadPapersByConference, changeSubmissionDeadline,
+    viewAllPapers, assignReviewer, downloadPapersByConference, changeSubmissionDeadline, getPapersGroupedByConference,
 } from '../controllers/admin.controller'
 import { authorizeRole } from '../middleware/authorizeRole';
 import { authenticateToken } from '../middleware/authenticateToken';
@@ -12,8 +12,8 @@ import { validateEditUserDetails, validateRequest } from '../middleware/validati
 const router = Router();
 
 //Apply authentication and admin authorization globally for all admin routes
-router.use(authenticateToken);
-router.use(authorizeRole(['admin']));
+//router.use(authenticateToken);
+//router.use(authorizeRole(['admin']));
 
 //Users
 router.get('/users', getAllUsers);
@@ -30,7 +30,7 @@ router.post('/conferences', createConference);
 router.patch('/conferences/:conferenceId', updateConference);
 
 //Papers by conference
-router.get('/papers', getAllPapers);
+router.get('/papers', getPapersGroupedByConference);
 router.get('/conferences/:conferenceId/papers/download', downloadPapersByConference);
 router.patch('/papers/:paperId/reviewer', assignReviewer);
 

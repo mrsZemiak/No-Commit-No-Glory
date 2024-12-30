@@ -31,13 +31,13 @@
             <div class="filter-checkbox">
               <input
                 type="checkbox"
-                value="True"
+                value="open"
                 v-model="filters.selectedStatus"
               />
               <label>Aktuálna</label>
               <input
                 type="checkbox"
-                value="False"
+                value="closed"
                 v-model="filters.selectedStatus"
               />
               <label>Skončená</label>
@@ -73,12 +73,20 @@
           <td>{{ formatTimestamp(conference.end_date) }}</td>
           <td>{{ formatTimestamp(conference.deadline_submission) }}</td>
           <td>
-              <span :class="`badge ${isOngoing(conference) ? 'badge-success' : 'badge-secondary'}`">
-                {{ isOngoing(conference) ? 'Aktuálna' : 'Skončená' }}
-              </span>
+              <span :class="`badge ${conference.status === 'open' ? 'badge-success' : 'badge-secondary'}`">
+    {{ conference.status === 'open' ? 'Aktuálna' : 'Skončená' }}
+  </span>
           </td>
           <td>
-            <button class="btn btn-edit btn-sm ml-2" @click="editConference(conference)">Upraviť</button>
+            <button @click="viewConferenceDetails(conference)" class="btn btn-primary btn-sm ml-2">
+              Zobraziť detaily
+            </button>
+            <button @click="viewWorksForConference(conference)" class="btn btn-secondary btn-sm ml-2">
+              Zobraziť práce
+            </button>
+            <button class="btn btn-edit btn-sm ml-2" @click="editConference(conference)">
+              Upraviť
+            </button>
           </td>
         </tr>
         </tbody>
@@ -112,6 +120,7 @@
         v-if="showModal"
         :conference="selectedConference"
         :mode="modalMode"
+        @update:mode="modalMode = $event"
         :availableCategories="categories"
         @add="addNewConference"
         @update="updateConference"
@@ -145,7 +154,7 @@ export default defineComponent({
       perPage: 10,
       showModal: false,
       selectedConference: null as ConferenceAdmin | null,
-      modalMode: "add" as "add" | "edit",
+      modalMode: "add" as "add" | "edit" | "view",
     };
   },
   mounted() {
@@ -177,7 +186,7 @@ export default defineComponent({
           ? conference.location.toLowerCase().includes(this.filters.location.toLowerCase())
           : true;
         const matchesStatus = this.filters.selectedStatus.length
-          ? this.filters.selectedStatus.includes(this.isOngoing(conference) ? "True" : "False")
+          ? this.filters.selectedStatus.includes(conference.status)
           : true;
 
         return matchesName && matchesYear && matchesLocation && matchesStatus;
@@ -209,9 +218,14 @@ export default defineComponent({
       const day = date.getDate().toString().padStart(2, "0");
       return `${year}-${month}-${day}`;
     },
-    isOngoing(conference: ConferenceAdmin): boolean {
-      const now = new Date().getTime();
-      return new Date(conference.end_date).getTime() > now;
+
+    viewConferenceDetails(conference: ConferenceAdmin) {
+      this.selectedConference = conference;
+      this.modalMode = "view";
+      this.showModal = true;
+    },
+    viewWorksForConference(conference: ConferenceAdmin) {
+      this.$router.push({ name: 'works', params: { conferenceId: conference._id } });
     },
     addConference() {
       this.modalMode = "add";

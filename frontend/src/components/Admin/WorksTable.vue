@@ -184,7 +184,7 @@ export interface Paper {
 }
 
 export default defineComponent({
-  name: "ParticipantWorksTable",
+  name: "WorksTable",
   data() {
     return {
       works: [] as Paper[],
@@ -249,6 +249,7 @@ export default defineComponent({
     async fetchPapers() {
       try {
         const response = await axios.get("http://localhost:3000/api/admin/papers");
+        console.log(response.data);
         this.works = response.data;
       } catch (err) {
         this.error = "Nepodarilo sa načítať práce.";
