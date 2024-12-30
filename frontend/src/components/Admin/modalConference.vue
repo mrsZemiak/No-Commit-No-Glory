@@ -93,7 +93,7 @@
         </div>
       </div>
 
-      <div class="form-group">
+<!--      <div class="form-group">
         <label for="categories">Kategórie</label>
         <VueMultiselect
           v-model="localConference.categories"
@@ -105,7 +105,7 @@
           close-on-select
           :disabled="isViewMode"
         />
-      </div>
+      </div>-->
 
       <div class="form-group">
         <button
@@ -130,13 +130,11 @@ import { defineComponent } from "vue";
 import type { PropType } from "vue";
 import type { ConferenceAdmin, CategoryAdmin } from "@/types/conference";
 import flatpickr from "vue-flatpickr-component";
-import VueMultiselect from 'vue-multiselect';
 
 export default defineComponent({
   name: "ModalConference",
   components: {
     flatpickr,
-    VueMultiselect
   },
   props: {
     conference: {
@@ -148,10 +146,7 @@ export default defineComponent({
       type: String as PropType<"add" | "edit" | "view">,
       required: true,
     },
-    availableCategories: {
-      type: Array as PropType<CategoryAdmin[]> ,
-      default: () => [],
-    },
+
   },
   data() {
     return {
@@ -168,7 +163,6 @@ export default defineComponent({
           reviewDeadline: new Date(this.conference.deadline_review),
           start_date: new Date(this.conference.start_date),
           end_date: new Date(this.conference.end_date),
-          categories: this.conference.categories || [],
         }
         : {
           _id: "",
@@ -179,7 +173,6 @@ export default defineComponent({
           reviewDeadline: new Date(),
           start_date: new Date(),
           end_date: new Date(),
-          categories: [],
           user: "676edcaa19ea5a907dc17565",
           status: "open",
         },
@@ -202,7 +195,6 @@ export default defineComponent({
           reviewDeadline: new Date(newConference.deadline_review),
           start_date: new Date(newConference.start_date),
           end_date: new Date(newConference.end_date),
-          categories: newConference.categories ? [...newConference.categories] : [],
         };
       }
     },
@@ -215,7 +207,6 @@ export default defineComponent({
         deadline_review: this.localConference.reviewDeadline,
         start_date: this.localConference.start_date,
         end_date: this.localConference.end_date,
-        categories: this.localConference.categories,
         user: "676edcaa19ea5a907dc17565",
       };
 
@@ -223,8 +214,8 @@ export default defineComponent({
         ? `http://localhost:3000/api/admin/conferences/${this.localConference._id}`
         : `http://localhost:3000/api/admin/conferences`;
 
-      const method = this.isEditMode ? "PUT" : "POST";
-
+      const method = this.isEditMode ? "PATCH" : "POST";
+      console.log(JSON.stringify(payload));
       try {
         const response = await fetch(apiUrl, {
           method,
@@ -255,7 +246,9 @@ export default defineComponent({
 });
 </script>
 
+<!--
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
+-->
 <style scoped>
 
 </style>

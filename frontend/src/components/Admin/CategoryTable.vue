@@ -9,12 +9,18 @@
       <thead>
       <tr>
         <th>Názov kategórie</th>
+        <th>Aktívna</th>
         <th>Akcie</th>
       </tr>
       </thead>
       <tbody>
       <tr v-for="category in paginatedCategories" :key="category._id">
         <td>{{ category.name }} </td>
+        <td>
+          <span :class="category.isActive ? 'text-success' : 'text-danger'">
+            {{ category.isActive ? "Áno" : "Nie" }}
+          </span>
+        </td>
         <td>
           <button class="btn btn-edit btn-sm" @click="openEditModal(category)">Upraviť</button>
           <button class="btn btn-delete btn-sm" @click="deleteCategory(category._id)">Odstrániť</button>
@@ -103,6 +109,7 @@ export default defineComponent({
         this.categories = response.data.map((category: CategoryAdmin) => ({
           _id: category._id,
           name: category.name,
+          isActive: category.isActive,
         }));
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -111,7 +118,7 @@ export default defineComponent({
 
     openAddModal() {
       this.modalMode = 'add';
-      this.selectedCategory = { _id: '', name: '' };
+      this.selectedCategory = { _id: '', name: '', isActive: true };
       this.showModal = true;
     },
 
@@ -130,6 +137,7 @@ export default defineComponent({
         const addedCategory = {
           _id: response.data.id,
           name: newCategory.name,
+          isActive: newCategory.isActive,
         };
 
         this.categories.push(addedCategory);

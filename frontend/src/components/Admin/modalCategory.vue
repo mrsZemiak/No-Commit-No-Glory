@@ -9,6 +9,16 @@
         <input type="text" v-model="localCategory.name" id="name" required />
       </div>
 
+      <div class="form-group mb-3">
+        <label for="isActive">Aktívna kategória</label>
+        <input
+          type="checkbox"
+          id="isActive"
+          v-model="localCategory.isActive"
+        />
+        <span>{{ localCategory.isActive ? "Áno" : "Nie" }}</span>
+      </div>
+
       <button type="submit" class="btn btn-primary">
         {{ isEditMode ? 'Aktualizovať kategóriu' : 'Pridať kategóriu' }}
       </button>
@@ -38,7 +48,7 @@ export default defineComponent({
     return {
       localCategory: this.category
         ? { ...this.category }
-        : { name: "" },
+        : { name: "", isActive: true },
     };
   },
   computed: {

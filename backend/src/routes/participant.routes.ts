@@ -5,7 +5,7 @@ import {getPaperById, submitPaper, viewMyPapers, editPaper} from '../controllers
 
 const router = Router();
 
-//router.use(authenticateToken);
+router.use(authenticateToken);
 
 router.post('/papers', validateSubmitPaper, submitPaper);
 router.get('/papers', viewMyPapers);

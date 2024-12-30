@@ -158,7 +158,6 @@ export default defineComponent({
     };
   },
   mounted() {
-    this.fetchCategories();
     this.fetchConferences();
   },
   computed: {
@@ -202,14 +201,7 @@ export default defineComponent({
         console.error("Error fetching conferences:", error);
       }
     },
-    async fetchCategories() {
-      try {
-        const response = await axios.get("http://localhost:3000/api/admin/categories");
-        this.categories = response.data;
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    },
+
     formatTimestamp(value: number | Date | null): string {
       if (!value) return "N/A";
       const date = value instanceof Date ? value : new Date(value);

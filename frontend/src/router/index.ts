@@ -61,21 +61,7 @@ const routes = [
   },
 
 
-  {
-    path: '/admin',
-    component: AdminView,
-    meta: { role: 'Admin' },
-  },
-  {
-    path: '/reviewer',
-    component: ReviewerView,
-    meta: { role: 'Reviewer' },
-  },
-  {
-    path: '/participant',
-    component: ParticipantView,
-    meta: { role: 'Participant' },
-  },
+
 
   // Unauthorized route
   {

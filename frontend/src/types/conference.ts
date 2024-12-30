@@ -16,4 +16,5 @@ export interface ConferenceAdmin {
 export interface CategoryAdmin {
   _id: string;
   name: string;
+  isActive: Boolean;
 }
