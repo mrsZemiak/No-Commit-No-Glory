@@ -3,7 +3,7 @@ import {
     getAllUsers, editUserDetails,
     getAllCategories, createCategory, updateCategory,
     getAllConferences, createConference, updateConference,
-    getAllPapers, assignReviewer, downloadPapersByConference, changeSubmissionDeadline,
+    getPapersGroupedByConference, assignReviewer, downloadPapersByConference, changeSubmissionDeadline,
 } from '../controllers/admin.controller'
 import { authorizeRole } from '../middleware/authorizeRole';
 import { authenticateToken } from '../middleware/authenticateToken';
@@ -30,12 +30,10 @@ router.post('/conferences', createConference);
 router.patch('/conferences/:conferenceId', updateConference);
 
 //Papers by conference
-router.get('/papers', getAllPapers);
-router.get('/conferences/:conferenceId/papers/download', downloadPapersByConference);
-router.patch('/papers/:paperId/reviewer', assignReviewer);
-
-// Change submission deadline for a specific paper
-router.patch('/papers/:paperId/deadline', changeSubmissionDeadline);
+router.get('/papers', getPapersGroupedByConference);
+router.get('/papers/download', downloadPapersByConference);
+router.patch('/papers/:paperId/reviewer', assignReviewer); //Assign reviewer to paper
+router.patch('/papers/:paperId/deadline', changeSubmissionDeadline); // Change submission deadline for a specific paper
 
 
 // Reviewer assignment

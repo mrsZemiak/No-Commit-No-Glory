@@ -187,7 +187,7 @@ export const getPapersGroupedByConference = async (_req: Request, res: Response)
         const groupedConferences = await Promise.all(
           conferences.map(async (conference) => {
               const papers = await Paper.find({ conference: conference._id })
-                .populate('user', 'firstName lastName email') // Include user info
+                .populate('user', 'first_name last_name email') // Include user info
                 .select('title user'); // Include only relevant fields
 
               return {
@@ -272,7 +272,12 @@ export const assignReviewer = async (req: Request, res: Response): Promise<void>
 
 export const downloadPapersByConference = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { conferenceId } = req.params;
+        const { conferenceId } = req.query;
+
+        if (!conferenceId) {
+            res.status(400).json({ message: 'Conference ID is required.' });
+            return;
+        }
 
         // Fetch all papers for the specified conference
         const papers = await Paper.find({ conference: conferenceId }, 'file_link');
@@ -281,13 +286,15 @@ export const downloadPapersByConference = async (req: Request, res: Response): P
             return;
         }
 
-        // Create a ZIP file and add the files
+        // Create a new ZIP archive
         const zip = new AdmZip();
+
+        // Add each file to the ZIP
         for (const paper of papers) {
             if (paper.file_link) {
                 try {
                     const filePath = path.resolve(paper.file_link);
-                    await fs.access(filePath);
+                    await fs.access(filePath); // Check if the file exists
                     zip.addLocalFile(filePath, '', `${paper._id}.pdf`);
                 } catch (err) {
                     console.warn(`File not found or inaccessible: ${paper.file_link}`);
@@ -295,7 +302,13 @@ export const downloadPapersByConference = async (req: Request, res: Response): P
             }
         }
 
-        // Send ZIP file as a response
+        // Check if ZIP archive contains files
+        if (zip.getEntries().length === 0) {
+            res.status(404).json({ message: 'No valid files to download.' });
+            return;
+        }
+
+        // Set headers for downloading the ZIP file
         const zipFileName = `conference-${conferenceId}-papers.zip`;
         res.setHeader('Content-Disposition', `attachment; filename=${zipFileName}`);
         res.setHeader('Content-Type', 'application/zip');
