@@ -42,7 +42,6 @@
               placeholder="Filtrovať podľa roka konferencie"
             />
           </div>
-
           <div class="filter-group">
             <label class="fw-bold">Stav práce:</label>
             <div>
@@ -99,27 +98,34 @@
         </tr>
         </thead>
         <tbody>
-        <tr v-for="(work, index) in paginatedWorks" :key="index">
+        <tr v-for="work in paginatedWorks" :key="work._id">
           <td>{{ work.title }}</td>
           <td>{{ work.category.name }}</td>
           <td>{{ formatTimestamp(work.submission_date) }}</td>
           <td>{{ work.conference.year }}</td>
           <td>
-            <span
-              :class="{
+              <span
+                :class="{
                   'badge badge-secondary': work.status === 'submitted',
                   'badge badge-warning': work.status === 'under review',
                   'badge badge-success': work.status === 'accepted',
                   'badge badge-danger': work.status === 'rejected',
                   'badge badge-primary': work.status === 'draft',
                 }"
-            >
+              >
                 {{ statusLabels[work.status] || "Neznámy stav" }}
               </span>
           </td>
           <td>
-            <button @click="viewReview(work)" class="btn btn-primary btn-sm">Pozrieť hodnotenie</button>
-            <button class="btn btn-edit btn-sm ml-2" @click="editWork(work)">Upraviť</button>
+            <button @click="viewReview(work)" class="btn btn-primary btn-sm">
+              Pozrieť hodnotenie
+            </button>
+            <button
+              class="btn btn-edit btn-sm ml-2"
+              @click="editWork(work)"
+            >
+              Upraviť
+            </button>
           </td>
         </tr>
         </tbody>
@@ -148,18 +154,25 @@
   </div>
 </template>
 
-
-
 <script lang="ts">
 import { defineComponent } from "vue";
 import axios from "axios";
 
+export interface Author {
+  firstName: string;
+  lastName: string;
+}
+
 export interface Paper {
+  _id: string;
   title: string;
-  category: { name: string };
+  category: { id: string; name: string };
   submission_date: number;
-  status: 'submitted' | 'under review' | 'accepted' | 'rejected' | 'draft' ;
-  conference: { year: number };
+  status: "submitted" | "under review" | "accepted" | "rejected" | "draft";
+  conference: { id: string; year: number };
+  authors: Author[];
+  keywords: string[];
+  abstract: string;
 }
 
 export default defineComponent({
@@ -180,10 +193,10 @@ export default defineComponent({
       statusLabels: {
         draft: "Návrh",
         submitted: "Odoslané",
-        'under review': "V procese hodnotenia",
+        "under review": "V procese hodnotenia",
         accepted: "Schválené",
         rejected: "Zamietnuté",
-      }
+      },
     };
   },
   computed: {
@@ -205,13 +218,15 @@ export default defineComponent({
           this.filters.title === "" ||
           work.title.toLowerCase().includes(this.filters.title.toLowerCase());
         const matchesCategory =
-          this.filters.category.length === 0 ||
-          this.filters.category.includes(work.category.name);
+          this.filters.category === "" ||
+          work.category.name
+            .toLowerCase()
+            .includes(this.filters.category.toLowerCase());
         const matchesYear =
           this.filters.year === null || work.conference.year === this.filters.year;
         const matchesReviewed =
           this.filters.selectedReviews.length === 0 ||
-          this.filters.selectedReviews.includes(String(work.status));
+          this.filters.selectedReviews.includes(work.status);
         return matchesName && matchesCategory && matchesYear && matchesReviewed;
       });
     },
@@ -219,10 +234,16 @@ export default defineComponent({
   methods: {
     async fetchPapers() {
       try {
-        const response = await axios.get("http://localhost:3000/api/participants/papers", {
-          params: {userId: "676edcaa19ea5a907dc17565"}, // vymaž po logine
-        });
-        this.works = response.data;
+        const response = await axios.get(
+          "http://localhost:3000/api/participants/papers",
+          {
+            params: { userId: "676edcaa19ea5a907dc17565" },
+          }
+        );
+        this.works = response.data.map((work: any) => ({
+          ...work,
+          _id: work._id?.$oid || work._id,
+        }));
       } catch (err) {
         this.error = "Nepodarilo sa načítať práce.";
       }
@@ -232,10 +253,13 @@ export default defineComponent({
       return date.toLocaleString();
     },
     viewReview(work: Paper): void {
-        this.$router.push({ name: 'ReviewResult', params: { id: work.title } }); //zmeň
+      this.$router.push({ name: "ReviewResult", params: { id: work._id } });
     },
     editWork(work: Paper): void {
-      alert(`Editing work: ${work.title}`);
+      this.$router.push({
+        name: "EditSubmission",
+        params: { workId: work._id },
+      });
     },
     resetFilters(): void {
       this.filters.title = "";
@@ -246,10 +270,9 @@ export default defineComponent({
   },
   mounted() {
     this.fetchPapers();
-  }
+  },
 });
 </script>
 
 <style scoped>
-
 </style>

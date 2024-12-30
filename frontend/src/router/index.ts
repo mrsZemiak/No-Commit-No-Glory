@@ -51,6 +51,12 @@ const routes = [
         component: ReviewResult,
         props: true,
       },
+      {
+        path: '/edit/:workId',
+        name: 'EditSubmission',
+        component: SubmissionView,
+        props: true,
+      },
     ],
   },
 

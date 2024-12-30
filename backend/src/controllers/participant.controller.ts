@@ -48,3 +48,18 @@ export const viewMyPapers = async (req: Request, res: Response): Promise<void> =
         res.status(500).json({ message: 'Failed to fetch papers', error });
     }
 };
+
+// Participant: Get a specific paper by its ID
+export const getPaperById = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { paperId } = req.params;
+
+        const paper = await Paper.findById(paperId)
+            .populate('category', 'name')
+            .populate('conference', 'year location university status');
+
+        res.status(200).json(paper);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch paper', error });
+    }
+};

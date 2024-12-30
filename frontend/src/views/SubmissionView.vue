@@ -2,7 +2,6 @@
   <div class="submission-form">
     <h2>Odovzdanie práce</h2>
     <form @submit.prevent="handleSubmit">
-
       <div class="form-group">
         <label for="first_name">Meno</label>
         <input
@@ -41,7 +40,7 @@
         <select v-model="form.conferencePick" id="conferencePick" required>
           <option disabled value="">Vyberte konferenciu</option>
           <option v-for="conference in conferences" :key="conference.id" :value="conference.id">
-            {{ conference.location }} {{conference.id}}
+            {{ conference.location }}
           </option>
         </select>
       </div>
@@ -51,7 +50,7 @@
         <select v-model="form.categoryPick" id="category" required>
           <option disabled value="">Vyberte sekciu</option>
           <option v-for="category in categories" :key="category.id" :value="category.id">
-            {{ category.name }} {{category.id}}
+            {{ category.name }}
           </option>
         </select>
       </div>
@@ -112,18 +111,20 @@
         <small class="form-text text-muted">Akceptované formáty: PDF, Word (.docx)</small>
       </div>
 
-
       <button type="submit" class="btn btn-primary">Odovzdať</button>
     </form>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {onMounted, ref} from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import axios from 'axios';
 
+const route = useRoute();
+const workId = route.params.workId;
 
-const TEMP_USER_ID = "676edcaa19ea5a907dc17565"; //toto je len temporary kym nie je login
+const TEMP_USER_ID = "676edcaa19ea5a907dc17565"; // Temporary User ID
 
 const categories = ref([] as { id: string; name: string }[]);
 const fileName = ref<string>('');
@@ -143,21 +144,37 @@ const form = ref({
 
 onMounted(async () => {
   try {
-    const response = await axios.get("http://localhost:3000/api/admin/categories");
-    categories.value = response.data.map((category: any) => ({
+    // Fetch categories and conferences
+    const [categoriesResponse, conferencesResponse] = await Promise.all([
+      axios.get("http://localhost:3000/api/admin/categories"),
+      axios.get("http://localhost:3000/api/admin/conferences"),
+    ]);
+    categories.value = categoriesResponse.data.map((category: any) => ({
       id: category._id,
       name: category.name,
     }));
-    const conferencesResponse = await axios.get("http://localhost:3000/api/admin/conferences");
     conferences.value = conferencesResponse.data.map((conference: any) => ({
       id: conference._id,
       location: conference.location,
     }));
+
+    if (workId) {
+      const response = await axios.get(`http://localhost:3000/api/participants/papers/${workId}`);
+      const data = response.data;
+      console.log(data);
+      form.value.submissionName = data.title;
+      form.value.abstract = data.abstract;
+      form.value.keywords = data.keywords;
+      form.value.categoryPick = data.category ? data.category._id : '';
+      form.value.conferencePick = data.conference ? data.conference._id : '';
+      form.value.first_name = data.authors[0]?.firstName || '';
+      form.value.last_name = data.authors[0]?.lastName || '';
+      form.value.otherAuthors = data.authors.slice(1).map((author: any) => `${author.firstName} ${author.lastName}`);
+    }
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    console.error("Error fetching categories, conferences, or work data:", error);
   }
 });
-
 function addAuthor() {
   form.value.otherAuthors.push("");
 }
@@ -174,8 +191,8 @@ function handleFileChange(event: Event) {
 }
 
 async function handleSubmit() {
-  if (!form.value.submissionName || !form.value.abstract) {
-    alert("Please fill in all required fields.");
+  if (!form.value.first_name || !form.value.last_name || !form.value.submissionName || !form.value.abstract || !form.value.categoryPick || !form.value.conferencePick) {
+    alert("Prosím vyplňte všetky políčka.");
     return;
   }
 
@@ -196,66 +213,27 @@ async function handleSubmit() {
     user: TEMP_USER_ID
   };
 
-  console.log("Payload:", payload);
+  const workId = route.params.workId;
+  const url = workId
+    ? `http://localhost:3000/api/participants/papers/${workId}`
+    : "http://localhost:3000/api/participants/papers";
 
   try {
-    const response = await axios.post("http://localhost:3000/api/participants/papers", payload, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    alert("Paper submitted successfully!");
+    let response;
+    if (workId) {
+      response = await axios.put(url, payload);
+      alert("Work updated successfully!");
+    } else {
+      response = await axios.post(url, payload);
+      alert("Work submitted successfully!");
+    }
     console.log("Response:", response.data);
   } catch (error) {
-    alert("Failed to submit paper. Please try again.");
+    alert("Failed to save the work. Please try again.");
     console.error("Submission error:", error);
   }
 }
-
-
-/*async function handleSubmit() {
-  if (!form.value.submissionName || !form.value.abstract) {
-    alert("Please fill in all required fields.");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("title", form.value.submissionName);
-  formData.append("file_link", "Test");  //placeholder
-  formData.append("category", form.value.categoryPick);
-  formData.append("conference", form.value.conferencePick);
-  formData.append("abstract", form.value.abstract);
-  formData.append("keywords", form.value.keywords);
-  formData.append(
-    "authors",
-    JSON.stringify([{ firstName: form.value.first_name, lastName: form.value.last_name },
-      ...form.value.otherAuthors.map(name => {
-        const [firstName, lastName] = name.split(" ");
-        return { firstName, lastName };
-      })
-    ])
-  );
-  formData.append("user", TEMP_USER_ID);
-
-  formData.forEach((value, key) => console.log(`${key}: ${value}`));
-
-  try {
-    const response = await axios.post("http://localhost:3000/api/participants/papers", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    alert("Paper submitted successfully!");
-    console.log("Response:", response.data);
-  } catch (error) {
-    alert("Failed to submit paper. Please try again.");
-    console.error("Submission error:", error);
-  }
-}
-*/
-
-
-
 </script>
 
 <style scoped>
-
 </style>
