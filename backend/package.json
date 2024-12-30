@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "adm-zip": "^0.5.16",
     "argon2": "^0.41.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -23,6 +24,7 @@
     "nodemailer": "^6.9.16"
   },
   "devDependencies": {
+    "@types/adm-zip": "^0.5.7",
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",

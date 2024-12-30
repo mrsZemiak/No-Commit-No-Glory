@@ -4,8 +4,10 @@ import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
 import { config } from '../config';
 import { AuthRequest } from '../middleware/authenticateToken';
-import User from '../models/User';
-import {IRole} from "../models/Role";
+import { updateConferenceStatus } from '../middleware/updateStatus';
+import User, { UserStatus } from '../models/User'
+import Conference from '../models/Conference'
+import Category from '../models/Category'
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -74,8 +76,9 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
             return;
         }
 
-        // Update user state to verified
+        // Update user state to verified and status to active
         user.isVerified = true;
+        user.status = UserStatus.Active;
         await user.save();
 
         res.status(200).json({ message: 'Email successfully verified' });
@@ -90,8 +93,8 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
     try {
         const userId = req.user?.userId; // Extracted from token middleware
 
-        // Find the user and populate the `role` field
-        const user = await User.findById(userId).populate('role');
+        // Find the user by ID without populating the role
+        const user = await User.findById(userId);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -104,34 +107,29 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
     }
 };
 
-export const updateUserProfile = async (req: Request, res: Response): Promise<void> => {
+export const updateUserProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const { email } = req.body; // Email is required for identifying the user
-        if (!email) {
-            res.status(401).json({ message: 'Unauthorized. No email provided.' });
+        const userId = req.user?.userId; // Extracted from token middleware
+
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized. Missing user information.' });
             return;
         }
 
-        // Fetch the user and populate the `role` field
-        const user = await User.findOne({ email }).populate('role');
+        // Find the user by ID without populating the role
+        const user = await User.findById(userId);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
         }
 
-        // Check for permissions
-        if (!(user.role as IRole).permissions.includes('manage_profile')) {
-            res.status(403).json({ message: 'You do not have permission to update your profile' });
-            return;
-        }
-
-        // Exclude email and role from updates to prevent modification
+        // Exclude fields email and role to prevent unauthorized modifications
         const updates = { ...req.body };
         delete updates.email;
         delete updates.role;
 
-        // Update user's profile
-        const updatedUser = await User.findByIdAndUpdate(user._id, updates, { new: true });
+        // Update the user's profile
+        const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true });
         if (!updatedUser) {
             res.status(404).json({ message: 'Failed to update profile' });
             return;
@@ -144,5 +142,30 @@ export const updateUserProfile = async (req: Request, res: Response): Promise<vo
     } catch (error) {
         console.error('Error updating profile:', error);
         res.status(500).json({ message: 'Error updating profile', error });
+    }
+};
+
+// Fetch all categories (accessible for dropdown selection)
+export const getAllCategories = async (_req: Request, res: Response): Promise<void> => {
+    try {
+        const categories = await Category.find();
+        res.status(200).json(categories);
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        res.status(500).json({ message: 'Failed to fetch categories', error });
+    }
+};
+
+// Fetch all conferences (accessible for dropdown selection)
+export const getAllConferences = async (_req: Request, res: Response): Promise<void> => {
+    try {
+        // Update statuses before fetching conferences
+        await updateConferenceStatus();
+
+        const conferences = await Conference.find().populate('categories');
+        res.status(200).json(conferences);
+    } catch (error) {
+        console.error('Error fetching conferences:', error);
+        res.status(500).json({ message: 'Failed to fetch conferences', error });
     }
 };

@@ -1,9 +1,14 @@
 import { Router } from 'express';
-import { submitPaper, viewMyPapers } from '../controllers/participant.controller';
+import { editPaper, submitPaper, viewMyPapers } from '../controllers/participant.controller'
+import { validateSubmitPaper } from '../middleware/validation'
+import { authenticateToken } from '../middleware/authenticateToken'
 
 const router = Router();
 
-router.post('/papers', submitPaper);
+router.use(authenticateToken);
+
+router.post('/papers', validateSubmitPaper, submitPaper);
 router.get('/papers', viewMyPapers);
+router.put('/papers/:paperId', editPaper)
 
 export default router;

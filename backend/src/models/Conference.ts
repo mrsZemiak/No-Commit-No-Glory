@@ -1,10 +1,18 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
+export enum ConferenceStatus {
+    Upcoming = 'upcoming',
+    Ongoing = 'ongoing',
+    Completed = 'completed',
+    Canceled = 'canceled'
+}
+
 export interface IConference extends Document {
     year: number;
     location: string;
     university: string;
-    status: string;
+    date: Date;
+    status: ConferenceStatus;
     start_date: Date;
     end_date: Date;
     categories: mongoose.Schema.Types.ObjectId[]; // Array of categories
@@ -27,9 +35,14 @@ const ConferenceSchema: Schema = new Schema({
             message: 'Year must be a valid four-digit year.'
         }
     },
-    location: { type: String, required: true }, // Add location
-    university: { type: String, required: true }, // Add university
-    status: { type: String, default: 'upcoming' }, // Add status with default
+    location: { type: String, required: true },
+    university: { type: String, required: true },
+    date: { type: Date, required: true },
+    status: {
+        type: String,
+        enum: Object.values(ConferenceStatus),
+        default: ConferenceStatus.Upcoming
+    },
     start_date: { type: Date, required: true },
     end_date: { type: Date, required: true },
     categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }], // Reusing global categories

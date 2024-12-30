@@ -1,13 +1,20 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import {IRole} from "./Role";
 
+export enum UserStatus {
+    Pending = 'pending',
+    Active = 'active',
+    Suspended = 'suspended',
+    Inactive = 'inactive'
+}
+
 export interface IUser extends Document {
     first_name: string;
     last_name: string;
     email: string;
     password: string;
     university: string;
-    status: string;
+    status: UserStatus;
     role: mongoose.Schema.Types.ObjectId | IRole;
     created_at: Date;
     isVerified: boolean;
@@ -20,7 +27,11 @@ const UserSchema: Schema = new Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     university: { type: String, required: true },
-    status: { type: String, default: 'active' },
+    status: {
+        type: String,
+        enum: Object.values(UserStatus),
+        default: UserStatus.Pending
+    },
     role: { type: mongoose.Schema.Types.ObjectId, ref: 'Role', required: true },  // References Role schema
     created_at: { type: Date, default: Date.now },
     isVerified: { type: Boolean, default: false },
