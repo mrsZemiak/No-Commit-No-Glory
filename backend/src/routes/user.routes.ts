@@ -1,5 +1,11 @@
 import { Router } from 'express';
-import {getUserProfile, registerUser, updateUserProfile, verifyEmail} from '../controllers/user.controller';
+import {
+    getAllConferences,
+    getUserProfile,
+    registerUser,
+    updateUserProfile,
+    verifyEmail
+} from '../controllers/user.controller'
 import {
     registerValidationRules,
     updateProfileValidationRules,
@@ -7,6 +13,7 @@ import {
     verifyEmailValidationRules
 } from '../middleware/validation';
 import { authenticateToken } from '../middleware/authenticateToken'
+import { updateConferenceStatusMiddleware } from '../middleware/updateStatus'
 
 const router = Router();
 
@@ -15,9 +22,8 @@ router.post('/register', registerValidationRules, validateRequest, registerUser)
 router.get('/verify-email/:token', verifyEmailValidationRules, verifyEmail);
 // Get user profile
 router.get('/profile', authenticateToken, getUserProfile);
-
-// Update user profile
 router.put('/profile', authenticateToken, updateProfileValidationRules, validateRequest, updateUserProfile);
 
+router.get('/conferences', updateConferenceStatusMiddleware, getAllConferences);
 
 export default router;

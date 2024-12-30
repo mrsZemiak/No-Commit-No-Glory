@@ -48,6 +48,7 @@ export const logoutUser = async (req: Request, res: Response): Promise<void> => 
     }
 };
 
+/*
 export const refreshToken = async (req: Request, res: Response) => {
     try {
         const { refreshToken } = req.body; //refresh tokens on login
@@ -67,3 +68,4 @@ export const refreshToken = async (req: Request, res: Response) => {
         res.status(401).json({ message: 'Invalid or expired refresh token', error });
     }
 };
+ */

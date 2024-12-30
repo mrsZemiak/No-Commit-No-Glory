@@ -1,24 +1,49 @@
 import { Router } from 'express';
 import {
-    getAllUsers,
-    createCategory,
-    createConference,
-    getAllConferences,
-    updateConference, getAllCategories, updateCategory, deleteCategory, viewAllPapers
-} from '../controllers/admin.controller';
-import {authorizeRole} from "../middleware/autorizeRole";
+    getAllUsers, editUserDetails,
+    getAllCategories, createCategory, updateCategory,
+    getAllConferences, createConference, updateConference,
+    getAllPapers, assignReviewer, downloadPapersByConference, changeSubmissionDeadline,
+} from '../controllers/admin.controller'
+import { authorizeRole } from '../middleware/authorizeRole';
+import { authenticateToken } from '../middleware/authenticateToken';
+import { validateEditUserDetails, validateRequest } from '../middleware/validation';
 
 const router = Router();
 
+//Apply authentication and admin authorization globally for all admin routes
+router.use(authenticateToken);
+router.use(authorizeRole(['admin']));
+
+//Users
 router.get('/users', getAllUsers);
+router.put('/user/edit', validateEditUserDetails, validateRequest, editUserDetails);
+
+//Categories
 router.get('/categories', getAllCategories);
-router.put('/categories/:categoryId',  updateCategory);
-router.delete('/categories/:categoryId', deleteCategory);
 router.post('/categories', createCategory);
-router.post('/conferences', createConference); //, authorizeRole(['admin']), createConference);
-router.put('/conferences/:conferenceId', updateConference);// authorizeRole(['admin']), updateConference);
+router.put('/categories/:categoryId', updateCategory);
+
+// Conferences
 router.get('/conferences', getAllConferences);
-router.get('/papers', viewAllPapers);
-//router.delete('/conferences/:conferenceId', deleteConference);
+router.post('/conferences', createConference);
+router.patch('/conferences/:conferenceId', updateConference);
+
+//Papers by conference
+router.get('/papers', getAllPapers);
+router.get('/conferences/:conferenceId/papers/download', downloadPapersByConference);
+router.patch('/papers/:paperId/reviewer', assignReviewer);
+
+// Change submission deadline for a specific paper
+router.patch('/papers/:paperId/deadline', changeSubmissionDeadline);
+
+
+// Reviewer assignment
+router.patch('/papers/:paperId/reviewer', assignReviewer);
+
+
+
+// Uncomment or add additional admin routes as needed
+// router.delete('/conferences/:conferenceId', deleteConference);
 
 export default router;
