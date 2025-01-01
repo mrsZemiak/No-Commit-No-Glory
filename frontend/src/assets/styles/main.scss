@@ -115,11 +115,11 @@ $border-radius-8: 8px;
 }
 
 .badge-warning {
-  background-color: #ffc107;
+  background-color: $delete-color;
 }
 
-.badge-info {
-  background-color: #17a2b8;
+.badge-primary {
+  background-color: $primary-color;
 }
 
 

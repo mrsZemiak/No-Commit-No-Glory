@@ -7,6 +7,7 @@ import authRoutes from './routes/auth.routes';
 import reviewerRoutes from "./routes/reviewer.routes";
 import participantRoutes from "./routes/participant.routes";
 import adminRoutes from "./routes/admin.routes";
+import questionRoutes from "./routes/question.routes";
 
 dotenv.config(); // Load environment variables from .env
 
@@ -47,6 +48,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/participant', participantRoutes);
 app.use('/api/reviewer', reviewerRoutes);
+app.use('/api/',questionRoutes);
 
 // Default root route
 app.get('/', (req, res) => {

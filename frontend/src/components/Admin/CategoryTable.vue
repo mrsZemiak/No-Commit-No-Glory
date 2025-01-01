@@ -17,7 +17,7 @@
       <tr v-for="category in paginatedCategories" :key="category._id">
         <td>{{ category.name }} </td>
         <td>
-          <span :class="category.isActive ? 'text-success' : 'text-danger'">
+          <span :class="category.isActive ? 'badge badge-success' : 'badge badge-warning'">
             {{ category.isActive ? "Áno" : "Nie" }}
           </span>
         </td>
@@ -132,6 +132,7 @@ export default defineComponent({
       try {
         const response = await axios.post("http://localhost:3000/api/admin/categories", {
           name: newCategory.name,
+          isActive: newCategory.isActive,
         });
 
         const addedCategory = {
@@ -152,6 +153,7 @@ export default defineComponent({
       try {
         const response = await axios.put(`http://localhost:3000/api/admin/categories/${updatedCategory._id}`, {
           name: updatedCategory.name,
+          isActive: updatedCategory.isActive,
         });
         const index = this.categories.findIndex((category) => category._id === updatedCategory._id);
         if (index !== -1) {

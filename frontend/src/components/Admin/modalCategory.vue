@@ -10,13 +10,11 @@
       </div>
 
       <div class="form-group mb-3">
-        <label for="isActive">Aktívna kategória</label>
-        <input
-          type="checkbox"
-          id="isActive"
-          v-model="localCategory.isActive"
-        />
-        <span>{{ localCategory.isActive ? "Áno" : "Nie" }}</span>
+        <label for="isActive">Stav kategórie</label>
+        <select id="isActive" v-model="localCategory.isActive" class="form-select">
+          <option :value="true">Aktívna</option>
+          <option :value="false">Neaktívna</option>
+        </select>
       </div>
 
       <button type="submit" class="btn btn-primary">

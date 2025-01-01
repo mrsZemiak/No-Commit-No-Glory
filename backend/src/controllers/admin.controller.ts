@@ -197,13 +197,14 @@ export const getPapersGroupedByConference = async (_req: Request, res: Response)
         const groupedConferences = await Promise.all(
           conferences.map(async (conference) => {
               const papers = await Paper.find({ conference: conference._id })
-                .populate('user', 'first_name last_name email').populate('category')
-                .select('title user category'); // Include only relevant fields
+                .populate('user').populate('category')
+                .select('title status submission_date user category'); // Include only relevant fields
 
               return {
                   _id: conference._id,
                   year: conference.year,
                   date: conference.date,
+                  location: conference.location,
                   papers,
               };
           })

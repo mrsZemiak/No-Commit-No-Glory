@@ -237,7 +237,7 @@ export default defineComponent({
         const response = await axios.get(
           "http://localhost:3000/api/participant/papers",
           {
-            params: { userId: "676edcaa19ea5a907dc17565" },
+            params: { userId: "63f1a5b9b7d88c6d22d6f3d8" },
           }
         );
         this.works = response.data.map((work: any) => ({

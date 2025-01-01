@@ -1,4 +1,3 @@
-
 <template>
   <div class="table-card">
     <div class="card-header">
@@ -12,22 +11,22 @@
         <thead>
         <tr>
           <th>Názov</th>
-          <th>Čas poslania</th>
+          <th>Rok konferencie</th>
           <th>Hodnotenie</th>
           <th>Akcie</th>
         </tr>
         </thead>
         <tbody>
-        <tr v-for="(work, index) in works" :key="index">
-          <td>{{ work.name }}</td>
-          <td>{{ formatTimestamp(work.timestamp) }}</td>
+        <tr v-for="(work, index) in paginatedWorks" :key="index">
+          <td>{{ work.title }}</td>
+          <td>{{ work.conferenceYear }}</td>
           <td>
-              <span :class="work.reviewed ? 'badge badge-success' : 'badge badge-secondary'">
-                {{ work.reviewed ? "Ohodnotené" : "Neohodnotené" }}
-              </span>
+            <span :class="work.reviewed ? 'badge badge-success' : 'badge badge-secondary'">
+              {{ work.reviewed ? "Ohodnotené" : "Neohodnotené" }}
+            </span>
           </td>
           <td>
-            <router-link :to="{ name: 'ReviewForm', params: { id: work.timestamp } }">
+            <router-link :to="{ name: 'ReviewForm', params: { id: work._id } }">
               <button class="btn btn-edit btn-sm">Hodnotiť</button>
             </router-link>
           </td>
@@ -49,7 +48,7 @@
         <button
           class="btn btn-primary"
           @click="currentPage < totalPages && (currentPage++)"
-          :disabled="currentPage === totalPages || remainingItems <= perPage"
+          :disabled="currentPage === totalPages || paginatedWorks.length === 0"
         >
           Next
         </button>
@@ -57,28 +56,27 @@
     </footer>
   </div>
 </template>
+
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
+import axios from "axios";
+
 
 interface Work {
-  name: string;
-  timestamp: number;
+  _id: string;
+  title: string;
   reviewed: boolean;
+  conferenceYear: number;
 }
 
 export default defineComponent({
   name: "ReviewTable",
   data() {
     return {
-      works: [
-        { name: "Math Assignment 1", timestamp: 1678901234000, reviewed: true },
-        { name: "History Essay", timestamp: 1678992345000, reviewed: false },
-        { name: "Physics Lab Report", timestamp: 1679083456000, reviewed: true },
-        { name: "Literature Review", timestamp: 1679174567000, reviewed: false },
-      ] as Work[],
+      works: [] as Work[],
       currentPage: 1,
       perPage: 10,
-      totalWorks: 50,  //toto potom zmeniť
+      totalWorks: 0,
     };
   },
   computed: {
@@ -89,27 +87,32 @@ export default defineComponent({
       const startIndex = (this.currentPage - 1) * this.perPage;
       return this.works.slice(startIndex, startIndex + this.perPage);
     },
-    remainingItems() {
-      const startIndex = (this.currentPage - 1) * this.perPage;
-      const remaining = this.works.length - startIndex;
-      return remaining;
-    },
   },
   methods: {
-    formatTimestamp(timestamp: number): string {
-      const date = new Date(timestamp);
-      return date.toLocaleString();
+    async fetchWorks() {
+      try {
+        const reviewerId = "6775538dedbad0434a6f9ca8"; // Replace with actual dynamic ID if needed
+        const response = await axios.get(
+          `http://localhost:3000/api/reviewer/assigned-papers?reviewerId=${reviewerId}`
+        );
+        this.works = response.data.map((paper: any) => ({
+          _id: paper._id,
+          title: paper.title,
+          reviewed: paper.status === "reviewed",
+          conferenceYear: paper.conference?.year || "Neznámy rok",
+        }));
+        this.totalWorks = this.works.length;
+      } catch (error) {
+        console.error("Failed to fetch works:", error);
+      }
     },
-
-    reviewWork(work: Work): void {
-      alert(`Editing work: ${work.name}`);
-
-    },
+  },
+  mounted() {
+    this.fetchWorks();
   },
 });
 </script>
 
 <style scoped>
-
 
 </style>

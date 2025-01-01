@@ -124,7 +124,7 @@ import axios from 'axios';
 const route = useRoute();
 const workId = route.params.workId;
 
-const TEMP_USER_ID = "676edcaa19ea5a907dc17565"; // Temporary User ID
+const TEMP_USER_ID = "63f1a5b9b7d88c6d22d6f3d8"; // Temporary User ID
 
 const categories = ref([] as { id: string; name: string }[]);
 const fileName = ref<string>('');
@@ -149,11 +149,11 @@ onMounted(async () => {
       axios.get("http://localhost:3000/api/admin/categories"),
       axios.get("http://localhost:3000/api/admin/conferences"),
     ]);
-    categories.value = categoriesResponse.data.map((category: any) => ({
+    categories.value = categoriesResponse.data.filter((category: any) => category.isActive).map((category: any) => ({
       id: category._id,
       name: category.name,
     }));
-    conferences.value = conferencesResponse.data.map((conference: any) => ({
+    conferences.value = conferencesResponse.data.filter((conference: any) => conference.status === "open").map((conference: any) => ({
       id: conference._id,
       location: conference.location,
     }));
@@ -215,8 +215,8 @@ async function handleSubmit() {
 
   const workId = route.params.workId;
   const url = workId
-    ? `http://localhost:3000/api/participants/papers/${workId}`
-    : "http://localhost:3000/api/participants/papers";
+    ? `http://localhost:3000/api/participant/papers/${workId}`
+    : "http://localhost:3000/api/participant/papers";
 
   try {
     let response;

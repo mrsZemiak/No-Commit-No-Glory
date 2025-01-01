@@ -103,14 +103,17 @@
                  <span :class="{
                     'badge badge-success': user.status === 'active',
                     'badge badge-secondary': user.status === 'inactive',
-                    'badge badge-warning': user.status !== 'active' && user.status !== 'inactive'
+                    'badge badge-warning': user.status === 'pending',
+                    'badge badge-primary': user.status !== 'active' && user.status !== 'inactive' && user.status !== 'pending'
                   }">
-                    {{ user.status === 'active' ? 'aktívny' : (user.status === 'inactive' ? 'neaktívny' : user.status) }}
+                    {{ user.status === 'active' ? 'aktívny' :
+                   (user.status === 'inactive' ? 'neaktívny' :
+                     (user.status === 'pending' ? 'čaká na schválenie' : user.status)) }}
                   </span>
             </td>
             <td>
-                <span class="badge badge-info">
-                  {{ user.role}}
+                <span class="badge badge-primary">
+                    {{ user.role ? roleLabels[user.role.name] || user.role.name : 'Žiadna rola' }}
                 </span>
             </td>
             <td>
@@ -163,7 +166,7 @@ interface User {
   email: string;
   university: string;
   status: string;
-  role: string;
+  role: { name: 'admin' | 'reviewer' | 'participant' };
 }
 
 export default defineComponent({
@@ -187,6 +190,11 @@ export default defineComponent({
       perPage: 10,
       isModalVisible: false,
       selectedUser: {} as User,
+      roleLabels: {
+        participant: "Študent",
+        reviewer: "Recenzent",
+        admin: "Admin",
+      },
     };
   },
   computed: {
@@ -220,7 +228,7 @@ export default defineComponent({
           ? this.filters.selectedStatus.includes(user.status ? 'true' : 'false')
           : true;
         const matchesRole = this.filters.selectedRole.length
-          ? this.filters.selectedRole.includes(user.role.toLowerCase())
+          ? this.filters.selectedRole.includes(user.role.name.toLowerCase())
           : true;
 
         return matchesfirst_name && matcheslast_name && matchesEmail && matchesUniversity && matchesStatus && matchesRole;
@@ -232,6 +240,7 @@ export default defineComponent({
       try {
         const response = await axios.get("http://localhost:3000/api/admin/users")
         this.users = response.data;
+        console.log(response.data)
       } catch (error) {
         console.error('Error fetching users:', error);
       }
