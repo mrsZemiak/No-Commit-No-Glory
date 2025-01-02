@@ -21,12 +21,24 @@
           <td>{{ work.title }}</td>
           <td>{{ work.conferenceYear }}</td>
           <td>
-            <span :class="work.reviewed ? 'badge badge-success' : 'badge badge-secondary'">
-              {{ work.reviewed ? "Ohodnotené" : "Neohodnotené" }}
-            </span>
+              <span
+                :class="{
+                  'badge badge-secondary': work.status === 'submitted',
+                  'badge badge-yellow': work.status === 'under review',
+                  'badge badge-warning':  work.status === 'rejected',
+                  'badge badge-success': work.status === 'accepted',
+                  'badge badge-primary': work.status === 'draft',
+                }"
+              >
+                {{ statusLabels[work.status] || "Neznámy stav" }}
+              </span>
           </td>
           <td>
-            <router-link :to="{ name: 'ReviewForm', params: { id: work._id } }">
+            <router-link :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
+                isEditable: (work.status === 'under review' || work.status === 'draft') ? 'true' : 'false',
+                isReviewer: 'true'
+                }
+            }">
               <button class="btn btn-edit btn-sm">Hodnotiť</button>
             </router-link>
           </td>
@@ -65,8 +77,9 @@ import axios from "axios";
 interface Work {
   _id: string;
   title: string;
-  reviewed: boolean;
   conferenceYear: number;
+  status: "submitted" | "under review" | "accepted" | "rejected" | "draft";
+
 }
 
 export default defineComponent({
@@ -77,6 +90,13 @@ export default defineComponent({
       currentPage: 1,
       perPage: 10,
       totalWorks: 0,
+      statusLabels: {
+        draft: "Návrh",
+        submitted: "Odoslané",
+        "under review": "V procese hodnotenia",
+        accepted: "Schválené",
+        rejected: "Zamietnuté",
+      },
     };
   },
   computed: {
@@ -91,15 +111,15 @@ export default defineComponent({
   methods: {
     async fetchWorks() {
       try {
-        const reviewerId = "6775538dedbad0434a6f9ca8"; // Replace with actual dynamic ID if needed
+        const reviewerId = "6775538dedbad0434a6f9ca8"; //temporary id
         const response = await axios.get(
           `http://localhost:3000/api/reviewer/assigned-papers?reviewerId=${reviewerId}`
         );
         this.works = response.data.map((paper: any) => ({
           _id: paper._id,
           title: paper.title,
-          reviewed: paper.status === "reviewed",
           conferenceYear: paper.conference?.year || "Neznámy rok",
+          status: paper.status,
         }));
         this.totalWorks = this.works.length;
       } catch (error) {

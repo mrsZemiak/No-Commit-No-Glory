@@ -3,18 +3,12 @@
     <h2>Hodnotenie pre ID: {{ id }}</h2>
     <form @submit.prevent="handleSubmit">
 
-      <!-- Prejdenie vsetkych otazok -->
+      <!-- Going through all of the questions in DB -->
       <div v-for="(question, index) in questions" :key="index" class="form-group">
-
         <label :for="'question-' + index">{{ question.text }}</label>
 
-        <!-- Rendering na zaklade typu hodnotenia -->
         <div v-if="question.type === 'rating'">
-          <select
-              :id="'question-' + index"
-              v-model="form[question.text]"
-              required
-          >
+          <select :id="'question-' + index" v-model="form[question._id]" :disabled="!isEditable || !isReviewer">
             <option disabled value="">Vyberte hodnotenie</option>
             <option v-for="option in getRange(question.options)" :key="option" :value="option">
               {{ option }}
@@ -23,39 +17,38 @@
         </div>
 
         <div v-if="question.type === 'yes_no'">
-          <label>
-            <input
-                type="radio"
-                :name="'question-' + index"
-                v-model="form[question.text]"
-                value="yes"
-            />
-            Áno
-          </label>
-          <label>
-            <input
-                type="radio"
-                :name="'question-' + index"
-                v-model="form[question.text]"
-                value="no"
-            />
-            Nie
-          </label>
+          <div class="custom-radio-group">
+            <label class="custom-radio">
+              <input type="radio" :name="'question-' + index" v-model="form[question._id]" value="yes" :disabled="!isEditable || !isReviewer" />
+              <span class="custom-radio-label">Áno</span>
+            </label>
+            <label class="custom-radio">
+              <input type="radio" :name="'question-' + index" v-model="form[question._id]" value="no" :disabled="!isEditable || !isReviewer" />
+              <span class="custom-radio-label">Nie</span>
+            </label>
+          </div>
         </div>
+      <div v-if="question.type === 'text'">
+        <textarea :id="'question-' + index" v-model="form[question._id]" :disabled="!isEditable || !isReviewer" placeholder="Vložiť odpoveď" rows="3"></textarea>
+      </div>
+  </div>
 
-        <div v-if="question.type === 'text'">
-          <textarea
-              :id="'question-' + index"
-              v-model="form[question.text]"
-              placeholder="Vložiť odpoveď"
-              rows="3"
-              required
-          ></textarea>
-        </div>
-
+      <div class="form-group">
+        <label for="recommendation">Odporúčanie</label>
+        <select id="recommendation" v-model="form.recommendation" :disabled="!isEditable || !isReviewer" required>
+          <option disabled value="">Vyberte odporúčanie</option>
+          <option value="publish">Publikovať</option>
+          <option value="publish_with_changes">Publikovať s úpravami</option>
+          <option value="reject">Zamietnuť</option>
+        </select>
       </div>
 
-      <button type="submit" class="btn btn-primary">Odovzdať</button>
+      <button type="button" @click="handleSubmitDraft" class="btn btn-secondary" :disabled="!isEditable || !isReviewer">
+        Uložiť ako koncept
+      </button>
+      <button type="button" @click="handleSubmit" :disabled="!allFieldsFilled() || !isEditable || !isReviewer" class="btn btn-primary">
+        Odovzdať
+      </button>
     </form>
   </div>
 </template>
@@ -65,11 +58,13 @@ import { defineComponent } from 'vue';
 import axios from 'axios';
 
 interface Question {
+  _id: string;
   text: string;
   type: 'rating' | 'yes_no' | 'text';
   options?: { min: number; max: number };
   category: string;
 }
+
 export default defineComponent({
   name: 'ReviewForm',
   props: {
@@ -82,10 +77,17 @@ export default defineComponent({
     return {
       questions: [] as Question[],
       form: {} as Record<string, string | number>,
+      reviewerId: '6775538dedbad0434a6f9ca8',
+      reviewId: '',
+      isEditable: false,
+      isReviewer: false,
     };
   },
   mounted() {
     this.fetchQuestions();
+    this.fetchReview();
+    this.isEditable = this.$route.query.isEditable === 'true';
+    this.isReviewer = this.$route.query.isReviewer === 'true';
   },
   methods: {
     async fetchQuestions() {
@@ -97,6 +99,33 @@ export default defineComponent({
       }
     },
 
+    async fetchReview() {
+      try {
+        const response = await axios.get(`http://localhost:3000/api/reviewer/reviews/${this.id}/${this.reviewerId}`);
+        const review = response.data.review;
+
+        if (review) {
+          this.form.recommendation = review.recommendation;
+          review.responses.forEach((response: any) => {
+            this.form[response.question] = response.answer;
+          });
+          this.reviewId = review._id;
+        }
+      } catch (error) {
+        console.error('Error fetching review:', error);
+      }
+    },
+
+    // Check if all required fields are filled
+    allFieldsFilled() {
+      const responsesFilled = this.questions.every((question) => {
+        return this.form[question._id] !== undefined && this.form[question._id] !== '';
+      });
+
+      const recommendationFilled = this.form.recommendation !== undefined && this.form.recommendation !== '';
+
+      return responsesFilled && recommendationFilled;
+    },
     getRange(options: { min: number; max: number } | undefined): number[] {
       if (!options) {
         return [];
@@ -108,18 +137,64 @@ export default defineComponent({
       }
       return range;
     },
-    handleSubmit() {
-      console.log('Form submitted:', this.form);
-      alert('Form submitted successfully!');
-      this.form = {};
+
+    async handleSubmit() {
+      if (!this.allFieldsFilled()) {
+        alert('Prosím vyplňte všetky polia pred odoslaním!');
+        return;
+      }
+
+      try {
+        const transformedResponses = this.questions.map((question) => ({
+          question: question._id,
+          answer: this.form[question._id],
+        }));
+
+        const reviewData = {
+          paperId: this.id,
+          reviewerId: this.reviewerId, // Temporary ID
+          responses: transformedResponses,
+          recommendation: this.form.recommendation,
+        };
+
+        const response = await axios.post('http://localhost:3000/api/reviewer/reviews', reviewData);
+        console.log('Review submitted:', response.data);
+        alert('Hodnotenie bolo úspešne odovzdané!');
+        this.form = {}; // Reset form after submission
+      } catch (error) {
+        console.error('Error submitting review:', error);
+        alert('Chyba pri odosielaní hodnotenia. Skúste znova.');
+      }
     },
-  }
+
+    async handleSubmitDraft() {
+      try {
+        const transformedResponses = this.questions.map((question) => ({
+          question: question._id,
+          answer: this.form[question._id],
+        }));
+
+        const reviewData = {
+          paperId: this.id,
+          reviewerId: '6775538dedbad0434a6f9ca8', // Temporary ID
+          responses: transformedResponses,
+          recommendation: this.form.recommendation,
+        };
+
+        const response = await axios.post('http://localhost:3000/api/reviewer/reviews', reviewData);
+        console.log('Review saved as draft:', response.data);
+        alert('Hodnotenie bolo uložené ako koncept!');
+        this.form = {};
+      } catch (error) {
+        console.error('Error saving draft:', error);
+        alert('Chyba pri ukladaní konceptu. Skúste znova.');
+      }
+    },
+  },
 });
 </script>
 
-<style>
 
-
-
+<style scoped>
 
 </style>

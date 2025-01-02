@@ -127,16 +127,22 @@
           <td>
               <span :class="{
                 'badge badge-secondary': work.status === 'submitted',
-                'badge badge-warning': work.status === 'under review',
+                'badge badge-yellow': work.status === 'under review',
                 'badge badge-success': work.status === 'accepted',
-                'badge badge-danger': work.status === 'rejected',
+                'badge badge-warning': work.status === 'rejected',
                 'badge badge-primary': work.status === 'draft',
               }">
                 {{ statusLabels[work.status] || "Neznámy stav" }}
               </span>
           </td>
           <td>
-            <button @click="viewReview(work)" class="btn btn-primary btn-sm">Pozrieť hodnotenie</button>
+            <router-link :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
+                isEditable: (work.status === 'under review' || work.status === 'draft') ? 'true' : 'false',
+                isReviewer: 'false'
+                }
+            }">
+              <button class="btn btn-edit btn-sm">Pozrieť hodnotenie</button>
+            </router-link>
             <button class="btn btn-edit btn-sm ml-2" @click="editWork(work)">Upraviť</button>
             <button class="btn btn-primary btn-sm ml-2" @click="openReviewerModal(work)">Priradiť recenzenta</button>
           </td>
@@ -327,9 +333,6 @@ export default defineComponent({
     formatTimestamp(timestamp: number): string {
       const date = new Date(timestamp);
       return date.toLocaleString();
-    },
-    viewReview(work: Paper): void {
-      this.$router.push({ name: 'ReviewResult', params: { id: work.title } }); //zmeň
     },
     editWork(work: Paper): void {
       alert(`Editing work: ${work.title}`);
