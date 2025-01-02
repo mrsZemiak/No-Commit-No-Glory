@@ -6,11 +6,13 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { useAuthStore } from '@/stores/auth';
 
+const authStore = useAuthStore();
+await authStore.loadAuthState();
 
 export default defineComponent({
   name: 'App',
-
 });
 
 

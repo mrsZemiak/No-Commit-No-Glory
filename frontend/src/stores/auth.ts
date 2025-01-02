@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import axiosInstance from '@/config/axiosConfig';
 import type { User } from '@/types/user.ts'
 
 export const useAuthStore = defineStore('auth', {
@@ -12,14 +13,15 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(email: string, password: string) {
       try {
-        const response = await axios.post('/login', { email, password });
+        const response = await axiosInstance.post('/login', { email, password });
         this.user = response.data.user;
         this.token = response.data.token;
         this.isAuthenticated = true;
 
-        // Store token in localStorage for persistence
+        // Store tokens in localStorage for persistence
         if (this.token) {
           localStorage.setItem('authToken', this.token);
+          localStorage.setItem('refreshToken', response.data.refreshToken); // Save refresh token
           axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
         }
       } catch (error) {
@@ -33,14 +35,30 @@ export const useAuthStore = defineStore('auth', {
       this.token = null;
       this.isAuthenticated = false;
 
-      // Clear token from localStorage
+      // Clear tokens from localStorage
       localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
       delete axios.defaults.headers.common['Authorization'];
+    },
+
+    async refreshAccessToken() {
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (!refreshToken) return;
+
+      try {
+        const response = await axiosInstance.post('/refresh-token', { refreshToken });
+        this.token = response.data.token;
+        localStorage.setItem('authToken', this.token || ''); // Update authToken in localStorage
+        axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`; // Update Axios headers
+      } catch (error) {
+        console.error('Failed to refresh token:', error);
+        await this.logout(); // Clear tokens and redirect to login if refresh fails
+      }
     },
 
     async verifyEmail(token: string) {
       try {
-        const response = await axios.get(`/verify-email/${token}`);
+        const response = await axios.post('/verify-email', { token });
         if (response.data.success) {
           console.log('Email verified successfully.');
           if (this.user) {
@@ -54,17 +72,25 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async loadAuthState(): Promise<void> {
-      const token: string | null = localStorage.getItem('authToken');
+      const token = localStorage.getItem('authToken');
+      const refreshToken = localStorage.getItem('refreshToken');
+
       if (token) {
+        // Initialize the access token and headers
+        this.token = token;
+        this.isAuthenticated = true;
+        axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+      } else if (refreshToken) {
+        // If no access token, try to refresh using the refresh token
         try {
-          // Optionally validate token (e.g., by decoding it or pinging the backend)
-          this.token = token;
+          await this.refreshAccessToken();
           this.isAuthenticated = true;
-          axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
         } catch (error) {
-          console.error('Invalid token:', error);
-          await this.logout(); // Await the logout promise
+          console.error('Failed to refresh token:', error);
+          await this.logout(); // Clear invalid tokens
         }
+      } else {
+        await this.logout(); // No valid tokens, log out
       }
     }
   },

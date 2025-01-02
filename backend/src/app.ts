@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import Database from "./config/db";
-import userRoutes from './routes/common.routes';
+import commonRoutes from './routes/common.routes';
 import authRoutes from './routes/auth.routes';
 import reviewerRoutes from "./routes/reviewer.routes";
 import participantRoutes from "./routes/participant.routes";
@@ -18,9 +18,9 @@ app.use(express.json());
 // CORS configuration
 const corsOptions = {
   origin: ['http://localhost:5174','http://localhost:5173'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
-  allowedHeaders: '*', // Allowed headers
-  credentials: true, // Allow credentials like cookies
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: '*',
+  credentials: true,
 };
 
 app.use(cors(corsOptions)); // Add CORS middleware
@@ -41,12 +41,14 @@ initializeDatabase().catch((error) => {
   process.exit(1);
 });
 
-//Routes
-app.use('/api/user', userRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/participant', participantRoutes);
-app.use('/api/reviewer', reviewerRoutes);
+// Routes
+app.use('/', commonRoutes);
+app.use('/auth', authRoutes);
+
+// Role-specific routes
+app.use('/admin', adminRoutes);
+app.use('/participant', participantRoutes);
+app.use('/reviewer', reviewerRoutes);
 
 // Default root route
 app.get('/', (req, res) => {

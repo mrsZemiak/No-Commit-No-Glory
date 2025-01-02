@@ -15,6 +15,7 @@ const router = Router();
 router.use(authenticateToken);
 
 // Authenticated routes
+router.post('/refresh-token',);
 router.get('/profile', getUserProfile);
 router.put('/profile', updateProfileValidationRules, validateRequest, updateUserProfile);
 router.post('/logout', logoutUser);

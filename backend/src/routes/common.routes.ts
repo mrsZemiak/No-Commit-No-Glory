@@ -17,6 +17,6 @@ const router = Router();
 router.get('/', getHomepageData);
 router.post('/register', registerValidationRules, validateRequest, registerUser); // Registration
 router.post('/login', loginUser); // Login
-router.get('/verify-email/:token', verifyEmailValidationRules, validateRequest, verifyEmail); // Email verification
+router.post('/verify-email', verifyEmailValidationRules, validateRequest, verifyEmail); // Email verification
 
 export default router;

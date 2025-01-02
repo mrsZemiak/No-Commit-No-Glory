@@ -14,4 +14,5 @@ export interface User {
   role: string;
   isVerified: boolean;
   verificationToken: string | null;
+  refreshToken: string | null;
 }

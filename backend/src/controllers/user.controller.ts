@@ -35,10 +35,11 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
             isVerified: false, // Initial verification state
         });
 
-        await newUser.save();
-
         // Generate JWT for email verification using userId
         const verificationToken = jwt.sign({ userId: newUser._id }, config.jwtSecret, { expiresIn: '1h' });
+
+        newUser.verificationToken = verificationToken;
+        await newUser.save();
 
         // Send verification email
         const transporter = nodemailer.createTransport({
@@ -99,8 +100,8 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
         // Verify token
         const decoded = jwt.verify(token, config.jwtSecret) as { userId: string };
 
-        // Find user by userId
-        const user = await User.findById(decoded.userId);
+        // Find user by userId and token
+        const user = await User.findOne({_id: decoded.userId, verificationToken: token});
         if (!user || user.isVerified) {
             res.status(400).json({ message: 'Invalid or expired token' });
             return;
@@ -109,6 +110,7 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
         // Update user state to verified and status to active
         user.isVerified = true;
         user.status = UserStatus.Active;
+        user.verificationToken = null; //Clear token
         await user.save();
 
         res.status(200).json({ message: 'Email successfully verified' });
