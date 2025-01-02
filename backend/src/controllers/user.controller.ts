@@ -8,6 +8,7 @@ import { updateConferenceStatus } from '../middleware/updateStatus';
 import User, { UserStatus } from '../models/User'
 import Conference from '../models/Conference'
 import Category from '../models/Category'
+import path from 'node:path'
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -41,16 +42,45 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
         // Send verification email
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: config.emailHost,
+            port: config.emailPort,
+            secure: false, //true if port is 465, other are non-secure
             auth: { user: config.emailUser, pass: config.emailPass },
-        });
+        } as nodemailer.TransportOptions);
 
-        const verificationUrl = `${config.baseUrl}/verify-email/${verificationToken}`;
+        const verificationUrl = `${config.baseUrl}/verify-email?token=${verificationToken}`;
         await transporter.sendMail({
-            from: config.emailUser,
+            from: `"SciSubmit" <${config.emailUser}>`,
             to: email,
-            subject: 'Verify your Email',
-            html: `<p>Click the link below to verify your email:</p><a href="${verificationUrl}">Verify Email</a>`,
+            subject: 'Verify Your Email',
+            html:
+              `<div style="position: relative; font-family: Arial, sans-serif; line-height: 1.6; color: #2C3531; background-color: #F7F7F7; padding: 20px; border: 1px solid #DDD; border-radius: 8px; max-width: 600px; margin: auto;">
+            <!-- Logo Section -->
+            <div style="text-align: center; margin: 0; padding: 0;">
+                <img src="cid:scisubmit-logo" alt="SciSubmit Logo" style="max-width: 200px; height: auto; display: block; margin: 0 auto;">
+            </div>
+            <!-- Content Section -->
+            <h2 style="color: #116466; font-size: 24px; text-align: center;">Overte svoju e-mailovú adresu</h2>
+            <p style="color: #2C3531; margin: 10px 0;">Dobrý deň,</p>
+    <p style="color: #2C3531; margin: 10px 0;">Ďakujeme za registráciu! Kliknite na tlačidlo nižšie a overte svoju e-mailovú adresu:</p>
+    <div style="text-align: center; margin: 20px 0;">
+        <a href="${verificationUrl}" style="display: inline-block; background-color: #BC4639; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-size: 16px;">Verify Email</a>
+    </div>
+    
+    <!-- Token Section -->
+    <p style="color: #2C3531; margin: 10px 0;">Ak tlačidlo nefunguje, skopírujte a vložte nasledujúci odkaz do svojho prehliadača:</p>
+    <p style="font-size: 10px; word-wrap: break-word; color: #116466;">${verificationUrl}</p>
+     
+    <hr style="border: none; border-top: 1px solid #DDD; margin: 20px 0;">
+    <p style="font-size: 12px; color: #888; text-align: center;">Ak ste si účet nevytvorili, môžete tento e-mail ignorovať.</p>
+</div>`,
+            attachments: [
+                {
+                    filename: 'logo.png',
+                    path: path.join(__dirname, '../assets/logo.png'), // Adjust the path to the actual location of your logo
+                    cid: 'scisubmit-logo' // Same as referenced in the HTML
+                }
+            ]
         });
 
         res.status(201).json({

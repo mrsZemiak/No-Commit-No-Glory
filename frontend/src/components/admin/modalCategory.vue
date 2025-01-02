@@ -19,7 +19,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import type { PropType } from 'vue';
-import type {CategoryAdmin} from "@/types/conference";
+import type {CategoryAdmin} from "@/types/conference.ts";
 
 export default defineComponent({
   name: "ModalCategory",

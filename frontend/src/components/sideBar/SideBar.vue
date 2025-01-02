@@ -15,7 +15,7 @@ const participantLinks: Link[] = [
   },
   {
     name: "Moje práce",
-    path: "/auth/participantView",
+    path: "/auth/participant",
   },
 ];
 const reviewerLinks: Link[] = [
@@ -40,7 +40,7 @@ const adminLinks: Link[] = [
   },
   {
     name: "Práce",
-    path: "/auth/works"
+    path: "/auth/papers"
   }
 ];
 

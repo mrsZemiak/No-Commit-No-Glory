@@ -13,7 +13,7 @@
         <div v-if="dropdownOpen" class="dropdown-content">
           <div class="filter-group">
             <label class="fw-bold">Názov konferencie:</label>
-            <input type="text" class="form-control" v-model="filters.name" placeholder="Filtrovať podľa názvu" />
+            <input type="text" class="form-control" v-model="filters.university" placeholder="Filtrovať podľa univerzity" />
           </div>
 
           <div class="filter-group">
@@ -31,13 +31,13 @@
             <div class="filter-checkbox">
               <input
                 type="checkbox"
-                value="True"
+                value="open"
                 v-model="filters.selectedStatus"
               />
               <label>Aktuálna</label>
               <input
                 type="checkbox"
-                value="False"
+                value="closed"
                 v-model="filters.selectedStatus"
               />
               <label>Skončená</label>
@@ -56,7 +56,7 @@
       <table class="table">
         <thead>
         <tr>
-          <th>Názov</th>
+          <th>Univerzita</th>
           <th>Rok</th>
           <th>Miesto</th>
           <th>Dátum konferencie</th>
@@ -67,18 +67,26 @@
         </thead>
         <tbody>
         <tr v-for="(conference, index) in paginatedConferences" :key="index">
-          <td>{{ conference.name }}</td>
+          <td>{{ conference.university }}</td>
           <td>{{ conference.year }}</td>
           <td>{{ conference.location }}</td>
-          <td>{{ formatTimestamp(conference.conferenceDate) }}</td>
-          <td>{{ formatTimestamp(conference.submissionDeadline) }}</td>
+          <td>{{ formatTimestamp(conference.end_date) }}</td>
+          <td>{{ formatTimestamp(conference.deadline_submission) }}</td>
           <td>
-              <span :class="`badge ${isOngoing(conference) ? 'badge-success' : 'badge-secondary'}`">
-                {{ isOngoing(conference) ? 'Aktuálna' : 'Skončená' }}
-              </span>
+              <span :class="`badge ${conference.status === 'open' ? 'badge-success' : 'badge-secondary'}`">
+    {{ conference.status === 'open' ? 'Aktuálna' : 'Skončená' }}
+  </span>
           </td>
           <td>
-            <button class="btn btn-edit btn-sm ml-2" @click="editConference(conference)">Upraviť</button>
+            <button @click="viewConferenceDetails(conference)" class="btn btn-primary btn-sm ml-2">
+              Zobraziť detaily
+            </button>
+            <button @click="viewWorksForConference(conference)" class="btn btn-secondary btn-sm ml-2">
+              Zobraziť práce
+            </button>
+            <button class="btn btn-edit btn-sm ml-2" @click="editConference(conference)">
+              Upraviť
+            </button>
           </td>
         </tr>
         </tbody>
@@ -112,6 +120,7 @@
         v-if="showModal"
         :conference="selectedConference"
         :mode="modalMode"
+        @update:mode="modalMode = $event"
         :availableCategories="categories"
         @add="addNewConference"
         @update="updateConference"
@@ -123,8 +132,8 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import ModalConference from "@/components/Admin/modalConference.vue";
-import type { ConferenceAdmin, CategoryAdmin } from "@/types/conference";
+import ModalConference from "@/components/admin/modalConference.vue";
+import type { ConferenceAdmin, CategoryAdmin } from "@/types/conference.ts";
 import axios from "axios";
 
 export default defineComponent({
@@ -132,44 +141,10 @@ export default defineComponent({
   components: { ModalConference },
   data() {
     return {
-      conferences: [
-        {
-          name: "International AI Symposium 2023",
-          year: 2023,
-          location: "New York",
-          conferenceDate: new Date("2023-06-01"),
-          submissionDeadline: new Date("2023-04-01"),
-          reviewDeadline: new Date("2023-04-15"),
-          revisionDeadline: new Date("2023-05-01"),
-          postConferenceRevisionDeadline: new Date("2023-07-01"),
-          categories: ["67533541dfd23a313e7afe41","67533541dfd23a313e7afe43"],
-        },
-        {
-          name: "Tech Innovations Conference 2024",
-          year: 2024,
-          location: "San Francisco",
-          conferenceDate: new Date("2024-08-20"),
-          submissionDeadline: new Date("2024-06-01"),
-          reviewDeadline: new Date("2024-06-15"),
-          revisionDeadline: new Date("2024-07-01"),
-          postConferenceRevisionDeadline: new Date("2024-09-01"),
-          categories: ["67533541dfd23a313e7afe44", "67533541dfd23a313e7afe41"],
-        },
-        {
-          name: "Innovations Conference 2024",
-          year: 2024,
-          location: "San Francisco",
-          conferenceDate: new Date("2024-08-20"),
-          submissionDeadline: new Date("2024-06-01"),
-          reviewDeadline: new Date("2024-06-15"),
-          revisionDeadline: new Date("2024-07-01"),
-          postConferenceRevisionDeadline: new Date("2024-09-01"),
-          categories: ["67533541dfd23a313e7afe44", "67533541dfd23a313e7afe43"],
-        },
-      ] as ConferenceAdmin[],
+      conferences: [] as ConferenceAdmin[],
       categories: [] as CategoryAdmin[],
       filters: {
-        name: "",
+        university: "",
         year: "",
         location: "",
         selectedStatus: [] as string[],
@@ -179,11 +154,12 @@ export default defineComponent({
       perPage: 10,
       showModal: false,
       selectedConference: null as ConferenceAdmin | null,
-      modalMode: "add" as "add" | "edit",
+      modalMode: "add" as "add" | "edit" | "view",
     };
   },
   mounted() {
     this.fetchCategories();
+    this.fetchConferences();
   },
   computed: {
     totalPages() {
@@ -200,8 +176,8 @@ export default defineComponent({
     },
     filteredConferences() {
       return this.conferences.filter((conference) => {
-        const matchesName = this.filters.name
-          ? conference.name.toLowerCase().includes(this.filters.name.toLowerCase())
+        const matchesName = this.filters.university
+          ? conference.university.toLowerCase().includes(this.filters.university.toLowerCase())
           : true;
         const matchesYear = this.filters.year
           ? conference.year === parseInt(this.filters.year)
@@ -210,7 +186,7 @@ export default defineComponent({
           ? conference.location.toLowerCase().includes(this.filters.location.toLowerCase())
           : true;
         const matchesStatus = this.filters.selectedStatus.length
-          ? this.filters.selectedStatus.includes(this.isOngoing(conference) ? "True" : "False")
+          ? this.filters.selectedStatus.includes(conference.status)
           : true;
 
         return matchesName && matchesYear && matchesLocation && matchesStatus;
@@ -218,9 +194,17 @@ export default defineComponent({
     },
   },
   methods: {
+    async fetchConferences() {
+      try {
+        const response = await axios.get("http://localhost:3000/api/admin/conferences");
+        this.conferences = response.data;
+      } catch (error) {
+        console.error("Error fetching conferences:", error);
+      }
+    },
     async fetchCategories() {
       try {
-        const response = await axios.get("http://localhost:3000/api/categories");
+        const response = await axios.get("http://localhost:3000/api/admin/categories");
         this.categories = response.data;
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -234,9 +218,14 @@ export default defineComponent({
       const day = date.getDate().toString().padStart(2, "0");
       return `${year}-${month}-${day}`;
     },
-    isOngoing(conference: ConferenceAdmin): boolean {
-      const now = new Date().getTime();
-      return new Date(conference.conferenceDate).getTime() > now;
+
+    viewConferenceDetails(conference: ConferenceAdmin) {
+      this.selectedConference = conference;
+      this.modalMode = "view";
+      this.showModal = true;
+    },
+    viewWorksForConference(conference: ConferenceAdmin) {
+      this.$router.push({ name: 'works', params: { conferenceId: conference._id } });
     },
     addConference() {
       this.modalMode = "add";
@@ -253,12 +242,13 @@ export default defineComponent({
       this.closeModal();
     },
     updateConference(updatedConference: ConferenceAdmin) {
-      const index = this.conferences.findIndex(
-        (conf) => conf.name === updatedConference.name && conf.year === updatedConference.year
-      );
+      const index = this.conferences.findIndex((conf) => conf._id === updatedConference._id);
       if (index !== -1) {
         this.conferences[index] = updatedConference;
+        this.conferences = [...this.conferences];
       }
+      this.fetchConferences();
+
       this.closeModal();
     },
     closeModal() {
@@ -266,22 +256,17 @@ export default defineComponent({
     },
     resetFilters() {
       this.filters = {
-        name: "",
+        university: "",
         year: "",
         location: "",
         selectedStatus: [],
       };
     },
   },
+
 });
 </script>
 
 <style scoped>
-.pagination-footer {
-  margin-top: 20px;
-}
 
-.pagination button {
-  margin: 0 10px;
-}
 </style>

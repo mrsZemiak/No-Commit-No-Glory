@@ -1,9 +1,22 @@
-import express from 'express';
-import { loginUser, logoutUser } from '../controllers/auth.controller';
+import { Router } from 'express';
+import {
+  getUserProfile,
+  updateUserProfile,
+} from '../controllers/user.controller';
+import { logoutUser } from '../controllers/auth.controller';
+import {
+  updateProfileValidationRules,
+  validateRequest,
+} from '../middleware/validation';
+import { authenticateToken } from '../middleware/authenticateToken';
 
-const router = express.Router();
+const router = Router();
 
-router.post('/login', loginUser);
+router.use(authenticateToken);
+
+// Authenticated routes
+router.get('/profile', getUserProfile);
+router.put('/profile', updateProfileValidationRules, validateRequest, updateUserProfile);
 router.post('/logout', logoutUser);
 
 export default router;

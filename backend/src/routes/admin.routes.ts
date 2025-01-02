@@ -35,12 +35,6 @@ router.get('/papers/download', downloadPapersByConference);
 router.patch('/papers/:paperId/reviewer', assignReviewer); //Assign reviewer to paper
 router.patch('/papers/:paperId/deadline', changeSubmissionDeadline); // Change submission deadline for a specific paper
 
-
-// Reviewer assignment
-router.patch('/papers/:paperId/reviewer', assignReviewer);
-
-
-
 // Uncomment or add additional admin routes as needed
 // router.delete('/conferences/:conferenceId', deleteConference);
 
