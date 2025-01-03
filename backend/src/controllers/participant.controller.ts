@@ -67,6 +67,21 @@ export const viewMyPapers = async (req: AuthRequest, res: Response): Promise<voi
     }
 };
 
+// Participant: Get a specific paper by its ID
+export const getPaperById = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { paperId } = req.params;
+
+        const paper = await Paper.findById(paperId)
+          .populate('category', 'name')
+          .populate('conference', 'year location university status');
+
+        res.status(200).json(paper);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch paper', error });
+    }
+};
+
 // Edit an existing paper
 export const editPaper = async (req: AuthRequest, res: Response): Promise<void> => {
     try {

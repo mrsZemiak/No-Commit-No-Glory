@@ -28,9 +28,9 @@ const ConferenceSchema: Schema = new Schema({
         required: true,
         validate: {
             validator: (value: number) => {
-                // Validate that the year is a four-digit number between 2010 and the current year
+                //Validate that the year is a four-digit number between 2010 and the current year
                 const currentYear = new Date().getFullYear();
-                return value >= 2010 && value <= currentYear + 5; // Allows years up to 5 years into the future
+                return value >= 2010 && value <= currentYear + 5;
             },
             message: 'Year must be a valid four-digit year.'
         }
@@ -45,11 +45,11 @@ const ConferenceSchema: Schema = new Schema({
     },
     start_date: { type: Date, required: true },
     end_date: { type: Date, required: true },
-    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }], // Reusing global categories
+    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
     deadline_submission: { type: Date, required: true },
     deadline_review: { type: Date, required: true },
     created_at: { type: Date, default: Date.now },
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true } // Admin who created the conference
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }, { collection: 'conferences' });
 
 export default mongoose.model<IConference>('Conference', ConferenceSchema);

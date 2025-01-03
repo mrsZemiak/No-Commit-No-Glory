@@ -1,6 +1,7 @@
 import {body, param, validationResult} from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
 import Role from '../models/Role'
+import Question from '../models/Question'
 
 //Validation rules for user registration
 export const registerValidationRules = [
@@ -84,6 +85,64 @@ export const validateSubmitPaper = [
       )
       .withMessage('Each author must have a valid first name and last name.'),
 ];
+
+export const validateReviewSubmission = async (req: Request, res: Response, next: Function): Promise<void> => {
+    try {
+        const { paper, reviewer, responses, recommendation, comments } = req.body;
+
+        // Ensure all required fields are provided
+        if (!paper || !reviewer || !responses || !recommendation) {
+            res.status(400).json({ message: 'Missing required fields' });
+            return;
+        }
+
+        // Validate recommendation value
+        const validRecommendations = ['publish', 'publish_with_changes', 'reject'];
+        if (!validRecommendations.includes(recommendation)) {
+            res.status(400).json({ message: 'Invalid recommendation value' });
+            return;
+        }
+
+        // Validate responses
+        for (const response of responses) {
+            const question = await Question.findById(response.question);
+            if (!question) {
+                res.status(400).json({ message: `Invalid question ID: ${response.question}` });
+                return;
+            }
+
+            switch (question.type) {
+                case 'rating':
+                    if (typeof response.answer !== 'number' || response.answer < question.options!.min || response.answer > question.options!.max) {
+                        res.status(400).json({ message: `Invalid rating for question ID: ${response.question}` });
+                        return;
+                    }
+                    break;
+                case 'yes_no':
+                    if (response.answer !== 'yes' && response.answer !== 'no') {
+                        res.status(400).json({ message: `Invalid yes/no answer for question ID: ${response.question}` });
+                        return;
+                    }
+                    break;
+                case 'text':
+                    if (typeof response.answer !== 'string') {
+                        res.status(400).json({ message: `Invalid text answer for question ID: ${response.question}` });
+                        return;
+                    }
+                    break;
+                default:
+                    res.status(400).json({ message: `Unknown question type for question ID: ${response.question}` });
+                    return;
+            }
+        }
+
+        // If all validations pass, move to the next middleware/controller
+        next();
+    } catch (error) {
+        console.error('Validation error:', error);
+        res.status(500).json({ message: 'Validation error', error });
+    }
+};
 
 //Middleware to check validation results
 export const validateRequest = (req: Request, res: Response, next: NextFunction): void => {

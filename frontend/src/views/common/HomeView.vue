@@ -19,7 +19,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import modalLoginSignup from '@/components/modalLoginSignup.vue';
+import modalLoginSignup from '@/components/common/ModalLoginSignup.vue';
 
 export default defineComponent({
   name: 'HomeView',

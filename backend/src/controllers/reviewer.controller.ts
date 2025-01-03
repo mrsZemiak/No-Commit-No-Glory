@@ -1,34 +1,71 @@
 import { Request, Response } from 'express';
 import Review from '../models/Review';
 import Paper from '../models/Paper';
+import { AuthRequest } from '../middleware/authenticateToken'
 
 // Reviewer: View assigned papers
-export const viewAssignedPapers = async (req: Request, res: Response): Promise<void> => {
+export const viewAssignedPapers = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const { reviewerId } = req.body;
+        const { reviewerId } = req.query;
+        const papers = await Paper.find({ reviewer: reviewerId, status: 'under review'}).populate('conference', 'year');
 
-        const papers = await Paper.find({ reviewer: reviewerId, status: 'assigned' });
         res.status(200).json(papers);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch assigned papers', error });
     }
 };
 
-// Reviewer: Submit a review
-export const submitReview = async (req: Request, res: Response): Promise<void> => {
+// Reviewer: Submit a review - check if there is an existing one
+export const submitReview = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const { paperId, reviewerId, responses, recommendation } = req.body;
+        console.log('Request Body:', req.body);
+        const { paperId, reviewerId, responses, recommendation, status } = req.body;
+        let existingReview = await Review.findOne({ paper: paperId, reviewer: reviewerId });
 
-        const newReview = new Review({
-            paper: paperId,
-            reviewer: reviewerId,
-            responses,
-            recommendation,
-        });
+        if (existingReview) {
+            existingReview.responses = responses;
+            existingReview.recommendation = recommendation;
 
-        await newReview.save();
-        res.status(201).json({ message: 'Review submitted successfully', review: newReview });
+            await existingReview.save();
+            res.status(200).json({ message: 'Review updated successfully', review: existingReview });
+        } else {
+            const newReview = new Review({
+                paper: paperId,
+                reviewer: reviewerId,
+                responses,
+                recommendation,
+                status,
+            });
+            await newReview.save();
+            res.status(201).json({ message: 'Review submitted successfully', review: newReview });
+        }
+        let paperStatus = 'under review';
+        if (recommendation === 'publish') {
+            paperStatus = 'accepted';
+        } else if (recommendation === 'reject') {
+            paperStatus = 'rejected';
+        } else if (recommendation === 'publish_with_changes') {
+            paperStatus = 'under review';
+        }
+        await Paper.findByIdAndUpdate(paperId, { status: paperStatus });
     } catch (error) {
         res.status(500).json({ message: 'Failed to submit review', error });
+    }
+};
+
+//Get a single review based on IDs
+export const getReviewById = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { paperId, reviewerId } = req.params;
+
+        const review = await Review.findOne({ paper: paperId, reviewer: reviewerId });
+
+        if (review) {
+            res.status(200).json({ message: 'Review found', review });
+        } else {
+            res.status(404).json({ message: 'Review not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching review', error });
     }
 };

@@ -132,7 +132,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import ModalConference from "@/components/admin/modalConference.vue";
+import ModalConference from "@/components/admin/ModalConference.vue";
 import type { ConferenceAdmin, CategoryAdmin } from "@/types/conference.ts";
 import axios from "axios";
 

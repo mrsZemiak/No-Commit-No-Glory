@@ -4,8 +4,8 @@ export interface IQuestion extends Document {
     text: string;
     type: 'rating' | 'yes_no' | 'text';
     options?: {
-        min?: number;
-        max?: number;
+        min: { type: Number, default: 1 },
+        max: { type: Number, default: 6 },
         choices?: string[];
     };
     category?: string; // E.g., "Content", "Format"

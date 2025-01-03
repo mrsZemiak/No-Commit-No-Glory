@@ -1,5 +1,3 @@
-
-
 <template>
 
   <ul class="nav nav-pills nav-justified m-4" id="ex1" role="tablist">

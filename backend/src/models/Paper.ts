@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export enum PaperStatus {
     Draft = 'draft',
     Submitted = 'submitted',
-    UnderReview = 'under review',
+    UnderReview = 'under_review',
     Accepted = 'accepted',
     Rejected = 'rejected',
 }

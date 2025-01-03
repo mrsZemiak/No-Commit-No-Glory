@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useAuthStore } from '@/stores/auth';
+import { useAuthStore } from '@/stores/auth.ts';
 
 export default defineComponent({
   async mounted() {
@@ -31,5 +31,5 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Add your component-specific styles here */
+
 </style>

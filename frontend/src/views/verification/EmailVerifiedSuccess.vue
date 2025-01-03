@@ -1,17 +1,17 @@
 <template>
   <div class="email-verification-container">
     <!-- Logo -->
-    <img src="@/assets/logo.png" alt="SciSubmit Logo" class="logo" />
+    <img src="../../assets/logo.png" alt="SciSubmit Logo" class="logo" />
 
-    <!-- Failure Message -->
-    <h2>Email Verification Failed</h2>
+    <!-- Success Message -->
+    <h2>Email Verified Successfully</h2>
     <p>
-      We could not verify your email address. Please ensure the link is correct or try again.
+      Thank you for verifying your email address. You can now log in and access your account.
     </p>
 
-    <!-- Back Home Button -->
-    <button @click="navigateToHome" class="button">
-      Back to Home
+    <!-- Login Button -->
+    <button @click="navigateToLogin" class="button">
+      Log In
     </button>
   </div>
 </template>
@@ -21,15 +21,15 @@ import { defineComponent } from 'vue';
 import { useRouter } from 'vue-router';
 
 export default defineComponent({
-  name: 'EmailVerificationFailure',
+  name: 'EmailVerificationSuccess',
   setup() {
     const router = useRouter();
 
-    const navigateToHome = () => {
-      router.push('/'); // Redirect to home page
+    const navigateToLogin = () => {
+      router.push('/login'); // Redirect to login page
     };
 
-    return { navigateToHome };
+    return { navigateToLogin };
   },
 });
 </script>

@@ -3,7 +3,7 @@ import {
   getUserProfile,
   updateUserProfile,
 } from '../controllers/user.controller';
-import { logoutUser } from '../controllers/auth.controller';
+import { logoutUser, refreshToken } from '../controllers/auth.controller'
 import {
   updateProfileValidationRules,
   validateRequest,
@@ -15,9 +15,9 @@ const router = Router();
 router.use(authenticateToken);
 
 // Authenticated routes
-router.post('/refresh-token',);
+router.post('/refresh-token', refreshToken);
 router.get('/profile', getUserProfile);
-router.put('/profile', updateProfileValidationRules, validateRequest, updateUserProfile);
+router.patch('/profile', updateProfileValidationRules, validateRequest, updateUserProfile);
 router.post('/logout', logoutUser);
 
 export default router;

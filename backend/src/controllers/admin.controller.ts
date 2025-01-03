@@ -6,6 +6,7 @@ import Category from '../models/Category';
 import Paper from '../models/Paper'
 import path from 'node:path'
 import { promises as fs } from 'fs';
+import Question from '../models/Question'
 
 //Get all users
 export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
@@ -177,6 +178,76 @@ export const deleteConference = async (req: Request, res: Response): Promise<voi
 };
  */
 
+export const getAllQuestions = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const questions = await Question.find();
+        res.status(200).json(questions);
+    } catch (error) {
+        console.error('Error retrieving questions:', error);
+        res.status(500).json({ message: 'Error retrieving questions', error });
+    }
+};
+
+export const createQuestion = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { text, type, options, category } = req.body;
+
+        // Validate required fields
+        if (!text || !type) {
+            res.status(400).json({ message: 'Text and type are required fields' });
+            return;
+        }
+
+        // Create and save the question
+        const newQuestion = new Question({ text, type, options, category });
+        await newQuestion.save();
+
+        res.status(201).json({
+            message: 'Question created successfully',
+            question: newQuestion,
+        });
+    } catch (error) {
+        console.error('Error creating question:', error);
+        res.status(500).json({ message: 'Error creating question', error });
+    }
+};
+
+export const updateQuestion = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { questionId } = req.params;
+        const updates = req.body;
+
+        // Find and update the question
+        const updatedQuestion = await Question.findByIdAndUpdate(questionId, updates, {
+            new: true, // Return the updated document
+            runValidators: true, // Ensure validations are run
+        });
+
+        if (!updatedQuestion) {
+            res.status(404).json({ message: 'Question not found' });
+            return;
+        }
+
+        res.status(200).json({
+            message: 'Question updated successfully',
+            question: updatedQuestion,
+        });
+    } catch (error) {
+        console.error('Error updating question:', error);
+        res.status(500).json({ message: 'Error updating question', error });
+    }
+};
+
+//Get all papers
+export const viewAllPapers = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const papers = await Paper.find().populate('category', 'name').populate('conference', 'year location university status').populate('user', 'first_name last_name');
+        res.status(200).json(papers);
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to fetch papers', error });
+    }
+};
+
 // View all papers grouped by conference
 export const getPapersGroupedByConference = async (_req: Request, res: Response): Promise<void> => {
     try {
@@ -187,13 +258,14 @@ export const getPapersGroupedByConference = async (_req: Request, res: Response)
         const groupedConferences = await Promise.all(
           conferences.map(async (conference) => {
               const papers = await Paper.find({ conference: conference._id })
-                .populate('user', 'first_name last_name email') // Include user info
-                .select('title user'); // Include only relevant fields
+                .populate('user').populate('category')
+                .select('title status submission_date user category'); // Include only relevant fields
 
               return {
                   _id: conference._id,
                   year: conference.year,
                   date: conference.date,
+                  location: conference.location,
                   papers,
               };
           })

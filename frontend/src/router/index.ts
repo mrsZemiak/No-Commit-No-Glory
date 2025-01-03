@@ -1,119 +1,128 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import AdminView from '@/views/AdminView.vue';
-import ReviewerView from '@/views/ReviewerView.vue';
-import ParticipantView from '@/views/ParticipantView.vue';
-import HomeView from '@/views/HomeView.vue';
-import SubmissionView from "@/views/SubmissionView.vue";
-import ReviewForm from "@/components/reviewer/ReviewForm.vue";
-import UserCard from "@/views/profile/UserCard.vue";
-import GuestLayout from "@/layouts/GuestLayout.vue";
-import AuthenticatedLayout from "@/layouts/AuthenticatedLayout.vue";
-import ReviewTable from "@/components/reviewer/ReviewTable.vue";
-import ConferenceTable from "@/components/admin/ConferenceTable.vue";
-import CategoryTable from "@/components/admin/CategoryTable.vue";
-import UserTable from "@/components/admin/UserTable.vue";
-import WorksTable from "@/components/admin/WorksTable.vue";
-import ReviewResult from "@/components/participant/ReviewResult.vue";
-import ParticipantWorksTable from '@/components/participant/ParticipantWorksTable.vue'
-import EmailVerification from '@/views/auth/EmailVerification.vue'
+import { useAuthStore } from '@/stores/auth'; // Auth store from Pinia
 
+// Layouts
+import GuestLayout from '@/layouts/GuestLayout.vue';
+import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 
 const routes = [
+  // Guest Routes
   {
     path: '/',
-    name: 'GuestLayout',
     component: GuestLayout,
     children: [
-      { path: '', name: 'HomeView', component: HomeView },
+      { path: '', name: 'HomeView', component: () => import('@/views/common/HomeView.vue')},
+      { path: 'verify-email', name: 'EmailVerification', component: () => import('@/views/EmailVerification.vue')},
     ],
   },
-  { path: '/verify-email', component: EmailVerification },
+
+  // Authenticated Routes
   {
     path: '/auth',
     component: AuthenticatedLayout,
+    meta: { requiresAuth: true }, // Global auth check for this layout
     children: [
-      { path: '', name: 'HomeView', component: HomeView },
-      { path: 'home', name: 'Home', component: HomeView },
-      { path: 'profile', name: 'Profile', component: UserCard },
-      { path: 'submit', name: 'StudentSubmission', component: SubmissionView },
-      { path: 'reviews', name: 'ReviewTable', component: ReviewTable },
-      { path: 'conferences', name: 'ConferenceTable', component: ConferenceTable },
-      { path: 'categories', name: 'CategoryTable', component: CategoryTable },
-      { path: 'users', name: 'UserTable', component: UserTable },
+      // Common routes for all authenticated users
+      { path: 'profile', name: 'Profile', component: () => import('@/views/ProfileView.vue')},
+
+      // Admin Routes
       {
-        path: "works", // Add this route for Papers
-        name: "Works",
-        component: WorksTable, // Adjust component if needed
+        path: 'admin',
+        meta: { role: 'admin' },
+        children: [
+          { path: 'conferences', name: 'ConferenceTable', component: () => import('@/components/admin/ConferenceTable.vue')},
+          { path: 'categories', name: 'CategoryTable', component: () => import('@/components/admin/CategoryTable.vue')},
+          { path: 'users', name: 'UserTable', component: () => import('@/components/admin/UserTable.vue')},
+          { path: 'works', name: 'WorksTable', component: () => import('@/components/admin/WorksTable.vue')},
+          { path: 'questions', name: 'QuestionsTable', component: () => import('@/components/admin/QuestionsTable.vue')},
+          // Modal Routes for Editing
+          {
+            path: 'categories/edit/:id',
+            name: 'EditCategory',
+            component: () => import('@/components/admin/ModalCategory.vue'),
+            props: true,
+          },
+          {
+            path: 'conferences/edit/:id',
+            name: 'EditConference',
+            component: () => import('@/components/admin/ModalConference.vue'),
+            props: true,
+          },
+          {
+            path: 'users/edit/:id',
+            name: 'EditUser',
+            component: () => import('@/components/admin/ModalEditUser.vue'),
+            props: true,
+          },
+        ],
       },
+
+      // Participant Routes
       {
-        path: "participant", // Add this route for participant
-        name: "ParticipantView",
-        component: ParticipantView,
+        path: 'participant',
+        meta: { role: 'participant' },
+        children: [
+          { path: 'submit', name: 'SubmitWork', component: () => import('@/views/participant/SubmitWork.vue')},
+          { path: 'works', name: 'ParticipantWorks', component: () => import('@/components/participant/MyWorksTable.vue')},
+          {
+            path: 'work/:id/edit',
+            name: 'EditWork',
+            component: () => import('@/views/participant/EditWork.vue'),
+            props: true
+          },
+        ],
       },
+
+      // Reviewer Routes
       {
-        path: "participant/my-works",
-        name: "ParticipantWorks",
-        component: ParticipantWorksTable,
-      },
-      {
-        path: '/review/:id',
-        name: 'ReviewForm',
-        component: ReviewForm,
-        props: true
-      },
-      {
-        path: 'review-result/:id',
-        name: 'ReviewResult',
-        component: ReviewResult,
-        props: true,
-      },
-      {
-        path: '/edit/:workId',
-        name: 'EditSubmission',
-        component: SubmissionView,
-        props: true,
+        path: 'reviewer',
+        meta: { role: 'reviewer' },
+        children: [
+          { path: 'reviews', name: 'ReviewerReviews', component: () => import('@/views/reviewer/ReviewsTable.vue') },
+          {
+            path: 'review/:id',
+            name: 'ReviewerEditReview',
+            component: () => import('@/views/reviewer/EditReview.vue'),
+            props: true
+          },
+        ],
       },
     ],
   },
 
-  {
-    path: '/admin',
-    component: AdminView,
-    meta: { role: 'admin' },
-  },
-  {
-    path: '/reviewer',
-    component: ReviewerView,
-    meta: { role: 'reviewer' },
-  },
-  {
-    path: '/participant',
-    component: ParticipantView,
-    meta: { role: 'participant' },
-  },
-/*
-  // Unauthorized route
-  {
-    path: '/unauthorized',
-    name: 'unauthorized',
-    component: () => import('./UnauthorizedView.vue'),
-  },
- */
+  // Fallback Routes
+  { path: '/unauthorized', name: 'Unauthorized', component: () => import('@/views/common/UnauthorizedView.vue') },
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/views/NotFound.vue') },
 ];
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHistory(),
   routes,
 });
 
-// Role-based navigation guard
+// Global Navigation Guard
 router.beforeEach((to, from, next) => {
-  const userRole = localStorage.getItem('role');
-  if (to.meta.role && to.meta.role !== userRole) {
-    next('/unauthorized');
-  } else {
-    next();
+  const authStore = useAuthStore(); // Access the auth store
+
+  // Check authentication for routes that require it
+  if (to.meta.requiresAuth) {
+    if (!authStore.isAuthenticated) {
+      return next({ name: 'Unauthorized' }); // Redirect to Unauthorized page
+    }
   }
+  // Check role-based access control
+  if (to.meta.role) {
+    const hasAccess =
+      (to.meta.role === 'admin' && authStore.isAdmin) ||
+      (to.meta.role === 'reviewer' && authStore.isReviewer) ||
+      (to.meta.role === 'participant' && authStore.isParticipant);
+
+    if (!hasAccess) {
+      return next({ name: 'Unauthorized' }); // Redirect to Unauthorized page
+    }
+  }
+  next();
 });
+
 
 export default router;

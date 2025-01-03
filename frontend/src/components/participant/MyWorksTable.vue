@@ -193,7 +193,7 @@ export default defineComponent({
       statusLabels: {
         draft: "Návrh",
         submitted: "Odoslané",
-        "under review": "V procese hodnotenia",
+        "under_review": "V procese hodnotenia",
         accepted: "Schválené",
         rejected: "Zamietnuté",
       },

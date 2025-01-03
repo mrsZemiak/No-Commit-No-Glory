@@ -1,8 +1,9 @@
 import { Request, Response } from 'express'
-import jwt from 'jsonwebtoken'
-import argon2 from 'argon2'
+import * as jwt from 'jsonwebtoken';
+import * as argon2 from 'argon2';
 import { config } from '../config'
 import User from '../models/User'
+import { AuthRequest } from '../middleware/authenticateToken'
 
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -44,7 +45,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-export const logoutUser = async (req: Request, res: Response): Promise<void> => {
+export const logoutUser = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { userId } = req.body;
 
@@ -61,7 +62,7 @@ export const logoutUser = async (req: Request, res: Response): Promise<void> => 
     }
 };
 
-export const refreshToken = async (req: Request, res: Response) => {
+export const refreshToken = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { refreshToken } = req.body;
 
@@ -70,7 +71,8 @@ export const refreshToken = async (req: Request, res: Response) => {
         const user = await User.findById(decoded.userId);
 
         if (!user || user.refreshToken !== refreshToken) {
-            return res.status(401).json({ message: 'Invalid or expired refresh token' });
+            res.status(401).json({ message: 'Invalid or expired refresh token' });
+            return;
         }
 
         // Generate a new access token

@@ -62,7 +62,7 @@
 <script lang="ts">
 import { defineComponent, ref, onMounted, computed } from 'vue';
 import axios from 'axios';
-import ModalCategory from './modalCategory.vue';
+import ModalCategory from './ModalCategory.vue';
 import type {CategoryAdmin} from "@/types/conference.ts";
 
 export default defineComponent({

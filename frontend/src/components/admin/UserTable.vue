@@ -154,7 +154,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
-import ModalEditUser from './modalEditUser.vue';
+import ModalEditUser from './ModalEditUser.vue';
 import axios from "axios";
 
 interface User {
