@@ -217,7 +217,7 @@ export default defineComponent({
       this.showModal = true;
     },
     viewWorksForConference(conference: ConferenceAdmin) {
-      this.$router.push({ name: 'works', params: { conferenceId: conference._id } });
+      this.$router.push({ name: 'ConferencePapers', params: { conferenceId: conference._id } });
     },
     addConference() {
       this.modalMode = "add";

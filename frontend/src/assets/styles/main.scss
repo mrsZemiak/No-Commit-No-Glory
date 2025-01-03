@@ -150,6 +150,14 @@ $border-radius-8: 8px;
   color: $black !important;
 }
 
+.btn-edit:disabled {
+  border: none;
+}
+
+.btn-edit, .btn-primary {
+  margin: 2px;
+}
+
 .btn-delete {
   background-color: $delete-color !important;
   color: $white !important;
@@ -439,9 +447,13 @@ button:disabled {
 }
 
 .custom-radio input[type="radio"]:disabled + .custom-radio-label {
-  color: #aaa;
+  color: #212529;
 }
 
-.custom-radio input[type="radio"]:disabled + .custom-radio-label::before {
-  background-color: #ccc;
+.conference-container {
+  margin-bottom: 1rem;
 }
+
+//.custom-radio input[type="radio"]:disabled + .custom-radio-label::before {
+//  background-color: rgba(204, 204, 204, 0.5);
+//}

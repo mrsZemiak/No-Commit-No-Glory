@@ -38,7 +38,13 @@ const routes = [
       { path: 'conferences', name: 'ConferenceTable', component: ConferenceTable },
       { path: 'categories', name: 'CategoryTable', component: CategoryTable },
       { path: 'users', name: 'UserTable', component: UserTable },
-      { path: 'works', name: 'works', component: WorksTable },
+      { path: 'papers-list', name: 'PapersList', component: WorksTable},
+      {
+        path: '/conference-papers/:conferenceId',
+        name: 'ConferencePapers',
+        component: WorksTable,
+        props: true
+      },
       {
         path: '/review/:id',
         name: 'ReviewForm',
@@ -57,10 +63,9 @@ const routes = [
         component: SubmissionView,
         props: true,
       },
+
     ],
   },
-
-
 
 
   // Unauthorized route

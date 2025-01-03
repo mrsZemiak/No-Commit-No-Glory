@@ -197,7 +197,7 @@ export const getPapersGroupedByConference = async (_req: Request, res: Response)
         const groupedConferences = await Promise.all(
           conferences.map(async (conference) => {
               const papers = await Paper.find({ conference: conference._id })
-                .populate('user').populate('category')
+                .populate('user').populate('category').populate('reviewer')
                 .select('title status submission_date user category'); // Include only relevant fields
 
               return {
@@ -262,7 +262,7 @@ export const assignReviewer = async (req: Request, res: Response): Promise<void>
         // Update the paper with the reviewer
         const updatedPaper = await Paper.findByIdAndUpdate(
           paperId,
-          { reviewer: reviewerId },
+          { reviewer: reviewerId, status: 'under review' },
           { new: true }
         );
 

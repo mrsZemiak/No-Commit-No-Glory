@@ -55,7 +55,7 @@
             <div>
               <input
                 type="checkbox"
-                value="under_review"
+                value="under review"
                 v-model="filters.selectedReviews"
               />
               <label>V procese hodnotenia</label>
@@ -63,7 +63,7 @@
             <div>
               <input
                 type="checkbox"
-                value="approved"
+                value="accepted"
                 v-model="filters.selectedReviews"
               />
               <label>Schválené</label>
@@ -115,13 +115,17 @@
               </span>
           </td>
           <td>
-            <router-link :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
-                isEditable: (work.status === 'under review' || work.status === 'draft') ? 'true' : 'false',
+            <router-link
+              v-if="work.status === 'accepted' || work.status === 'rejected'"
+              :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
+                isEditable: 'false',
                 isReviewer: 'false'
-                }
-            }">
+              } }">
               <button class="btn btn-edit btn-sm">Pozrieť hodnotenie</button>
             </router-link>
+            <div v-else>
+              <button class="btn btn-edit btn-sm" disabled>Pozrieť hodnotenie</button>
+            </div>
             <button
               class="btn btn-edit btn-sm ml-2"
               @click="editWork(work)"
@@ -253,9 +257,6 @@ export default defineComponent({
     formatTimestamp(timestamp: number): string {
       const date = new Date(timestamp);
       return date.toLocaleString();
-    },
-    viewReview(work: Paper): void {
-      this.$router.push({ name: "ReviewResult", params: { id: work._id } });
     },
     editWork(work: Paper): void {
       this.$router.push({

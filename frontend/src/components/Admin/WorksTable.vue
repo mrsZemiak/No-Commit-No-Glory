@@ -1,111 +1,113 @@
 <template>
 
-      <header class="table-header">
-        <h3>Práce používateľov</h3>
-      </header>
+  <header class="table-header">
+    <h3>Práce používateľov</h3>
+  </header>
 
-    <div class="filters">
-      <div class="filter-dropdown">
-        <button @click="dropdownOpen = !dropdownOpen" class="btn btn-primary">
-          Filter
-        </button>
+  <div class="filters">
+    <div class="filter-dropdown">
+      <button @click="dropdownOpen = !dropdownOpen" class="btn btn-primary">
+        Filter
+      </button>
 
-        <div v-if="dropdownOpen" class="dropdown-content">
-          <div class="filter-group">
-            <label class="fw-bold">Názov:</label>
+      <div v-if="dropdownOpen" class="dropdown-content">
+        <div class="filter-group">
+          <label class="fw-bold">Názov:</label>
+          <input
+            type="text"
+            class="form-control"
+            v-model="filters.title"
+            placeholder="Filtrovať podľa názvu"
+          />
+        </div>
+
+        <div class="filter-group">
+          <label class="fw-bold">Kategória:</label>
+          <input
+            type="text"
+            class="form-control"
+            v-model="filters.category"
+            placeholder="Filtrovať podľa kategórie"
+          />
+        </div>
+
+        <div class="filter-group">
+          <label class="fw-bold">Rok konferencie:</label>
+          <input
+            type="number"
+            class="form-control"
+            v-model="filters.year"
+            placeholder="Filtrovať podľa roka konferencie"
+          />
+        </div>
+        <div class="filter-group">
+          <label class="fw-bold">Meno používateľa:</label>
+          <input
+            type="text"
+            class="form-control"
+            v-model="filters.firstName"
+            placeholder="Filtrovať podľa mena"
+          />
+        </div>
+        <div class="filter-group">
+          <label class="fw-bold">Priezvisko používateľa:</label>
+          <input
+            type="text"
+            class="form-control"
+            v-model="filters.lastName"
+            placeholder="Filtrovať podľa priezviska"
+          />
+        </div>
+
+        <div class="filter-group">
+          <label class="fw-bold">Stav práce:</label>
+          <div>
             <input
-              type="text"
-              class="form-control"
-              v-model="filters.title"
-              placeholder="Filtrovať podľa názvu"
+              type="checkbox"
+              value="submitted"
+              v-model="filters.selectedReviews"
             />
+            <label>Odoslané</label>
           </div>
-
-          <div class="filter-group">
-            <label class="fw-bold">Kategória:</label>
+          <div>
             <input
-              type="text"
-              class="form-control"
-              v-model="filters.category"
-              placeholder="Filtrovať podľa kategórie"
+              type="checkbox"
+              value="under review"
+              v-model="filters.selectedReviews"
             />
+            <label>V procese hodnotenia</label>
           </div>
-
-          <div class="filter-group">
-            <label class="fw-bold">Rok konferencie:</label>
+          <div>
             <input
-              type="number"
-              class="form-control"
-              v-model="filters.year"
-              placeholder="Filtrovať podľa roka konferencie"
+              type="checkbox"
+              value="accepted"
+              v-model="filters.selectedReviews"
             />
+            <label>Schválené</label>
           </div>
-          <div class="filter-group">
-            <label class="fw-bold">Meno používateľa:</label>
+          <div>
             <input
-              type="text"
-              class="form-control"
-              v-model="filters.firstName"
-              placeholder="Filtrovať podľa mena"
+              type="checkbox"
+              value="rejected"
+              v-model="filters.selectedReviews"
             />
+            <label>Zamietnuté</label>
           </div>
-          <div class="filter-group">
-            <label class="fw-bold">Priezvisko používateľa:</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="filters.lastName"
-              placeholder="Filtrovať podľa priezviska"
-            />
-          </div>
+        </div>
 
-          <div class="filter-group">
-            <label class="fw-bold">Stav práce:</label>
-            <div>
-              <input
-                type="checkbox"
-                value="submitted"
-                v-model="filters.selectedReviews"
-              />
-              <label>Odoslané</label>
-            </div>
-            <div>
-              <input
-                type="checkbox"
-                value="under_review"
-                v-model="filters.selectedReviews"
-              />
-              <label>V procese hodnotenia</label>
-            </div>
-            <div>
-              <input
-                type="checkbox"
-                value="approved"
-                v-model="filters.selectedReviews"
-              />
-              <label>Schválené</label>
-            </div>
-            <div>
-              <input
-                type="checkbox"
-                value="rejected"
-                v-model="filters.selectedReviews"
-              />
-              <label>Zamietnuté</label>
-            </div>
-          </div>
-
-          <div class="filter-group">
-            <button @click="resetFilters" class="btn btn-primary btn-sm">Zrušiť filtrovanie</button>
-          </div>
+        <div class="filter-group">
+          <button @click="resetFilters" class="btn btn-primary btn-sm">Zrušiť filtrovanie</button>
         </div>
       </div>
     </div>
+  </div>
 
-  <div v-for="(conference, conferenceIndex) in conferences" :key="conference._id">
+  <div v-for="(conference, conferenceIndex) in conferences" :key="conference._id" class="conference-container">
     <div class="table-card">
       <div class="card-header">
         <h3>{{ conference.year }} - {{ conference.location }}</h3>
+        <button class="btn btn-primary btn-sm ml-2" @click="downloadConferenceData()">Stiahnuť</button>
+
       </div>
       <table class="table">
         <thead>
@@ -114,6 +116,7 @@
           <th>Kategória</th>
           <th>Čas poslania</th>
           <th>Meno používateľa</th>
+          <th>Recenzent</th>
           <th>Hodnotenie</th>
           <th>Akcie</th>
         </tr>
@@ -124,6 +127,7 @@
           <td>{{ work.category?.name }}</td>
           <td>{{ formatTimestamp(work.submission_date) }}</td>
           <td>{{ work.user?.first_name }} {{ work.user?.last_name }}</td>
+          <td>{{ work.reviewer ? work.reviewer.first_name + ' ' + work.reviewer.last_name : 'Nepriradený' }}</td>
           <td>
               <span :class="{
                 'badge badge-secondary': work.status === 'submitted',
@@ -136,15 +140,26 @@
               </span>
           </td>
           <td>
-            <router-link :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
-                isEditable: (work.status === 'under review' || work.status === 'draft') ? 'true' : 'false',
+            <router-link
+              v-if="work.status === 'accepted' || work.status === 'rejected'"
+              :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
+                isEditable: 'false',
                 isReviewer: 'false'
-                }
-            }">
+              } }">
               <button class="btn btn-edit btn-sm">Pozrieť hodnotenie</button>
             </router-link>
+            <div v-else>
+              <button class="btn btn-edit btn-sm" disabled>Pozrieť hodnotenie</button>
+            </div>
+
             <button class="btn btn-edit btn-sm ml-2" @click="editWork(work)">Upraviť</button>
-            <button class="btn btn-primary btn-sm ml-2" @click="openReviewerModal(work)">Priradiť recenzenta</button>
+            <button
+              class="btn btn-primary btn-sm ml-2"
+              @click="openReviewerModal(work)"
+              :disabled="work.status === 'accepted' || work.status === 'rejected'"
+            >
+              Priradiť recenzenta
+            </button>
           </td>
         </tr>
         </tbody>
@@ -185,11 +200,12 @@
           :options="reviewers"
           :custom-label="(reviewer: User) => reviewer.first_name + ' ' + reviewer.last_name + ' (' + reviewer.email + ')'"
           placeholder="Vyberte hodnotiteľa"
-          label="name"
           track-by="_id"
+          label="first_name"
           :searchable="true"
           :allow-empty="true"
         />
+
       </div>
       <div class="modal-footer">
         <button @click="assignReviewer" class="btn btn-primary">Priradiť</button>
@@ -203,7 +219,7 @@
 
 
 <script lang="ts">
-import {defineComponent, ref} from "vue";
+import {defineComponent} from "vue";
 import axios from "axios";
 import Multiselect from "vue-multiselect";
 
@@ -217,6 +233,8 @@ interface Paper {
   status: 'submitted' | 'under review' | 'accepted' | 'rejected' | 'draft';
   conference: { year: number; location: string };
   user: { first_name: string; last_name: string };
+  reviewer?: User;
+
 }
 
 interface Conference {
@@ -236,38 +254,44 @@ interface User {
 }
 
 export default defineComponent({
-  name: "WorksTable",
-  components: {
-    Multiselect,
-  },
-  data() {
-    return {
-      conferences: [] as Conference[],
-      filters: {
-        title: "",
-        category: "",
-        selectedReviews: [] as string[],
-        year: null as number | null,
-        firstName: "",
-        lastName: "",
+    name: "WorksTable",
+    components: {
+      Multiselect,
+    },
+    props: {
+      conferenceId: {
+        type: String,
+        default: null,
       },
-      dropdownOpen: false,
-      currentPage: 1,
-      perPage: 10,
-      error: "",
-      statusLabels: {
-        draft: "Návrh",
-        submitted: "Odoslané",
-        'under review': "V procese hodnotenia",
-        accepted: "Schválené",
-        rejected: "Zamietnuté",
-      },
-      reviewers: [] as User[],
-      isReviewerModalOpen: false,
-      selectedWork: null as Paper | null,
-      selectedReviewer: null as string | null,
-    };
-  },
+    },
+    data() {
+      return {
+        conferences: [] as Conference[],
+        filters: {
+          title: "",
+          category: "",
+          selectedReviews: [] as string[],
+          year: null as number | null,
+          firstName: "",
+          lastName: "",
+        },
+        dropdownOpen: false,
+        currentPage: 1,
+        perPage: 10,
+        error: "",
+        statusLabels: {
+          draft: "Návrh",
+          submitted: "Odoslané",
+          'under review': "V procese hodnotenia",
+          accepted: "Schválené",
+          rejected: "Zamietnuté",
+        },
+        reviewers: [] as User[],
+        isReviewerModalOpen: false,
+        selectedWork: null as Paper | null,
+        selectedReviewer: null as User | null,
+      };
+    },
     computed: {
       totalPages() {
         return this.conferences.map((conference) => {
@@ -302,70 +326,87 @@ export default defineComponent({
         return conference.papers.filter(this.filterPapers);
       },
 
-    async fetchPapers() {
-      try {
-        const response = await axios.get("http://localhost:3000/api/admin/papers");
-        console.log(response.data);
-        this.conferences = response.data.map((conference: Conference) => ({
-          ...conference,
-          currentPage: 1,}));
-      } catch (err) {
-        this.error = "Nepodarilo sa načítať práce.";
-      }
-    },
-    async fetchReviewers() {
-      try {
-        const response = await axios.get("http://localhost:3000/api/admin/users");
-
-        this.reviewers = response.data
-          .filter((user: User) => user.role && user.role.name === 'reviewer')
-          .map((user: User) => ({
-            _id: user._id,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            email: user.email
-          }));
-        console.log(this.reviewers);
-      } catch (err) {
-        this.error = "Nepodarilo sa načítať zoznam hodnotiteľov.";
-      }
-    },
-    formatTimestamp(timestamp: number): string {
-      const date = new Date(timestamp);
-      return date.toLocaleString();
-    },
-    editWork(work: Paper): void {
-      alert(`Editing work: ${work.title}`);
-    },
-    resetFilters(): void {
-      this.filters.title = "";
-      this.filters.category = "";
-      this.filters.selectedReviews = [];
-      this.filters.year = null;
-    },
-    openReviewerModal(work: Paper) {
-      this.selectedWork = work;
-      this.isReviewerModalOpen = true;
-    },
-    closeReviewerModal() {
-      this.isReviewerModalOpen = false;
-      this.selectedReviewer = null;
-    },
-    async assignReviewer() {
-      if (!this.selectedReviewer) {
-        alert("Prosím vyberte hodnotiteľa.");
-        return;
-      }
-
-      if (this.selectedWork && this.selectedWork._id) {
+      async fetchPapers() {
         try {
-          const response = await axios.patch(`http://localhost:3000/api/admin/papers/${this.selectedWork._id}/reviewer`, {
+          const response = await axios.get("http://localhost:3000/api/admin/papers");
+          console.log(response.data);
+          console.log(this.conferenceId);
+          if (this.conferenceId) {
+            console.log("filtering...");
+            this.conferences = response.data
+              .filter((conference: Conference) => conference._id === this.conferenceId)
+              .map((conference: Conference) => ({
+                ...conference,
+                currentPage: 1,
+              }));
+          } else {
+            console.log("not filtering");
+            this.conferences = response.data.map((conference: Conference) => ({
+              ...conference,
+              currentPage: 1,
+            }));
+          }
+        } catch (err) {
+          this.error = "Nepodarilo sa načítať práce.";
+        }
+      },
+      async fetchReviewers() {
+        try {
+          const response = await axios.get("http://localhost:3000/api/admin/users");
+
+          this.reviewers = response.data
+            .filter((user: User) => user.role && user.role.name === 'reviewer')
+            .map((user: User) => ({
+              _id: user._id,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              email: user.email
+            }));
+        } catch (err) {
+          this.error = "Nepodarilo sa načítať zoznam hodnotiteľov.";
+        }
+      },
+      formatTimestamp(timestamp: number): string {
+        const date = new Date(timestamp);
+        return date.toLocaleString();
+      },
+      editWork(work: Paper): void {
+        alert("Editing work: ${work.title}");
+      },
+      downloadConferenceData() {
+        alert("Downloading work");
+      },
+      resetFilters(): void {
+        this.filters.title = "";
+        this.filters.category = "";
+        this.filters.selectedReviews = [];
+        this.filters.year = null;
+      },
+      openReviewerModal(work: Paper) {
+        this.selectedWork = work;
+        this.selectedReviewer = work.reviewer || null;
+        this.isReviewerModalOpen = true;
+      },
+      closeReviewerModal() {
+        this.isReviewerModalOpen = false;
+        this.selectedReviewer = null;
+      },
+      async assignReviewer() {
+        if (!this.selectedReviewer) {
+          alert("Prosím vyberte hodnotiteľa.");
+          return;
+        }
+
+        if (this.selectedWork && this.selectedWork._id) {
+          try {
+            const response = await axios.patch("http://localhost:3000/api/admin/papers/${this.selectedWork._id}/reviewer", {
             reviewerId: this.selectedReviewer,
           });
 
           if (response.status === 200) {
             alert("Hodnotiteľ bol úspešne priradený.");
             this.closeReviewerModal();
+            await this.fetchPapers();
           }
         } catch (err) {
           this.error = "Nepodarilo sa priradiť hodnotiteľa.";
@@ -376,9 +417,9 @@ export default defineComponent({
   },
 
   mounted() {
-    this.fetchPapers();
-    this.fetchReviewers();
-  },
+  this.fetchPapers();
+  this.fetchReviewers();
+},
 });
 </script>
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
@@ -386,3 +427,5 @@ export default defineComponent({
 <style scoped>
 
 </style>
+
+

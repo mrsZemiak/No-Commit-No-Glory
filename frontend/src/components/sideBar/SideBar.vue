@@ -40,7 +40,7 @@ const adminLinks: Link[] = [
   },
   {
     name: "Práce",
-    path: "/auth/works"
+    path: "/auth/papers-list"
   }
 ];
 
