@@ -151,8 +151,6 @@
             <div v-else>
               <button class="btn btn-edit btn-sm" disabled>Pozrieť hodnotenie</button>
             </div>
-
-            <button class="btn btn-edit btn-sm ml-2" @click="editWork(work)">Upraviť</button>
             <button
               class="btn btn-primary btn-sm ml-2"
               @click="openReviewerModal(work)"
@@ -370,9 +368,7 @@ export default defineComponent({
         const date = new Date(timestamp);
         return date.toLocaleString();
       },
-      editWork(work: Paper): void {
-        alert("Editing work: ${work.title}");
-      },
+
       downloadConferenceData() {
         alert("Downloading work");
       },
@@ -399,7 +395,7 @@ export default defineComponent({
 
         if (this.selectedWork && this.selectedWork._id) {
           try {
-            const response = await axios.patch("http://localhost:3000/api/admin/papers/${this.selectedWork._id}/reviewer", {
+            const response = await axios.patch(`http://localhost:3000/api/admin/papers/${this.selectedWork._id}/reviewer`, {
             reviewerId: this.selectedReviewer,
           });
 

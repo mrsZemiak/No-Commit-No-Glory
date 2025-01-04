@@ -2,22 +2,7 @@
   <b-card>
     <div class="pl-lg-4">
       <form @submit.prevent="handleSubmit">
-        <b-row>
-          <b-col lg="6">
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                class="form-control"
-                placeholder="email@email.com"
-                v-model="profile.email"
-                required
-              />
-            </div>
-          </b-col>
-        </b-row>
-
+        <!-- First Name and Last Name -->
         <b-row>
           <b-col lg="6">
             <div class="form-group">
@@ -27,7 +12,7 @@
                 id="first-name"
                 class="form-control"
                 placeholder="Meno"
-                v-model="profile.firstName"
+                v-model="formData.first_name"
                 required
               />
             </div>
@@ -40,9 +25,28 @@
                 id="last-name"
                 class="form-control"
                 placeholder="Priezvisko"
-                v-model="profile.lastName"
+                v-model="formData.last_name"
                 required
               />
+            </div>
+          </b-col>
+        </b-row>
+
+        <b-row>
+          <b-col lg="6">
+            <div class="form-group">
+              <label for="university">Univerzita</label>
+              <select
+                id="university"
+                class="form-control"
+                v-model="formData.university"
+                required
+              >
+                <option value="" disabled selected>Vyberte univerzitu</option>
+                <option value="UKF">UKF</option>
+                <option value="UMB">UMB</option>
+                <option value="UCM">UCM</option>
+              </select>
             </div>
           </b-col>
         </b-row>
@@ -52,35 +56,36 @@
         <b-row>
           <b-col lg="6">
             <div class="form-group">
-              <label for="position">Univerzita</label>
+              <label for="password">Heslo</label>
               <input
-                type="text"
-                id="position"
+                type="password"
+                id="password"
                 class="form-control"
-                placeholder="Vaša pozícia"
-                v-model="profile.university"
-                required
+                placeholder="Zadajte heslo"
+                v-model="formData.password"
+                @input="validatePassword"
               />
             </div>
           </b-col>
           <b-col lg="6">
             <div class="form-group">
-              <label for="about-me">O mne</label>
-              <textarea
-                id="about-me"
+              <label for="repeat-password">Potvrďte heslo</label>
+              <input
+                type="password"
+                id="repeat-password"
                 class="form-control"
-                rows="4"
-                placeholder="Povedzte nám o sebe"
-                v-model="profile.aboutMe"
-                required
-              ></textarea>
+                placeholder="Zadajte heslo znovu"
+                v-model="formData.repeatPassword"
+                @input="validatePassword"
+              />
+              <small v-if="passwordError" class="text-danger">{{ passwordError }}</small>
             </div>
           </b-col>
         </b-row>
 
         <b-row class="mt-4">
           <b-col lg="12" class="text-center">
-            <button type="submit" class="btn btn-primary">Uložiť zmeny</button>
+            <button type="submit" class="btn btn-primary" :disabled="passwordError">Uložiť zmeny</button>
           </b-col>
         </b-row>
       </form>
@@ -93,16 +98,67 @@ export default {
   props: {
     profile: {
       type: Object,
-      required: true
-    }
+      required: true,
+    },
+  },
+  data() {
+    return {
+      formData: {
+        first_name: this.profile.first_name,
+        last_name: this.profile.last_name,
+        university: this.profile.university,
+        password: "",
+        repeatPassword: "",
+      },
+      passwordError: null,
+    };
+  },
+  watch: {
+    profile: {
+      handler(newProfile) {
+        this.formData = {
+          first_name: newProfile.first_name,
+          last_name: newProfile.last_name,
+          university: newProfile.university,
+          password: "",
+          repeatPassword: "",
+        };
+      },
+      immediate: true,
+    },
   },
   methods: {
+    validatePassword() {
+      if (this.formData.password && this.formData.repeatPassword) {
+        if (this.formData.password !== this.formData.repeatPassword) {
+          this.passwordError = "Heslá sa nezhodujú.";
+        } else {
+          this.passwordError = null;
+        }
+      } else {
+        this.passwordError = null;
+      }
+    },
     handleSubmit() {
-      this.$emit('update', this.profile);
-    }
-  }
+      const {password, repeatPassword, ...updateData} = this.formData;
+
+      if (password && password !== repeatPassword) {
+        this.passwordError = "Heslá sa nezhodujú.";
+        return;
+      }
+
+      if (password) {
+        updateData.password = password;
+      }
+      this.$emit("update", updateData);
+
+      this.formData.password = "";
+      this.formData.repeatPassword = "";
+    },
+  },
 };
 </script>
+
 
 <style scoped>
 

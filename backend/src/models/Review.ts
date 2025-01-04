@@ -10,8 +10,9 @@ export interface IReview extends Document {
     reviewer: mongoose.Schema.Types.ObjectId;
     responses: IReviewResponse[]; // array of answers to questions
     comments?: string; // additional comments
-    recommendation: 'publish' | 'publish_with_changes' | 'reject';
+    recommendation: 'publish' | 'publish_with_changes' | 'reject' | 'no_recommendation'; //ADDED no recommendation in case the reviewer didn't pick one
     created_at: Date;
+    isDraft: boolean; //ADDED THIS - check if it's a draft
 }
 
 const ReviewSchema: Schema = new Schema({
@@ -20,16 +21,17 @@ const ReviewSchema: Schema = new Schema({
     responses: [
         {
             question: { type: mongoose.Schema.Types.ObjectId, ref: 'Question', required: true },
-            answer: { type: Schema.Types.Mixed, required: true }, // handles text, yes/no, and ratings
+            answer: { type: Schema.Types.Mixed, required: false, default: null }, // handles text, yes/no, and ratings //CHANGED TO FALSE TO ALLOW FOR DRAFT SAVING
         },
     ],
     comments: { type: String },
     recommendation: {
         type: String,
-        enum: ['publish', 'publish_with_changes', 'reject'],
+        enum: ['publish', 'publish_with_changes', 'reject', 'no_recommendation'],
         required: true,
     },
     created_at: { type: Date, default: Date.now },
+    isDraft: { type: Boolean, default: true }, //ADDED THIS FOR FUNCTIONALITY
 },{ collection: 'reviews' });
 
 export default mongoose.model<IReview>('Review', ReviewSchema);

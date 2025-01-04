@@ -1,6 +1,6 @@
 <template>
   <div class="submission-form">
-    <h2>Hodnotenie pre ID: {{ id }}</h2>
+    <h2>Hodnotenie pre: {{ title }}</h2>
     <form @submit.prevent="handleSubmit">
 
       <!-- Going through all of the questions in DB -->
@@ -69,7 +69,7 @@ export default defineComponent({
   name: 'ReviewForm',
   props: {
     id: {
-      type: Number,
+      type: String,
       required: true,
     },
   },
@@ -81,9 +81,11 @@ export default defineComponent({
       reviewId: '',
       isEditable: false,
       isReviewer: false,
+      title: this.$route.query.title as string,
     };
   },
   mounted() {
+    console.log('Title:', this.title);
     this.fetchQuestions();
     this.fetchReview();
     this.isEditable = this.$route.query.isEditable === 'true';
@@ -155,12 +157,15 @@ export default defineComponent({
           reviewerId: this.reviewerId, // Temporary ID
           responses: transformedResponses,
           recommendation: this.form.recommendation,
+          isDraft: false,
         };
 
         const response = await axios.post('http://localhost:3000/api/reviewer/reviews', reviewData);
         console.log('Review submitted:', response.data);
         alert('Hodnotenie bolo úspešne odovzdané!');
-        this.form = {}; // Reset form after submission
+
+        this.$router.push({ name: 'ReviewTable' });
+
       } catch (error) {
         console.error('Error submitting review:', error);
         alert('Chyba pri odosielaní hodnotenia. Skúste znova.');
@@ -179,12 +184,15 @@ export default defineComponent({
           reviewerId: '6775538dedbad0434a6f9ca8', // Temporary ID
           responses: transformedResponses,
           recommendation: this.form.recommendation,
+          isDraft: true,
         };
 
         const response = await axios.post('http://localhost:3000/api/reviewer/reviews', reviewData);
         console.log('Review saved as draft:', response.data);
         alert('Hodnotenie bolo uložené ako koncept!');
-        this.form = {};
+
+        this.$router.push({ name: 'ReviewTable' });
+
       } catch (error) {
         console.error('Error saving draft:', error);
         alert('Chyba pri ukladaní konceptu. Skúste znova.');

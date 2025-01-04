@@ -6,6 +6,7 @@ export enum PaperStatus {
     UnderReview = 'under review',
     Accepted = 'accepted',
     Rejected = 'rejected',
+    AcceptedWithChanges = 'accepted with changes', //Added new status
 }
 
 export interface IPaper extends Document {

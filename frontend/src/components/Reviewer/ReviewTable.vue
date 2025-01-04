@@ -35,6 +35,7 @@
           </td>
           <td>
             <router-link :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
+                title: work.title,
                 isEditable: (work.status === 'under review' || work.status === 'draft') ? 'true' : 'false',
                 isReviewer: 'true'
                 }

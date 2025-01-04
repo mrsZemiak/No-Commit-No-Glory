@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Review from '../models/Review';
-import Paper from '../models/Paper';
+import Paper, {PaperStatus} from '../models/Paper';
 
 // Reviewer: View assigned papers
 export const viewAssignedPapers = async (req: Request, res: Response): Promise<void> => {
@@ -17,7 +17,7 @@ export const viewAssignedPapers = async (req: Request, res: Response): Promise<v
 export const submitReview = async (req: Request, res: Response): Promise<void> => {
     try {
         console.log('Request Body:', req.body);
-        const { paperId, reviewerId, responses, recommendation, status } = req.body;
+        const { paperId, reviewerId, responses, recommendation= 'no_recommendation', status, isDraft } = req.body;
 
 
         let existingReview = await Review.findOne({ paper: paperId, reviewer: reviewerId });
@@ -25,6 +25,7 @@ export const submitReview = async (req: Request, res: Response): Promise<void> =
         if (existingReview) {
             existingReview.responses = responses;
             existingReview.recommendation = recommendation;
+            existingReview.isDraft = isDraft;
 
 
             await existingReview.save();
@@ -36,17 +37,22 @@ export const submitReview = async (req: Request, res: Response): Promise<void> =
                 responses,
                 recommendation,
                 status,
+                isDraft,
             });
             await newReview.save();
             res.status(201).json({ message: 'Review submitted successfully', review: newReview });
         }
-        let paperStatus = 'under review';
-        if (recommendation === 'publish') {
-            paperStatus = 'accepted';
-        } else if (recommendation === 'reject') {
-            paperStatus = 'rejected';
-        } else if (recommendation === 'publish_with_changes') {
-            paperStatus = 'under review';
+        //Using isDraft to choose the state of the paper
+        let paperStatus = PaperStatus.UnderReview;
+
+        if (!isDraft) {
+            if (recommendation === 'publish') {
+                paperStatus = PaperStatus.Accepted;
+            } else if (recommendation === 'reject') {
+                paperStatus = PaperStatus.Rejected;
+            } else if (recommendation === 'publish_with_changes') {
+                paperStatus = PaperStatus.AcceptedWithChanges;
+            }
         }
         await Paper.findByIdAndUpdate(paperId, { status: paperStatus });
     } catch (error) {
