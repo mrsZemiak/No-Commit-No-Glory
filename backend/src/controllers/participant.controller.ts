@@ -96,10 +96,21 @@ export const editPaper = async (req: AuthRequest, res: Response): Promise<void> 
             return;
         }
 
+        //ADDED THIS to change paper status based on the final submission - change that too since it's editing an existing form and can be submitted as a full version
+        if ('final_submission' in updates) {
+            if (updates.final_submission===true) {
+                paper.status = PaperStatus.Submitted;
+            }
+            else {
+                paper.status = PaperStatus.Draft;
+            }
+            paper.final_submission = updates.final_submission;
+            delete updates.final_submission;
+        }
+
         // Prevent editing status, user, or final_submission directly
         delete updates.status;
         delete updates.user;
-        delete updates.final_submission;
 
         // Update the paper
         Object.assign(paper, updates);

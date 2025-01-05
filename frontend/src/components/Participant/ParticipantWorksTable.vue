@@ -127,11 +127,15 @@
               <button class="btn btn-edit btn-sm" disabled>Pozrieť hodnotenie</button>
             </div>
             <button
+              v-if="work.status === 'draft'"
               class="btn btn-edit btn-sm ml-2"
               @click="editWork(work)"
             >
               Upraviť
             </button>
+            <div v-else>
+              <button class="btn btn-edit btn-sm ml-2" disabled>Upraviť</button>
+            </div>
           </td>
         </tr>
         </tbody>

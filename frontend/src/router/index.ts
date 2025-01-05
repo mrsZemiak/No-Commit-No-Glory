@@ -34,7 +34,7 @@ const routes = [
       { path: 'profile', name: 'Profile', component: UserCard },
       { path: 'submit', name: 'StudentSubmission', component: SubmissionView },
       { path: 'reviews', name: 'ReviewTable', component: ReviewTable },
-      { path: 'participantView', name: 'ParticipantView', component: ParticipantView, meta: {role: 'Participant'}},
+      { path: 'participantView', name: 'ParticipantView', component: ParticipantView},
       { path: 'conferences', name: 'ConferenceTable', component: ConferenceTable },
       { path: 'categories', name: 'CategoryTable', component: CategoryTable },
       { path: 'users', name: 'UserTable', component: UserTable },

@@ -16,7 +16,11 @@
       </div>
       <div class="form-group">
         <label for="university">Univerzita</label>
-        <input type="text" v-model="user.university" id="university" required />
+        <select v-model="user.university" id="university" required>
+          <option value="UKF">UKF</option>
+          <option value="UCM">UCM</option>
+          <option value="UMB">UMB</option>
+        </select>
       </div>
       <div class="form-group">
         <label for="status">Stav</label>
@@ -25,30 +29,30 @@
           <option value="inactive">Neaktívny</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Roles</label>
-        <div>
-          <label>
+      <div class="form-group user-role-group">
+        <label class="role-label">Role</label>
+        <div class="role-options">
+          <label class="role-option">
             <input
-              type="checkbox"
+              type="radio"
               value="participant"
-              v-model="user.roles"
+              v-model="user.role.name"
             />
             Účastník
           </label>
-          <label>
+          <label class="role-option">
             <input
-              type="checkbox"
+              type="radio"
               value="reviewer"
-              v-model="user.roles"
+              v-model="user.role.name"
             />
             Recenzent
           </label>
-          <label>
+          <label class="role-option">
             <input
-              type="checkbox"
+              type="radio"
               value="admin"
-              v-model="user.roles"
+              v-model="user.role.name"
             />
             Admin
           </label>
@@ -71,6 +75,9 @@ export default defineComponent({
       type: Object as PropType<any>,
       required: true
     }
+  },
+  onMounted() {
+    console.log(this.user);
   },
   methods: {
     updateUser() {

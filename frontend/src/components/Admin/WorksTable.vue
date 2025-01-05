@@ -106,7 +106,7 @@
     <div class="table-card">
       <div class="card-header">
         <h3>{{ conference.year }} - {{ conference.location }}</h3>
-        <button class="btn btn-primary btn-sm ml-2" @click="downloadConferenceData()">Stiahnuť</button>
+        <button class="btn btn-primary btn-sm ml-2" @click="downloadConferenceData(conference._id)">Stiahnuť</button>
 
       </div>
       <table class="table">
@@ -151,6 +151,7 @@
             <div v-else>
               <button class="btn btn-edit btn-sm" disabled>Pozrieť hodnotenie</button>
             </div>
+            <button @click="downloadPaper" class="btn btn-primary btn-sm">Stiahnuť</button>
             <button
               class="btn btn-primary btn-sm ml-2"
               @click="openReviewerModal(work)"
@@ -368,10 +369,34 @@ export default defineComponent({
         const date = new Date(timestamp);
         return date.toLocaleString();
       },
-
-      downloadConferenceData() {
+      downloadPaper() {
         alert("Downloading work");
       },
+      downloadConferenceData(conferenceId: string) {
+        axios({
+          url: `http://localhost:3000/conferences/${conferenceId}/papers/download`,
+          method: 'GET',
+          responseType: 'blob',
+        })
+          .then((response) => {
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+
+            link.setAttribute('download', `conference-${conferenceId}-papers.zip`);
+
+            document.body.appendChild(link);
+            link.click();
+
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+          })
+          .catch((error) => {
+            console.error('Error downloading conference data:', error);
+            alert('Nepodarilo sa stiahnuť dáta konferencie.');
+          });
+      },
+
       resetFilters(): void {
         this.filters.title = "";
         this.filters.category = "";

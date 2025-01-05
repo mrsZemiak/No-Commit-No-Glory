@@ -40,6 +40,7 @@
                 isReviewer: 'true'
                 }
             }">
+              <button @click="downloadPaper" class="btn btn-primary btn-sm">Stiahnuť</button>
               <button class="btn btn-edit btn-sm">Hodnotiť</button>
             </router-link>
           </td>
@@ -126,6 +127,9 @@ export default defineComponent({
       } catch (error) {
         console.error("Failed to fetch works:", error);
       }
+    },
+    downloadPaper() {
+      alert("Downloading work");
     },
   },
   mounted() {

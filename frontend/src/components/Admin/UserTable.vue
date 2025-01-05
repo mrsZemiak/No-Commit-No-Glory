@@ -191,7 +191,7 @@ export default defineComponent({
       isModalVisible: false,
       selectedUser: {} as User,
       roleLabels: {
-        participant: "Študent",
+        participant: "Účastník",
         reviewer: "Recenzent",
         admin: "Admin",
       },

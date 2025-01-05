@@ -454,6 +454,39 @@ button:disabled {
   margin-bottom: 1rem;
 }
 
+.user-role-group {
+  margin-bottom: 1.5rem;
+}
+
+.role-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.role-options {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.role-option {
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.role-option input {
+  margin-right: 0.5rem;
+  width: auto !important;
+}
+
+
+
+
+
 //.custom-radio input[type="radio"]:disabled + .custom-radio-label::before {
 //  background-color: rgba(204, 204, 204, 0.5);
 //}

@@ -1,7 +1,7 @@
 <template>
   <div class="submission-form">
     <h2>Odovzdanie práce</h2>
-    <form @submit.prevent="handleSubmit">
+    <form>
       <div class="form-group">
         <label for="first_name">Meno</label>
         <input
@@ -111,7 +111,22 @@
         <small class="form-text text-muted">Akceptované formáty: PDF, Word (.docx)</small>
       </div>
 
-      <button type="submit" class="btn btn-primary">Odovzdať</button>
+      <div class="form-group">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          @click="saveAsDraft"
+        >
+          Uložiť ako návrh
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary ml-2"
+          @click="publishWork"
+        >
+          Odovzdať
+        </button>
+      </div>
     </form>
   </div>
 </template>
@@ -178,7 +193,13 @@ onMounted(async () => {
 function addAuthor() {
   form.value.otherAuthors.push("");
 }
+function saveAsDraft() {
+  handleSubmit(false);
+}
 
+function publishWork() {
+  handleSubmit(true);
+}
 function removeAuthor(index: number) {
   form.value.otherAuthors.splice(index, 1);
 }
@@ -190,7 +211,7 @@ function handleFileChange(event: Event) {
   fileName.value = file ? file.name : '';
 }
 
-async function handleSubmit() {
+async function handleSubmit(isFinalSubmission: boolean) {
   if (!form.value.first_name || !form.value.last_name || !form.value.submissionName || !form.value.abstract || !form.value.categoryPick || !form.value.conferencePick) {
     alert("Prosím vyplňte všetky políčka.");
     return;
@@ -210,7 +231,8 @@ async function handleSubmit() {
         return { firstName, lastName };
       })
     ],
-    user: TEMP_USER_ID
+    user: TEMP_USER_ID,
+    final_submission: isFinalSubmission
   };
 
   const workId = route.params.workId;
@@ -222,10 +244,10 @@ async function handleSubmit() {
     let response;
     if (workId) {
       response = await axios.put(url, payload);
-      alert("Work updated successfully!");
+      alert("Práca bola úspešne zmenená!");
     } else {
       response = await axios.post(url, payload);
-      alert("Work submitted successfully!");
+      alert("Práca bola úspešne odovzdaná!");
     }
     console.log("Response:", response.data);
   } catch (error) {
