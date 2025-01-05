@@ -1,11 +1,14 @@
 <template>
-  <div class="modal-content">
+  <div class="modal-container">
     <button class="btn-close" @click="closeModal"></button>
-    <h4>{{ isEditMode ? 'Upraviť konferenciu' : (isViewMode ? 'Zobraziť konferenciu' : 'Pridať konferenciu') }} </h4>
-    <form @submit.prevent="submitConference">
+    <h4 class="modal-title">
+      {{ isEditMode ? 'Upraviť konferenciu' : isViewMode ? 'Zobraziť konferenciu' : 'Pridať konferenciu' }}
+    </h4>
+
+    <form class="submission-form" @submit.prevent="submitConference">
       <div class="row">
         <div class="col-md-6">
-          <div class="form-group mb-3">
+          <div class="form-group">
             <label for="name">Univerzita</label>
             <input
               type="text"
@@ -15,7 +18,7 @@
               required
             />
           </div>
-          <div class="form-group mb-3">
+          <div class="form-group">
             <label for="year">Rok</label>
             <input
               type="number"
@@ -25,7 +28,7 @@
               required
             />
           </div>
-          <div class="form-group mb-3">
+          <div class="form-group">
             <label for="location">Miesto konania</label>
             <input
               type="text"
@@ -35,7 +38,7 @@
               required
             />
           </div>
-          <div class="form-group mb-3">
+          <div class="form-group">
             <label for="status">Stav</label>
             <select
               v-model="localConference.status"
@@ -50,7 +53,7 @@
           </div>
         </div>
         <div class="col-md-6">
-          <div class="form-group mb-3">
+          <div class="form-group">
             <label for="submissionDeadline">Odovzdanie práce</label>
             <flatpickr
               v-model="localConference.submissionDeadline"
@@ -60,7 +63,7 @@
               required
             />
           </div>
-          <div class="form-group mb-3">
+          <div class="form-group">
             <label for="reviewDeadline">Odovzdanie posudku</label>
             <flatpickr
               v-model="localConference.reviewDeadline"
@@ -70,44 +73,30 @@
               required
             />
           </div>
-          <div class="form-group mb-3">
-            <label for="revisionDeadline">Začiatok odovzdávania</label>
+          <div class="form-group">
+            <label for="start_date">Začiatok odovzdávania</label>
             <flatpickr
               v-model="localConference.start_date"
               :config="flatpickrConfig"
-              id="revisionDeadline"
+              id="start_date"
               :disabled="isViewMode"
               required
             />
           </div>
-          <div class="form-group mb-3">
-            <label for="postConferenceRevisionDeadline">Koniec odovzdávania</label>
+          <div class="form-group">
+            <label for="end_date">Koniec odovzdávania</label>
             <flatpickr
               v-model="localConference.end_date"
               :config="flatpickrConfig"
-              id="postConferenceRevisionDeadline"
+              id="end_date"
               :disabled="isViewMode"
               required
             />
           </div>
         </div>
       </div>
-      <!--
-      <div class="form-group">
-        <label for="categories">Kategórie</label>
-        <VueMultiselect
-          v-model="localConference.categories"
-          :options="availableCategories"
-          label="name"
-          track-by="_id"
-          placeholder="Vyberte kategórie"
-          multiple
-          close-on-select
-          :disabled="isViewMode"
-        />
-      </div>
-      -->
-      <div class="form-group">
+
+      <div class="form-group buttons">
         <button
           type="submit"
           class="btn btn-primary"
@@ -253,6 +242,75 @@ export default defineComponent({
 </script>
 
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
-<style scoped>
+<style scoped lang="scss">
+@use '@/assets/styles/main.scss' as main;
 
+.modal-container {
+  background: main.$custom-white;
+  padding: 20px;
+  border-radius: main.$border-radius-8;
+  max-width: 700px;
+  width: 100%;
+  box-shadow: 0 2px 10px rgba(main.$primary-shadow, 0.1);
+  position: relative;
+}
+
+.modal-title {
+  font-weight: bold;
+  color: main.$primary-shadow;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+
+  label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: main.$primary-shadow;
+  }
+
+  input,
+  select {
+    width: 100%;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid main.$secondary-light;
+    border-radius: main.$border-radius-8;
+    background-color: main.$primary-highlight;
+    color: main.$primary-shadow;
+    transition: all 0.3s ease;
+
+    &:focus {
+      outline: none;
+      border-color: main.$primary-color;
+      box-shadow: 0 0 5px rgba(main.$primary-color, 0.4);
+    }
+  }
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  .btn-primary {
+    background-color: main.$primary-color;
+    color: main.$custom-white;
+
+    &:hover {
+      background-color: main.$primary-light;
+    }
+  }
+
+  .btn-secondary {
+    background-color: main.$secondary-color;
+    color: main.$custom-black;
+
+    &:hover {
+      background-color: main.$secondary-light;
+    }
+  }
+}
 </style>

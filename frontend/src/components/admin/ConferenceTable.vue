@@ -12,41 +12,49 @@
         </button>
         <div v-if="dropdownOpen" class="dropdown-content">
           <div class="filter-group">
-            <label class="fw-bold">Názov konferencie:</label>
-            <input type="text" class="form-control" v-model="filters.university" placeholder="Filtrovať podľa univerzity" />
+            <label>Názov konferencie:</label>
+            <input
+              type="text"
+              class="form-group-input"
+              v-model="filters.university"
+              placeholder="Filtrovať podľa univerzity"
+            />
           </div>
 
           <div class="filter-group">
-            <label class="fw-bold">Rok:</label>
-            <input type="number" class="form-control" v-model="filters.year" placeholder="Filtrovať podľa roku" />
+            <label>Rok:</label>
+            <input
+              type="number"
+              class="form-group-input"
+              v-model="filters.year"
+              placeholder="Filtrovať podľa roku"
+            />
           </div>
 
           <div class="filter-group">
-            <label class="fw-bold">Miesto:</label>
-            <input type="text" class="form-control" v-model="filters.location" placeholder="Filtrovať podľa miesta" />
+            <label>Miesto:</label>
+            <input
+              type="text"
+              class="form-group-input"
+              v-model="filters.location"
+              placeholder="Filtrovať podľa miesta"
+            />
           </div>
 
           <div class="filter-group">
-            <label class="fw-bold">Stav:</label>
+            <label>Stav:</label>
             <div class="filter-checkbox">
-              <input
-                type="checkbox"
-                value="open"
-                v-model="filters.selectedStatus"
-              />
+              <input type="checkbox" value="open" v-model="filters.selectedStatus" />
               <label>Aktuálna</label>
-              <input
-                type="checkbox"
-                value="closed"
-                v-model="filters.selectedStatus"
-              />
+              <input type="checkbox" value="closed" v-model="filters.selectedStatus" />
               <label>Skončená</label>
             </div>
           </div>
 
-
           <div class="filter-group">
-            <button @click="resetFilters" class="btn btn-primary btn-sm">Zrušiť filtrovanie</button>
+            <button @click="resetFilters" class="btn btn-delete btn-sm">
+              Zrušiť filtrovanie
+            </button>
           </div>
         </div>
       </div>
@@ -73,18 +81,31 @@
           <td>{{ formatTimestamp(conference.end_date) }}</td>
           <td>{{ formatTimestamp(conference.deadline_submission) }}</td>
           <td>
-              <span :class="`badge ${conference.status === 'open' ? 'badge-success' : 'badge-secondary'}`">
-    {{ conference.status === 'open' ? 'Aktuálna' : 'Skončená' }}
-  </span>
+              <span
+                :class="`badge ${
+                  conference.status === 'open' ? 'badge-success' : 'badge-secondary'
+                }`"
+              >
+                {{ conference.status === 'open' ? 'Aktuálna' : 'Skončená' }}
+              </span>
           </td>
           <td>
-            <button @click="viewConferenceDetails(conference)" class="btn btn-primary btn-sm ml-2">
+            <button
+              @click="viewConferenceDetails(conference)"
+              class="btn btn-primary btn-sm ml-2"
+            >
               Zobraziť detaily
             </button>
-            <button @click="viewWorksForConference(conference)" class="btn btn-secondary btn-sm ml-2">
+            <button
+              @click="viewWorksForConference(conference)"
+              class="btn btn-secondary btn-sm ml-2"
+            >
               Zobraziť práce
             </button>
-            <button class="btn btn-edit btn-sm ml-2" @click="editConference(conference)">
+            <button
+              class="btn btn-edit btn-sm ml-2"
+              @click="editConference(conference)"
+            >
               Upraviť
             </button>
           </td>
@@ -267,6 +288,36 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+@use '@/assets/styles/main.scss' as main;
 
+.filters {
+  margin-bottom: 20px;
+}
+
+.filter-group {
+  margin-bottom: 1rem;
+}
+
+.filter-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.form-group-input {
+  width: 100%;
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid main.$secondary-light;
+  border-radius: main.$border-radius-8;
+  background-color: main.$primary-highlight;
+  color: main.$primary-shadow;
+}
+
+.filter-checkbox {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
 </style>

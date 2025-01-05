@@ -11,8 +11,8 @@ const routes = [
     path: '/',
     component: GuestLayout,
     children: [
-      { path: '', name: 'HomeView', component: () => import('@/views/common/HomeView.vue')},
-      { path: 'verify-email', name: 'EmailVerification', component: () => import('@/views/EmailVerification.vue')},
+      { path: '', name: 'Homepage', component: () => import('@/views/common/Homepage.vue')},
+      { path: 'verify-email', name: 'EmailVerification', component: () => import('@/views/verification/EmailVerification.vue')},
     ],
   },
 
@@ -23,7 +23,7 @@ const routes = [
     meta: { requiresAuth: true }, // Global auth check for this layout
     children: [
       // Common routes for all authenticated users
-      { path: 'profile', name: 'Profile', component: () => import('@/views/ProfileView.vue')},
+      { path: 'profile', name: 'Profile', component: () => import('@/views/profile/ProfileView.vue')},
 
       // Admin Routes
       {
@@ -34,7 +34,7 @@ const routes = [
           { path: 'categories', name: 'CategoryTable', component: () => import('@/components/admin/CategoryTable.vue')},
           { path: 'users', name: 'UserTable', component: () => import('@/components/admin/UserTable.vue')},
           { path: 'works', name: 'WorksTable', component: () => import('@/components/admin/WorksTable.vue')},
-          { path: 'questions', name: 'QuestionsTable', component: () => import('@/components/admin/QuestionsTable.vue')},
+          { path: 'questions', name: 'QuestionsTable', component: () => import('@/components/admin/QuestionTable.vue')},
           // Modal Routes for Editing
           {
             path: 'categories/edit/:id',
@@ -62,12 +62,12 @@ const routes = [
         path: 'participant',
         meta: { role: 'participant' },
         children: [
-          { path: 'submit', name: 'SubmitWork', component: () => import('@/views/participant/SubmitWork.vue')},
+          { path: 'submit', name: 'SubmitWork', component: () => import('@/views/SubmissionForm.vue')},
           { path: 'works', name: 'ParticipantWorks', component: () => import('@/components/participant/MyWorksTable.vue')},
           {
             path: 'work/:id/edit',
-            name: 'EditWork',
-            component: () => import('@/views/participant/EditWork.vue'),
+            name: 'EditSubmission',
+            component: () => import('@/views/SubmissionForm.vue'),
             props: true
           },
         ],
@@ -78,11 +78,11 @@ const routes = [
         path: 'reviewer',
         meta: { role: 'reviewer' },
         children: [
-          { path: 'reviews', name: 'ReviewerReviews', component: () => import('@/views/reviewer/ReviewsTable.vue') },
+          { path: 'reviews', name: 'ReviewTable', component: () => import('@/components/reviewer/ReviewTable.vue') },
           {
             path: 'review/:id',
-            name: 'ReviewerEditReview',
-            component: () => import('@/views/reviewer/EditReview.vue'),
+            name: 'ReviewForm',
+            component: () => import('@/components/reviewer/ReviewForm.vue'),
             props: true
           },
         ],
@@ -92,7 +92,7 @@ const routes = [
 
   // Fallback Routes
   { path: '/unauthorized', name: 'Unauthorized', component: () => import('@/views/common/UnauthorizedView.vue') },
-  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/views/NotFound.vue') },
+  { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('@/views/common/NotFound.vue') },
 ];
 
 const router = createRouter({
@@ -123,6 +123,5 @@ router.beforeEach((to, from, next) => {
   }
   next();
 });
-
 
 export default router;

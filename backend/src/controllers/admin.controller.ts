@@ -45,6 +45,7 @@ export const editUserDetails = async (req: Request, res: Response): Promise<void
 };
 
 //
+/*
 export const getAllCategories = async (_req: Request, res: Response): Promise<void> => {
     try {
         const categories = await Category.find().sort({ name: 1 }); //sort alphabetically
@@ -54,6 +55,38 @@ export const getAllCategories = async (_req: Request, res: Response): Promise<vo
         res.status(500).json({ message: 'Failed to fetch categories', error });
     }
 };
+ */
+
+export const getAllCategories = async (req: Request, res: Response) => {
+    try {
+        // Parse query parameters
+        const { limit = 10, page = 1 } = req.query;
+
+        // Ensure limit and page are numbers
+        const perPage = Math.max(Number(limit), 1); // Ensure limit is at least 1
+        const currentPage = Math.max(Number(page), 1); // Ensure page is at least 1
+
+        // Fetch categories with pagination
+        const categories = await Category.find()
+          .skip((currentPage - 1) * perPage) // Skip categories for previous pages
+          .limit(perPage); // Limit the number of results
+
+        // Get total count of categories
+        const total = await Category.countDocuments();
+
+        // Respond with paginated data
+        res.status(200).json({
+            categories,
+            total, // Total number of categories
+            currentPage,
+            totalPages: Math.ceil(total / perPage), // Calculate total pages
+        });
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        res.status(500).json({ error: 'Failed to fetch categories.' });
+    }
+};
+
 //Create a new category
 export const createCategory = async (req: Request, res: Response): Promise<void> => {
     try {
