@@ -21,9 +21,9 @@
             {{ category.isActive ? "Áno" : "Nie" }}
           </span>
         </td>
-        <td>
-          <button class="btn btn-edit btn-sm" @click="openEditModal(category)">Upraviť</button>
-          <button class="btn btn-delete btn-sm" @click="deleteCategory(category._id)">Odstrániť</button>
+        <td class="button-group">
+          <button class="icon-button" @click="openEditModal(category)"><i class="fa-solid fa-pen-to-square"></i></button>
+          <button class="icon-button" @click="deleteCategory(category._id)"><i class="fa-solid fa-trash-can"></i></button>
         </td>
       </tr>
       </tbody>
@@ -37,7 +37,7 @@
           @click="currentPage > 1 && (currentPage--)"
           :disabled="currentPage === 1"
         >
-          Previous
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
         <span class="pagination-current">Strana {{ currentPage }}</span>
         <button
@@ -45,7 +45,7 @@
           @click="currentPage < totalPages && (currentPage++)"
           :disabled="currentPage === totalPages || remainingItems <= perPage"
         >
-          Next
+          <i class="fa-solid fa-chevron-right"></i>
         </button>
       </div>
     </footer>

@@ -149,7 +149,7 @@
           @click="currentPage > 1 && (currentPage--)"
           :disabled="currentPage === 1"
         >
-          Previous
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
         <span class="pagination-current">Strana {{ currentPage }}</span>
         <button
@@ -157,7 +157,7 @@
           @click="currentPage < totalPages && (currentPage++)"
           :disabled="currentPage === totalPages || remainingItems <= perPage"
         >
-          Next
+          <i class="fa-solid fa-chevron-right"></i>
         </button>
       </div>
     </footer>

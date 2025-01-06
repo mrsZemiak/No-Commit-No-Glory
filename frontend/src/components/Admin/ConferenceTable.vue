@@ -77,15 +77,15 @@
     {{ conference.status === 'open' ? 'Aktuálna' : 'Skončená' }}
   </span>
           </td>
-          <td>
+          <td class="button-group">
+            <button class="icon-button" @click="editConference(conference)">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
             <button @click="viewConferenceDetails(conference)" class="btn btn-primary btn-sm ml-2">
               Zobraziť detaily
             </button>
             <button @click="viewWorksForConference(conference)" class="btn btn-secondary btn-sm ml-2">
               Zobraziť práce
-            </button>
-            <button class="btn btn-edit btn-sm ml-2" @click="editConference(conference)">
-              Upraviť
             </button>
           </td>
         </tr>
@@ -100,7 +100,7 @@
           @click="currentPage > 1 && (currentPage--)"
           :disabled="currentPage === 1"
         >
-          Previous
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
         <span class="pagination-current">Strana {{ currentPage }}</span>
         <button
@@ -108,7 +108,7 @@
           @click="currentPage < totalPages && (currentPage++)"
           :disabled="currentPage === totalPages || remainingItems <= perPage"
         >
-          Next
+          <i class="fa-solid fa-chevron-right"></i>
         </button>
       </div>
     </footer>

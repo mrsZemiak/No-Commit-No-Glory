@@ -116,9 +116,9 @@
                     {{ user.role ? roleLabels[user.role.name] || user.role.name : 'Žiadna rola' }}
                 </span>
             </td>
-            <td>
-              <button class="btn btn-edit btn-sm ml-2" @click="editUser(user)">Upraviť</button>
-              <button class="btn btn-delete btn-sm ml-2" @click="deleteUser(user)">Vymazať</button>
+            <td class="button-group">
+              <button class="icon-button" @click="editUser(user)"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button class="icon-button" @click="deleteUser(user)"><i class="fa-solid fa-trash-can"></i></button>
             </td>
           </tr>
           </tbody>
@@ -132,7 +132,7 @@
             @click="currentPage > 1 && (currentPage--)"
             :disabled="currentPage === 1"
           >
-            Previous
+            <i class="fa-solid fa-chevron-left"></i>
           </button>
           <span class="pagination-current">Strana {{ currentPage }}</span>
           <button
@@ -140,7 +140,7 @@
             @click="currentPage < totalPages && (currentPage++)"
             :disabled="currentPage === totalPages || remainingItems <= perPage"
           >
-            Next
+            <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>
       </footer>

@@ -139,7 +139,15 @@
                 {{ statusLabels[work.status] || "Neznámy stav" }}
               </span>
           </td>
-          <td>
+          <td class="button-group">
+            <button
+              @click="downloadPaper"
+              class="icon-button"
+              title="Stiahnuť"
+
+            >
+              <i class="fa-solid fa-file-arrow-down"></i>
+            </button>
             <router-link
               v-if="work.status === 'accepted' || work.status === 'rejected'"
               :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
@@ -151,7 +159,7 @@
             <div v-else>
               <button class="btn btn-edit btn-sm" disabled>Pozrieť hodnotenie</button>
             </div>
-            <button @click="downloadPaper" class="btn btn-primary btn-sm">Stiahnuť</button>
+
             <button
               class="btn btn-primary btn-sm ml-2"
               @click="openReviewerModal(work)"
@@ -170,7 +178,7 @@
             @click="conference.currentPage > 1 && (conference.currentPage--)"
             :disabled="conference.currentPage === 1"
           >
-            Previous
+            <i class="fa-solid fa-chevron-left"></i>
           </button>
           <span class="pagination-current">Strana {{ conference.currentPage }}</span>
           <button
@@ -178,7 +186,7 @@
             @click="conference.currentPage < totalPages[conferenceIndex] && (conference.currentPage++)"
             :disabled="conference.currentPage === totalPages[conferenceIndex]"
           >
-            Next
+            <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>
       </footer>

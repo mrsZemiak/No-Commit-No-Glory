@@ -33,14 +33,20 @@
                 {{ statusLabels[work.status] || "Neznámy stav" }}
               </span>
           </td>
-          <td>
+          <td class="button-group">
+            <button
+              @click="downloadPaper"
+              class="icon-button"
+              title="Stiahnuť"
+            >
+              <i class="fa-solid fa-file-arrow-down"></i>
+            </button>
             <router-link :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
                 title: work.title,
                 isEditable: (work.status === 'under review' || work.status === 'draft') ? 'true' : 'false',
                 isReviewer: 'true'
                 }
             }">
-              <button @click="downloadPaper" class="btn btn-primary btn-sm">Stiahnuť</button>
               <button class="btn btn-edit btn-sm">Hodnotiť</button>
             </router-link>
           </td>
@@ -56,7 +62,7 @@
           @click="currentPage > 1 && (currentPage--)"
           :disabled="currentPage === 1"
         >
-          Previous
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
         <span class="pagination-current">Strana {{ currentPage }}</span>
         <button
@@ -64,7 +70,7 @@
           @click="currentPage < totalPages && (currentPage++)"
           :disabled="currentPage === totalPages || paginatedWorks.length === 0"
         >
-          Next
+          <i class="fa-solid fa-chevron-right"></i>
         </button>
       </div>
     </footer>

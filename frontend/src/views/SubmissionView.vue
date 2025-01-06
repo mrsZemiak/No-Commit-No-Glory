@@ -197,8 +197,13 @@ function saveAsDraft() {
   handleSubmit(false);
 }
 
-function publishWork() {
-  handleSubmit(true);
+async function publishWork() {
+  const confirmation = confirm(
+    "Ste si istí? Po odoslaní nebude možné vykonať žiadne zmeny."
+  );
+  if (confirmation) {
+    await handleSubmit(true);
+  }
 }
 function removeAuthor(index: number) {
   form.value.otherAuthors.splice(index, 1);
