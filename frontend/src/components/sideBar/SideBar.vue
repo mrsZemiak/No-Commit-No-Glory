@@ -41,7 +41,11 @@ const adminLinks: Link[] = [
   {
     name: "Práce",
     path: "/auth/papers-list"
-  }
+  },
+  {
+    name: "Otázky",
+    path: "/auth/questions"
+  },
 ];
 
 const generalLinksTop: Link[] = [

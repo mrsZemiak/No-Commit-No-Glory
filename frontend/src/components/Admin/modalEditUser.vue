@@ -2,14 +2,7 @@
   <div class="modal-content">
     <h4>Úprava používateľa</h4>
     <form @submit.prevent="updateUser">
-      <div class="form-group">
-        <label for="first_name">Meno</label>
-        <input type="text" v-model="user.first_name" id="first_name" required />
-      </div>
-      <div class="form-group">
-        <label for="last_name">Priezvisko</label>
-        <input type="text" v-model="user.last_name" id="last_name" required />
-      </div>
+
       <div class="form-group">
         <label for="email">Email</label>
         <input type="email" v-model="user.email" id="email" required />
@@ -27,6 +20,7 @@
         <select v-model="user.status" id="status" required>
           <option value="active">Aktívny</option>
           <option value="inactive">Neaktívny</option>
+          <option value="suspended">Pozastavený</option>
         </select>
       </div>
       <div class="form-group user-role-group">
@@ -76,11 +70,9 @@ export default defineComponent({
       required: true
     }
   },
-  onMounted() {
-    console.log(this.user);
-  },
   methods: {
     updateUser() {
+      console.log(this.user);
       this.$emit('update', this.user);
     },
     closeModal() {

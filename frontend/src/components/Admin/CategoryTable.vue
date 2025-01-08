@@ -17,13 +17,13 @@
       <tr v-for="category in paginatedCategories" :key="category._id">
         <td>{{ category.name }} </td>
         <td>
-          <span :class="category.isActive ? 'badge badge-success' : 'badge badge-warning'">
+          <span :class="category.isActive ? 'badge badge-green' : 'badge badge-red'">
             {{ category.isActive ? "Áno" : "Nie" }}
           </span>
         </td>
         <td class="button-group">
           <button class="icon-button" @click="openEditModal(category)"><i class="fa-solid fa-pen-to-square"></i></button>
-          <button class="icon-button" @click="deleteCategory(category._id)"><i class="fa-solid fa-trash-can"></i></button>
+<!--          <button class="icon-button" @click="deleteCategory(category._id)"><i class="fa-solid fa-trash-can"></i></button>-->
         </td>
       </tr>
       </tbody>
@@ -165,14 +165,14 @@ export default defineComponent({
       }
     },
 
-    async deleteCategory(categoryId: string) {
-      try {
-        await axios.delete(`http://localhost:3000/api/admin/categories/${categoryId}`);
-        this.categories = this.categories.filter((category) => category._id !== categoryId);
-      } catch (error) {
-        console.error("Error deleting category:", error);
-      }
-    },
+    // async deleteCategory(categoryId: string) {
+    //   try {
+    //     await axios.delete(`http://localhost:3000/api/admin/categories/${categoryId}`);
+    //     this.categories = this.categories.filter((category) => category._id !== categoryId);
+    //   } catch (error) {
+    //     console.error("Error deleting category:", error);
+    //   }
+    // },
 
     closeModal() {
       this.showModal = false;

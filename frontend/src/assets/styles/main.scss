@@ -102,10 +102,10 @@ $border-radius-8: 8px;
   padding: 5px 10px;
   border-radius: $border-radius-8;
   font-size: 12px;
-  color: white;
+  color: $white;
 }
 
-.badge-success {
+.badge-green {
   background-color: #28a745;
 }
 
@@ -113,12 +113,17 @@ $border-radius-8: 8px;
   background-color: #6c757d;
 }
 
-.badge-warning {
+.badge-red {
   background-color: $delete-color;
 }
 
 .badge-primary {
   background-color: $primary-color;
+}
+
+.badge-brown {
+  background-color: $secondary-color;
+  color: $black !important;
 }
 
 .badge-yellow {
@@ -154,9 +159,9 @@ $border-radius-8: 8px;
   border: none;
 }
 
-.btn-edit, .btn-primary {
-  margin: 2px;
-}
+//.btn-edit, .btn-primary {
+//  margin: 2px;
+//}
 
 .btn-delete {
   background-color: $delete-color !important;
@@ -280,13 +285,6 @@ button:disabled {
   color: #333;
 }
 
-.sidebar-item .text-primary {
-  color: #007bff;
-}
-
-.sidebar-item .text-orange {
-  color: #fd7e14;
-}
 
 .pagination-footer {
   display: flex;
@@ -297,7 +295,7 @@ button:disabled {
   margin: 0 4px;
   padding: 6px 12px;
   cursor: pointer;
-  background-color: #007bff;
+  background-color: $primary-color;
   color: white;
   border: none;
   border-radius: $border-radius-8;
@@ -389,7 +387,7 @@ button:disabled {
   margin-right: 20px;
 }
 
-.filter-dropdown .btn {
+.filter-dropdown .filter-btn {
   margin:  0 0 1rem 1rem;
 }
 
@@ -483,12 +481,13 @@ button:disabled {
   width: auto !important;
 }
 
-.button-group {
+.button-group-multiple {
   display: flex;
   justify-content: space-evenly;
+  align-items: center;
 }
 
-.button-group svg {
+.button-group-multiple svg, .button-group svg {
   color: $primary-color;
   font-size: 1.2em;
 }
@@ -502,6 +501,10 @@ button:disabled {
 
 .button-group svg.fa-trash-can {
   color: $delete-color;
+}
+
+.header-buttons button{
+  margin-right: 10px;
 }
 
 //.custom-radio input[type="radio"]:disabled + .custom-radio-label::before {

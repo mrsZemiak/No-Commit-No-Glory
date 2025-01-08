@@ -7,7 +7,7 @@
 
       <div class="filters">
         <div class="filter-dropdown">
-          <button @click="dropdownOpen = !dropdownOpen" class="btn btn-primary">
+          <button @click="dropdownOpen = !dropdownOpen" class="btn filter-btn btn-primary">
             Filter
           </button>
           <div v-if="dropdownOpen" class="dropdown-content">
@@ -101,14 +101,15 @@
             <td>{{ user.university }}</td>
             <td>
                  <span :class="{
-                    'badge badge-success': user.status === 'active',
+                    'badge badge-green': user.status === 'active',
                     'badge badge-secondary': user.status === 'inactive',
-                    'badge badge-warning': user.status === 'pending',
+                    'badge badge-red': user.status === 'pending',
                     'badge badge-primary': user.status !== 'active' && user.status !== 'inactive' && user.status !== 'pending'
                   }">
                     {{ user.status === 'active' ? 'aktívny' :
                    (user.status === 'inactive' ? 'neaktívny' :
-                     (user.status === 'pending' ? 'čaká na schválenie' : user.status)) }}
+                   (user.status === 'suspended' ? 'pozastavený' :
+                     (user.status === 'pending' ? 'čaká na schválenie' : user.status))) }}
                   </span>
             </td>
             <td>
@@ -118,7 +119,7 @@
             </td>
             <td class="button-group">
               <button class="icon-button" @click="editUser(user)"><i class="fa-solid fa-pen-to-square"></i></button>
-              <button class="icon-button" @click="deleteUser(user)"><i class="fa-solid fa-trash-can"></i></button>
+<!--              <button class="icon-button" @click="deleteUser(user)"><i class="fa-solid fa-trash-can"></i></button>-->
             </td>
           </tr>
           </tbody>
@@ -161,6 +162,7 @@ import ModalEditUser from './modalEditUser.vue';
 import axios from "axios";
 
 interface User {
+  _id: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -252,16 +254,32 @@ export default defineComponent({
     closeModal(): void {
       this.isModalVisible = false;
     },
-    updateUser(updatedUser: User): void {
-      const index = this.users.findIndex((user) => user.email === updatedUser.email);
-      if (index !== -1) {
-        this.users[index] = { ...updatedUser };
+    async updateUser(updatedUser: User): Promise<void> {
+      try {
+        const response = await axios.patch('http://localhost:3000/api/admin/user/edit', {
+          userId: updatedUser._id,
+          ...updatedUser,
+        });
+
+        if (response.status === 200) {
+          const index = this.users.findIndex(user => user.email === updatedUser.email);
+          if (index !== -1) {
+            this.users[index] = { ...updatedUser };
+          }
+          this.closeModal();
+          alert('Používateľ bol úspešne zmenený!');
+        } else {
+          alert('Pri zmene údajov nastala chyba! Skúste znova');
+        }
+      } catch (error) {
+        console.error('Error updating user details:', error);
+        alert('Pri zmene údajov nastala chyba! Skúste znova');
       }
-      this.closeModal();
     },
-    deleteUser(user: User): void {
-      alert(`Deleting user: ${user.first_name} ${user.last_name}`);
-    },
+
+    // deleteUser(user: User): void {
+    //   alert(`Deleting user: ${user.first_name} ${user.last_name}`);
+    // },
     resetFilters() {
       this.filters = {
         first_name: '',

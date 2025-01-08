@@ -6,7 +6,7 @@
 
   <div class="filters">
     <div class="filter-dropdown">
-      <button @click="dropdownOpen = !dropdownOpen" class="btn btn-primary">
+      <button @click="dropdownOpen = !dropdownOpen" class="btn filter-btn filter-btn btn-primary">
         Filter
       </button>
 
@@ -61,7 +61,7 @@
 
         <div class="filter-group">
           <label class="fw-bold">Stav práce:</label>
-          <div>
+          <div class="filter-checkbox">
             <input
               type="checkbox"
               value="submitted"
@@ -69,7 +69,7 @@
             />
             <label>Odoslané</label>
           </div>
-          <div>
+          <div class="filter-checkbox">
             <input
               type="checkbox"
               value="under review"
@@ -77,7 +77,7 @@
             />
             <label>V procese hodnotenia</label>
           </div>
-          <div>
+          <div class="filter-checkbox">
             <input
               type="checkbox"
               value="accepted"
@@ -85,7 +85,7 @@
             />
             <label>Schválené</label>
           </div>
-          <div>
+          <div class="filter-checkbox">
             <input
               type="checkbox"
               value="rejected"
@@ -132,14 +132,14 @@
               <span :class="{
                 'badge badge-secondary': work.status === 'submitted',
                 'badge badge-yellow': work.status === 'under review',
-                'badge badge-success': work.status === 'accepted',
-                'badge badge-warning': work.status === 'rejected',
+                'badge badge-green': work.status === 'accepted',
+                'badge badge-red': work.status === 'rejected',
                 'badge badge-primary': work.status === 'draft',
               }">
                 {{ statusLabels[work.status] || "Neznámy stav" }}
               </span>
           </td>
-          <td class="button-group">
+          <td class="button-group-multiple">
             <button
               @click="downloadPaper"
               class="icon-button"
@@ -154,10 +154,10 @@
                 isEditable: 'false',
                 isReviewer: 'false'
               } }">
-              <button class="btn btn-edit btn-sm">Pozrieť hodnotenie</button>
+              <button class="btn btn-edit btn-sm ml-2">Pozrieť hodnotenie</button>
             </router-link>
             <div v-else>
-              <button class="btn btn-edit btn-sm" disabled>Pozrieť hodnotenie</button>
+              <button class="btn btn-edit btn-sm ml-2" disabled>Pozrieť hodnotenie</button>
             </div>
 
             <button
@@ -204,7 +204,7 @@
         <label class="fw-bold" for="reviewer-select">Vyberte recenzenta:</label>
         <multiselect
           v-model="selectedReviewer"
-          :options="reviewers"
+          :options="activeReviewers"
           :custom-label="(reviewer: User) => reviewer.first_name + ' ' + reviewer.last_name + ' (' + reviewer.email + ')'"
           placeholder="Vyberte hodnotiteľa"
           track-by="_id"
@@ -257,6 +257,7 @@ interface User {
   first_name: string;
   last_name: string;
   email: string;
+  status: string;
   role: {name: string};
 }
 
@@ -294,6 +295,7 @@ export default defineComponent({
           rejected: "Zamietnuté",
         },
         reviewers: [] as User[],
+        activeReviewers: [] as User[],
         isReviewerModalOpen: false,
         selectedWork: null as Paper | null,
         selectedReviewer: null as User | null,
@@ -339,7 +341,6 @@ export default defineComponent({
           console.log(response.data);
           console.log(this.conferenceId);
           if (this.conferenceId) {
-            console.log("filtering...");
             this.conferences = response.data
               .filter((conference: Conference) => conference._id === this.conferenceId)
               .map((conference: Conference) => ({
@@ -347,7 +348,6 @@ export default defineComponent({
                 currentPage: 1,
               }));
           } else {
-            console.log("not filtering");
             this.conferences = response.data.map((conference: Conference) => ({
               ...conference,
               currentPage: 1,
@@ -363,6 +363,22 @@ export default defineComponent({
 
           this.reviewers = response.data
             .filter((user: User) => user.role && user.role.name === 'reviewer')
+            .map((user: User) => ({
+              _id: user._id,
+              first_name: user.first_name,
+              last_name: user.last_name,
+              email: user.email
+            }));
+        } catch (err) {
+          this.error = "Nepodarilo sa načítať zoznam hodnotiteľov.";
+        }
+      },
+      async fetchActiveReviewers() {
+        try {
+          const response = await axios.get("http://localhost:3000/api/admin/users");
+
+          this.activeReviewers = response.data
+            .filter((user: User) => user.role && user.role.name === 'reviewer' && user.status === 'active')
             .map((user: User) => ({
               _id: user._id,
               first_name: user.first_name,
@@ -422,7 +438,7 @@ export default defineComponent({
       },
       async assignReviewer() {
         if (!this.selectedReviewer) {
-          alert("Prosím vyberte hodnotiteľa.");
+          alert("Prosím vyberte recenzenta.");
           return;
         }
 
@@ -448,6 +464,7 @@ export default defineComponent({
   mounted() {
   this.fetchPapers();
   this.fetchReviewers();
+  this.fetchActiveReviewers();
 },
 });
 </script>

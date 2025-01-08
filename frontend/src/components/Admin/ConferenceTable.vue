@@ -2,14 +2,17 @@
   <div class="table-card">
     <div class="card-header">
       <h3>Konferencie</h3>
-      <button class="btn btn-primary" @click="addConference">Pridať konferenciu</button>
+      <div class="header-buttons">
+        <button class="btn btn-primary" @click="addConference">Pridať konferenciu</button>
+        <button @click="dropdownOpen = !dropdownOpen" class="btn btn-primary">
+          Filter
+        </button>
+      </div>
     </div>
 
     <div class="filters">
       <div class="filter-dropdown">
-        <button @click="dropdownOpen = !dropdownOpen" class="btn btn-primary">
-          Filter
-        </button>
+
         <div v-if="dropdownOpen" class="dropdown-content">
           <div class="filter-group">
             <label class="fw-bold">Názov konferencie:</label>
@@ -73,18 +76,18 @@
           <td>{{ formatTimestamp(conference.end_date) }}</td>
           <td>{{ formatTimestamp(conference.deadline_submission) }}</td>
           <td>
-              <span :class="`badge ${conference.status === 'open' ? 'badge-success' : 'badge-secondary'}`">
+              <span :class="`badge ${conference.status === 'open' ? 'badge-green' : 'badge-secondary'}`">
     {{ conference.status === 'open' ? 'Aktuálna' : 'Skončená' }}
   </span>
           </td>
-          <td class="button-group">
+          <td class="button-group-multiple">
             <button class="icon-button" @click="editConference(conference)">
               <i class="fa-solid fa-pen-to-square"></i>
             </button>
             <button @click="viewConferenceDetails(conference)" class="btn btn-primary btn-sm ml-2">
               Zobraziť detaily
             </button>
-            <button @click="viewWorksForConference(conference)" class="btn btn-secondary btn-sm ml-2">
+            <button @click="viewWorksForConference(conference)" class="btn btn-edit btn-sm ml-2">
               Zobraziť práce
             </button>
           </td>

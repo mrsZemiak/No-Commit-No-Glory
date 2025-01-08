@@ -25,15 +25,15 @@
                 :class="{
                   'badge badge-secondary': work.status === 'submitted',
                   'badge badge-yellow': work.status === 'under review',
-                  'badge badge-warning':  work.status === 'rejected',
-                  'badge badge-success': work.status === 'accepted',
+                  'badge badge-red':  work.status === 'rejected',
+                  'badge badge-green': work.status === 'accepted',
                   'badge badge-primary': work.status === 'draft',
                 }"
               >
                 {{ statusLabels[work.status] || "Neznámy stav" }}
               </span>
           </td>
-          <td class="button-group">
+          <td class="button-group-multiple">
             <button
               @click="downloadPaper"
               class="icon-button"

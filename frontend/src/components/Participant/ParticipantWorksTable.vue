@@ -8,7 +8,7 @@
 
     <div class="filters">
       <div class="filter-dropdown">
-        <button @click="dropdownOpen = !dropdownOpen" class="btn btn-primary">
+        <button @click="dropdownOpen = !dropdownOpen" class="btn filter-btn btn-primary">
           Filter
         </button>
 
@@ -107,24 +107,24 @@
               <span :class="{
                 'badge badge-secondary': work.status === 'submitted',
                 'badge badge-yellow': work.status === 'under review',
-                'badge badge-success': work.status === 'accepted',
-                'badge badge-warning': work.status === 'rejected',
+                'badge badge-green': work.status === 'accepted',
+                'badge badge-red': work.status === 'rejected',
                 'badge badge-primary': work.status === 'draft',
               }">
                 {{ statusLabels[work.status] || "Neznámy stav" }}
               </span>
           </td>
-          <td>
+          <td class="button-group-multiple">
             <router-link
               v-if="work.status === 'accepted' || work.status === 'rejected'"
               :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
                 isEditable: 'false',
                 isReviewer: 'false'
               } }">
-              <button class="btn btn-edit btn-sm">Pozrieť hodnotenie</button>
+              <button class="btn btn-edit btn-sm ml-2">Pozrieť hodnotenie</button>
             </router-link>
             <div v-else>
-              <button class="btn btn-edit btn-sm" disabled>Pozrieť hodnotenie</button>
+              <button class="btn btn-edit btn-sm ml-2" disabled>Pozrieť hodnotenie</button>
             </div>
             <button
               v-if="work.status === 'draft'"

@@ -14,6 +14,7 @@ import CategoryTable from "@/components/Admin/CategoryTable.vue";
 import UserTable from "@/components/Admin/UserTable.vue";
 import WorksTable from "@/components/Admin/WorksTable.vue";
 import ReviewResult from "@/components/Participant/ReviewResult.vue";
+import QuestionTable from "@/components/Admin/QuestionTable.vue";
 
 
 const routes = [
@@ -39,6 +40,7 @@ const routes = [
       { path: 'categories', name: 'CategoryTable', component: CategoryTable },
       { path: 'users', name: 'UserTable', component: UserTable },
       { path: 'papers-list', name: 'PapersList', component: WorksTable},
+      { path: 'questions', name: 'QuestionTable', component: QuestionTable},
       {
         path: '/conference-papers/:conferenceId',
         name: 'ConferencePapers',
