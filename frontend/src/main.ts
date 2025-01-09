@@ -4,15 +4,15 @@ import { createPinia } from 'pinia';
 import App from './App.vue';
 import router from './router';
 
-import './assets/styles/main.scss';
-import 'bootstrap';
-import 'flatpickr/dist/flatpickr.min.css';
+import vuetify from './plugins/vuetify';
 
-
+// Create the app instance
 const app = createApp(App);
 
-app.use(createPinia());
+// Use plugins
+app.use(vuetify);
 app.use(router);
+app.use(createPinia());
 
-
+// Mount the app to the DOM
 app.mount('#app');

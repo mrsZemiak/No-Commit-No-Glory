@@ -230,7 +230,7 @@ export default defineComponent({
   methods: {
     async fetchUsers() {
       try {
-        const response = await axios.get("http://localhost:3000/api/admin/users")
+        const response = await axios.get("http://localhost:5000/api/admin/users")
         this.users = response.data;
       } catch (error) {
         console.error('Error fetching users:', error);

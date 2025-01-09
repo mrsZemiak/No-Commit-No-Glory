@@ -9,6 +9,16 @@
       <div class="row">
         <div class="col-md-6">
           <div class="form-group">
+            <label for="year">Rok</label>
+            <input
+              type="number"
+              v-model="localConference.year"
+              id="year"
+              :disabled="isViewMode"
+              required
+            />
+          </div>
+          <div class="form-group">
             <label for="name">Univerzita</label>
             <input
               type="text"
@@ -19,11 +29,11 @@
             />
           </div>
           <div class="form-group">
-            <label for="year">Rok</label>
-            <input
-              type="number"
-              v-model="localConference.year"
-              id="year"
+            <label for="date">Dátum konania</label>
+            <flatpickr
+              v-model="localConference.date"
+              :config="flatpickrConfig"
+              id="date"
               :disabled="isViewMode"
               required
             />
@@ -47,8 +57,10 @@
               :disabled="isViewMode"
               required
             >
-              <option value="closed">Skončená</option>
-              <option value="open">Aktuálna</option>
+              <option value="completed">Ukončená</option>
+              <option value="ongoing">Aktuálna</option>
+              <option value="upcoming">Nadchádzajúca</option>
+              <option value="canceled">Zrušená</option>
             </select>
           </div>
         </div>
@@ -117,7 +129,8 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import type { PropType } from "vue";
-import type { ConferenceAdmin, CategoryAdmin } from "@/types/conference.ts";
+import type { Category } from "@/types/category.ts";
+import type { ConferenceAdmin } from "@/types/conference.ts";
 import flatpickr from "vue-flatpickr-component";
 import VueMultiselect from 'vue-multiselect';
 
@@ -138,7 +151,7 @@ export default defineComponent({
       required: true,
     },
     availableCategories: {
-      type: Array as PropType<CategoryAdmin[]> ,
+      type: Array as PropType<Category[]> ,
       default: () => [],
     },
   },
@@ -153,23 +166,32 @@ export default defineComponent({
       localConference: this.conference
         ? {
           ...this.conference,
-          submissionDeadline: new Date(this.conference.deadline_submission),
-          reviewDeadline: new Date(this.conference.deadline_review),
-          start_date: new Date(this.conference.start_date),
-          end_date: new Date(this.conference.end_date),
+          submissionDeadline: this.conference.deadline_submission
+            ? new Date(this.conference.deadline_submission)
+            : new Date(),
+          reviewDeadline: this.conference.deadline_review
+            ? new Date(this.conference.deadline_review)
+            : new Date(),
+          start_date: this.conference.start_date
+            ? new Date(this.conference.start_date)
+            : new Date(),
+          end_date: this.conference.end_date
+            ? new Date(this.conference.end_date)
+            : new Date(),
+          date: this.conference.date ? new Date(this.conference.date) : new Date(),
         }
         : {
           _id: "",
-          university: "",
           year: new Date().getFullYear(),
           location: "",
+          university: "",
           submissionDeadline: new Date(),
           reviewDeadline: new Date(),
           start_date: new Date(),
           end_date: new Date(),
-          categories: [],
-          user: "676edcaa19ea5a907dc17565",
-          status: "open",
+          user: "",
+          status: "",
+          date: new Date(),
         },
     };
   },
@@ -186,10 +208,19 @@ export default defineComponent({
       if (newConference) {
         this.localConference = {
           ...newConference,
-          submissionDeadline: new Date(newConference.deadline_submission),
-          reviewDeadline: new Date(newConference.deadline_review),
-          start_date: new Date(newConference.start_date),
-          end_date: new Date(newConference.end_date)
+          submissionDeadline: newConference?.deadline_submission
+            ? new Date(newConference.deadline_submission)
+            : new Date(),
+          reviewDeadline: newConference?.deadline_review
+            ? new Date(newConference.deadline_review)
+            : new Date(),
+          start_date: newConference?.start_date
+            ? new Date(newConference.start_date)
+            : new Date(),
+          end_date: newConference?.end_date
+            ? new Date(newConference.end_date)
+            : new Date(),
+          date: newConference?.date ? new Date(newConference.date) : new Date(),
         };
       }
     },
@@ -202,12 +233,12 @@ export default defineComponent({
         deadline_review: this.localConference.reviewDeadline,
         start_date: this.localConference.start_date,
         end_date: this.localConference.end_date,
-        user: "676edcaa19ea5a907dc17565",
+        date: this.conference?.date ? new Date(this.conference.date) : new Date(),
       };
 
       const apiUrl = this.isEditMode
-        ? `http://localhost:3000/api/admin/conferences/${this.localConference._id}`
-        : `http://localhost:3000/api/admin/conferences`;
+        ? `http://localhost:5000/admin/conferences/${this.localConference._id}`
+        : `http://localhost:5000/admin/conferences`;
 
       const method = this.isEditMode ? "PUT" : "POST";
 
@@ -243,74 +274,5 @@ export default defineComponent({
 
 <style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
 <style scoped lang="scss">
-@use '@/assets/styles/main.scss' as main;
 
-.modal-container {
-  background: main.$custom-white;
-  padding: 20px;
-  border-radius: main.$border-radius-8;
-  max-width: 700px;
-  width: 100%;
-  box-shadow: 0 2px 10px rgba(main.$primary-shadow, 0.1);
-  position: relative;
-}
-
-.modal-title {
-  font-weight: bold;
-  color: main.$primary-shadow;
-  margin-bottom: 20px;
-}
-
-.form-group {
-  margin-bottom: 15px;
-
-  label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: main.$primary-shadow;
-  }
-
-  input,
-  select {
-    width: 100%;
-    padding: 10px;
-    font-size: 14px;
-    border: 1px solid main.$secondary-light;
-    border-radius: main.$border-radius-8;
-    background-color: main.$primary-highlight;
-    color: main.$primary-shadow;
-    transition: all 0.3s ease;
-
-    &:focus {
-      outline: none;
-      border-color: main.$primary-color;
-      box-shadow: 0 0 5px rgba(main.$primary-color, 0.4);
-    }
-  }
-}
-
-.buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-
-  .btn-primary {
-    background-color: main.$primary-color;
-    color: main.$custom-white;
-
-    &:hover {
-      background-color: main.$primary-light;
-    }
-  }
-
-  .btn-secondary {
-    background-color: main.$secondary-color;
-    color: main.$custom-black;
-
-    &:hover {
-      background-color: main.$secondary-light;
-    }
-  }
-}
 </style>

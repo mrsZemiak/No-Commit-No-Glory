@@ -146,8 +146,8 @@ onMounted(async () => {
   try {
     // Fetch categories and conferences
     const [categoriesResponse, conferencesResponse] = await Promise.all([
-      axios.get("http://localhost:3000/api/admin/categories"),
-      axios.get("http://localhost:3000/api/admin/conferences"),
+      axios.get("http://localhost:5000/api/admin/categories"),
+      axios.get("http://localhost:5000/api/admin/conferences"),
     ]);
     categories.value = categoriesResponse.data.map((category: any) => ({
       id: category._id,
@@ -159,7 +159,7 @@ onMounted(async () => {
     }));
 
     if (workId) {
-      const response = await axios.get(`http://localhost:3000/api/participant/papers/${workId}`);
+      const response = await axios.get(`http://localhost:5000/api/participant/papers/${workId}`);
       const data = response.data;
       console.log(data);
       form.value.submissionName = data.title;
@@ -215,8 +215,8 @@ async function handleSubmit() {
 
   const workId = route.params.workId;
   const url = workId
-    ? `http://localhost:3000/api/participants/papers/${workId}`
-    : "http://localhost:3000/api/participants/papers";
+    ? `http://localhost:5000/api/participants/papers/${workId}`
+    : "http://localhost:5000/api/participants/papers";
 
   try {
     let response;

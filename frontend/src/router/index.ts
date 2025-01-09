@@ -62,12 +62,12 @@ const routes = [
         path: 'participant',
         meta: { role: 'participant' },
         children: [
-          { path: 'submit', name: 'SubmitWork', component: () => import('@/views/SubmissionForm.vue')},
+          { path: 'submit', name: 'SubmitWork', component: () => import('@/components/participant/SubmissionForm.vue')},
           { path: 'works', name: 'ParticipantWorks', component: () => import('@/components/participant/MyWorksTable.vue')},
           {
             path: 'work/:id/edit',
             name: 'EditSubmission',
-            component: () => import('@/views/SubmissionForm.vue'),
+            component: () => import('@/components/participant/SubmissionForm.vue'),
             props: true
           },
         ],
@@ -103,6 +103,11 @@ const router = createRouter({
 // Global Navigation Guard
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore(); // Access the auth store
+
+  // Set document title
+  if (to.meta.title) {
+    document.title = `SciSubmit - ${to.meta.title}`;
+  }
 
   // Check authentication for routes that require it
   if (to.meta.requiresAuth) {

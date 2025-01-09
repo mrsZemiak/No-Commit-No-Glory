@@ -34,7 +34,7 @@ const UserSchema: Schema = new Schema(
       enum: Object.values(UserStatus),
       default: UserStatus.Pending,
     },
-    role: { type: String, required: true }, // Store only the role name
+    role: { type: String, required: true },
     created_at: { type: Date, default: Date.now },
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String, required: false },

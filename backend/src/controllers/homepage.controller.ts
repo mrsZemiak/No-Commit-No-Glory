@@ -7,7 +7,7 @@ export const getHomepageData = async (_req: Request, res: Response): Promise<voi
   try {
     // Fetch the ongoing conference
     const ongoingConference = await Conference.findOne({ status: ConferenceStatus.Ongoing}).select(
-      'year location university start_date end_date deadline_submission deadline_review categories'
+      'year location university date start_date end_date deadline_submission deadline_review'
     );
 
     // Fetch past conferences (completed)
@@ -16,7 +16,9 @@ export const getHomepageData = async (_req: Request, res: Response): Promise<voi
       .sort({ year: -1 });
 
     // Fetch active categories
-    const activeCategories = await Category.find({ isActive: true }).select('name description');
+    const activeCategories = await Category.find({ isActive: true })
+      .select('name')
+      .sort({name:1});
 
     // Fetch active reviewers
     const reviewers = await User.find({ role: 'reviewer' }).select('firstName lastName');

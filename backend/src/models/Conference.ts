@@ -15,7 +15,6 @@ export interface IConference extends Document {
     status: ConferenceStatus;
     start_date: Date;
     end_date: Date;
-    categories: mongoose.Schema.Types.ObjectId[]; // Array of categories
     deadline_submission: Date;
     deadline_review: Date;
     created_at: Date;
@@ -45,7 +44,6 @@ const ConferenceSchema: Schema = new Schema({
     },
     start_date: { type: Date, required: true },
     end_date: { type: Date, required: true },
-    categories: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }],
     deadline_submission: { type: Date, required: true },
     deadline_review: { type: Date, required: true },
     created_at: { type: Date, default: Date.now },

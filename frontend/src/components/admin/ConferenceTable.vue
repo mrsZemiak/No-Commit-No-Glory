@@ -142,7 +142,6 @@
         :conference="selectedConference"
         :mode="modalMode"
         @update:mode="modalMode = $event"
-        :availableCategories="categories"
         @add="addNewConference"
         @update="updateConference"
         @close="closeModal"
@@ -152,10 +151,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import ModalConference from "@/components/admin/ModalConference.vue";
-import type { ConferenceAdmin, CategoryAdmin } from "@/types/conference.ts";
-import axios from "axios";
+import { defineComponent } from 'vue'
+import ModalConference from '@/components/admin/ModalConference.vue'
+import type { ConferenceAdmin } from '@/types/conference.ts'
+import axios from 'axios'
 
 export default defineComponent({
   name: "ConferenceTable",
@@ -163,7 +162,6 @@ export default defineComponent({
   data() {
     return {
       conferences: [] as ConferenceAdmin[],
-      categories: [] as CategoryAdmin[],
       filters: {
         university: "",
         year: "",
@@ -179,7 +177,6 @@ export default defineComponent({
     };
   },
   mounted() {
-    this.fetchCategories();
     this.fetchConferences();
   },
   computed: {
@@ -192,8 +189,7 @@ export default defineComponent({
     },
     remainingItems() {
       const startIndex = (this.currentPage - 1) * this.perPage;
-      const remaining = this.filteredConferences.length - startIndex;
-      return remaining;
+      return this.filteredConferences.length - startIndex;
     },
     filteredConferences() {
       return this.conferences.filter((conference) => {
@@ -217,18 +213,10 @@ export default defineComponent({
   methods: {
     async fetchConferences() {
       try {
-        const response = await axios.get("http://localhost:3000/api/admin/conferences");
+        const response = await axios.get("http://localhost:5000/api/admin/conferences");
         this.conferences = response.data;
       } catch (error) {
         console.error("Error fetching conferences:", error);
-      }
-    },
-    async fetchCategories() {
-      try {
-        const response = await axios.get("http://localhost:3000/api/admin/categories");
-        this.categories = response.data;
-      } catch (error) {
-        console.error("Error fetching categories:", error);
       }
     },
     formatTimestamp(value: number | Date | null): string {
@@ -289,35 +277,5 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/styles/main.scss' as main;
 
-.filters {
-  margin-bottom: 20px;
-}
-
-.filter-group {
-  margin-bottom: 1rem;
-}
-
-.filter-group label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.form-group-input {
-  width: 100%;
-  padding: 8px;
-  font-size: 14px;
-  border: 1px solid main.$secondary-light;
-  border-radius: main.$border-radius-8;
-  background-color: main.$primary-highlight;
-  color: main.$primary-shadow;
-}
-
-.filter-checkbox {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
 </style>

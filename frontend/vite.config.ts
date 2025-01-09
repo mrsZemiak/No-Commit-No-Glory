@@ -2,21 +2,14 @@ import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
+
 export default defineConfig({
   plugins: [vue()],
-  build: {
-    rollupOptions: {
-      external: [
-        'vue-flatpickr-component',
-        'flatpickr/dist/flatpickr.min.css',
-      ],
-    },
-  },
 
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:5000',
         changeOrigin: true,
       },
     },
@@ -29,9 +22,7 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: `
-          @use "bootstrap/scss/bootstrap" as *;
-        `,
+        additionalData: `@use "@/assets/scss/main.scss";`,
       },
     },
   },

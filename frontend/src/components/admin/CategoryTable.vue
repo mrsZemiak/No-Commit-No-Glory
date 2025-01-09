@@ -16,7 +16,6 @@
         <td>{{ category.name }}</td>
         <td>
           <button class="btn btn-edit btn-sm" @click="openEditModal(category)">Upraviť</button>
-          <button class="btn btn-delete btn-sm" @click="deleteCategory(category._id)">Odstrániť</button>
         </td>
       </tr>
       </tbody>
@@ -61,19 +60,19 @@
 import { defineComponent } from 'vue';
 import axios from 'axios';
 import ModalCategory from './ModalCategory.vue';
-import type { CategoryAdmin } from '@/types/conference.ts';
+import type { Category} from '@/types/category.ts';
 
 export default defineComponent({
   name: 'CategoryTable',
   components: { ModalCategory },
   data() {
     return {
-      categories: [] as CategoryAdmin[],
+      categories: [] as Category[],
       currentPage: 1,
       perPage: 10,
       totalCategories: 0,
       showModal: false,
-      selectedCategory: {} as CategoryAdmin,
+      selectedCategory: {} as Category,
       modalMode: 'add' as 'add' | 'edit',
       isLoading: false,
     };
@@ -95,7 +94,7 @@ export default defineComponent({
       this.isLoading = true;
       try {
         const response = await axios.get(
-          `http://localhost:3000/admin/categories?limit=${this.perPage}&page=${this.currentPage}`
+          `http://localhost:5000/admin/categories?limit=${this.perPage}&page=${this.currentPage}`
         );
         this.categories = response.data.categories;
         this.totalCategories = response.data.total;
@@ -108,24 +107,24 @@ export default defineComponent({
     },
     openAddModal() {
       this.modalMode = 'add';
-      this.selectedCategory = { _id: '', name: '' };
+      this.selectedCategory = { _id: '', name: '', isActive: true };
       this.showModal = true;
     },
 
-    openEditModal(category: CategoryAdmin) {
+    openEditModal(category: Category) {
       this.modalMode = 'edit';
       this.selectedCategory = { ...category };
       this.showModal = true;
     },
 
-    async handleAddCategory(newCategory: CategoryAdmin) {
+    async handleAddCategory(newCategory: Category) {
       if (this.isLoading) return;
       this.isLoading = true;
       try {
-        const response = await axios.post('http://localhost:3000/admin/categories', {
+        const response = await axios.post('http://localhost:5000/admin/categories', {
           name: newCategory.name,
         });
-        this.categories.push({ _id: response.data.id, name: newCategory.name });
+        this.categories.push({ _id: response.data.id, name: newCategory.name, isActive: true });
         this.totalCategories += 1;
         this.closeModal();
       } catch (error) {
@@ -136,11 +135,11 @@ export default defineComponent({
       }
     },
 
-    async handleUpdateCategory(updatedCategory: CategoryAdmin) {
+    async handleUpdateCategory(updatedCategory: Category) {
       if (this.isLoading) return;
       this.isLoading = true;
       try {
-        await axios.patch(`http://localhost:3000/admin/categories/${updatedCategory._id}`, {
+        await axios.patch(`http://localhost:5000/admin/categories/${updatedCategory._id}`, {
           name: updatedCategory.name,
         });
         const index = this.categories.findIndex((cat) => cat._id === updatedCategory._id);
@@ -149,21 +148,6 @@ export default defineComponent({
       } catch (error) {
         console.error('Error updating category:', error);
         alert('Failed to update category. Please try again.');
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    async deleteCategory(categoryId: string) {
-      if (!confirm('Are you sure you want to delete this category?')) return;
-      if (this.isLoading) return;
-      this.isLoading = true;
-      try {
-        await axios.delete(`http://localhost:3000/admin/categories/${categoryId}`);
-        this.categories = this.categories.filter((cat) => cat._id !== categoryId);
-        this.totalCategories -= 1;
-      } catch (error) {
-        console.error('Error deleting category:', error);
-        alert('Failed to delete category. Please try again.');
       } finally {
         this.isLoading = false;
       }

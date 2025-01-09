@@ -26,13 +26,13 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import type { PropType } from 'vue';
-import type { CategoryAdmin } from '@/types/conference.ts';
+import type { Category } from '@/types/category.ts';
 
 export default defineComponent({
   name: 'ModalCategory',
   props: {
     category: {
-      type: Object as PropType<CategoryAdmin | null>,
+      type: Object as PropType<Category| null>,
       required: false,
       default: null,
     },
@@ -82,38 +82,5 @@ export default defineComponent({
 </script>
 
 <style scoped lang="scss">
-@use '@/assets/styles/main.scss' as main;
 
-.modal-container {
-  background: main.$custom-white;
-  padding: 20px;
-  border-radius: main.$border-radius-8;
-  max-width: 500px;
-  width: 100%;
-  box-shadow: 0 2px 10px rgba(main.$primary-shadow, 0.1);
-  position: relative;
-}
-
-h4 {
-  margin-bottom: 20px;
-  font-weight: bold;
-  color: main.$primary-shadow;
-}
-
-.error-message {
-  font-size: 0.875rem;
-  color: main.$delete-color;
-  margin-top: 5px;
-}
-
-.submission-form {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-button[disabled] {
-  background-color: main.$secondary-light;
-  cursor: not-allowed;
-}
 </style>

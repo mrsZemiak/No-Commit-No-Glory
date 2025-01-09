@@ -13,7 +13,8 @@ export interface ConferenceAdmin {
   user: string;
 }
 
-export interface CategoryAdmin {
+export interface ActiveCategory {
   _id: string;
   name: string;
+  isActive: boolean;
 }

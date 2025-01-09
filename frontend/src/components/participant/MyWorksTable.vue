@@ -107,7 +107,7 @@
               <span
                 :class="{
                   'badge badge-secondary': work.status === 'submitted',
-                  'badge badge-warning': work.status === 'under review',
+                  'badge badge-warning': work.status === 'under_review',
                   'badge badge-success': work.status === 'accepted',
                   'badge badge-danger': work.status === 'rejected',
                   'badge badge-primary': work.status === 'draft',
@@ -155,8 +155,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from "vue";
-import axios from "axios";
+import { defineComponent } from 'vue'
+import axios from 'axios'
 
 export interface Author {
   firstName: string;
@@ -168,7 +168,7 @@ export interface Paper {
   title: string;
   category: { id: string; name: string };
   submission_date: number;
-  status: "submitted" | "under review" | "accepted" | "rejected" | "draft";
+  status: "submitted" | "under_review" | "accepted" | "rejected" | "draft";
   conference: { id: string; year: number };
   authors: Author[];
   keywords: string[];
@@ -209,8 +209,7 @@ export default defineComponent({
     },
     remainingItems() {
       const startIndex = (this.currentPage - 1) * this.perPage;
-      const remaining = this.filteredWorks.length - startIndex;
-      return remaining;
+      return this.filteredWorks.length - startIndex;
     },
     filteredWorks() {
       return this.works.filter((work) => {
@@ -237,7 +236,7 @@ export default defineComponent({
         const token = "token123"; // Replace with the actual token from your database
         //const token = localStorage.getItem('authToken'); // Replace with your actual token retrieval logic
 
-        const response = await axios.get('http://localhost:3000/api/participant/papers', {
+        const response = await axios.get('http://localhost:5000/api/participant/papers', {
           headers: {
             Authorization: `Bearer ${token}`, // Include the token
           },

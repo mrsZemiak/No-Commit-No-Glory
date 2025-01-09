@@ -3,20 +3,18 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: backend
     ports:
-      - "3000:3000"
-    env_file:
-      - ./backend/.env
-    restart: always
-    depends_on:
-      - frontend
+      - "5000:5000"
+    volumes:
+      - ./backend:/app
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: frontend
     ports:
       - "5174:80"
-    restart: always
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend

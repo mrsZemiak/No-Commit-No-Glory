@@ -248,7 +248,7 @@ export default defineComponent({
   methods: {
     async fetchPapers() {
       try {
-        const response = await axios.get("http://localhost:3000/api/admin/papers");
+        const response = await axios.get("http://localhost:5000/api/admin/papers");
         console.log(response.data);
         this.works = response.data;
       } catch (err) {

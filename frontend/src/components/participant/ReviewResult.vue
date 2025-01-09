@@ -46,8 +46,8 @@ export default defineComponent({
       try {
         // Fetch questions and review data for the specific work
         const [questionsResponse, reviewResponse] = await Promise.all([
-          axios.get('http://localhost:3000/api/questions'),
-          axios.get(`http://localhost:3000/api/review/${this.id}`),
+          axios.get('http://localhost:5000/api/questions'),
+          axios.get(`http://localhost:5000/api/review/${this.id}`),
         ]);
 
         this.questions = questionsResponse.data;

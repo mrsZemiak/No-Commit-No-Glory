@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Expose the port for the backend
-EXPOSE 3000
+EXPOSE 5000
 
 # Start the backend server
 CMD ["npx", "ts-node", "src/server.ts"]

@@ -90,7 +90,7 @@ export default defineComponent({
   methods: {
     async fetchQuestions() {
       try {
-        const response = await axios.get('http://localhost:3000/questions');
+        const response = await axios.get('http://localhost:5000/api/questions');
         this.questions = response.data;
       } catch (error) {
         console.error('Error fetching questions:', error);

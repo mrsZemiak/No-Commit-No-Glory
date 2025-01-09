@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "build": "npm run type-check && npm run build-only",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
+    "@types/bootstrap": "^5.2.10",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.2",
     "@vitejs/plugin-vue": "^5.2.1",
@@ -21,6 +22,7 @@
     "@vue/tsconfig": "^0.7.0",
     "sass": "^1.83.1",
     "sass-embedded": "^1.83.0",
+    "sass-loader": "^16.0.4",
     "typescript": "^5.7.2",
     "vite": "^6.0.6",
     "vue-tsc": "^2.2.0"
@@ -32,15 +34,18 @@
     "@fortawesome/free-regular-svg-icons": "^6.7.2",
     "@fortawesome/free-solid-svg-icons": "^6.7.2",
     "@fortawesome/vue-fontawesome": "^3.0.8",
+    "@mdi/font": "^7.4.47",
+    "@vue/eslint-config-typescript": "^14.2.0",
     "axios": "^1.7.9",
-    "bootstrap": "^5.3.3",
     "cors": "^2.8.5",
+    "eslint-plugin-vue": "^9.32.0",
     "express": "^4.21.2",
     "flatpickr": "^4.6.13",
     "mongoose": "^8.9.0",
     "pinia": "^2.3.0",
     "vue-flatpickr-component": "^11.0.5",
     "vue-multiselect": "^3.1.0",
-    "vue-router": "^4.5.0"
+    "vue-router": "^4.5.0",
+    "vuetify": "^3.7.0-beta.1"
   }
 }

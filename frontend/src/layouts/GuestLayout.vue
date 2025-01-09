@@ -1,23 +1,16 @@
-<script lang="ts">
-import {defineComponent} from 'vue'
-import HomeView from "../views/common/HomeView.vue";
-
-export default defineComponent({
-  name: "GuestLayout",
-  components: {HomeView}
-})
-</script>
-
 <template>
   <div>
-    <header>This is the homepage view underneath</header>
-    <router-link to="/auth">Go into the app</router-link>
     <main>
-      <HomeView> </HomeView>
+      <router-view />
     </main>
-    <footer>Guest Footer</footer>
   </div>
 </template>
-<style scoped>
 
+<script>
+export default {
+  name: 'GuestLayout',
+};
+</script>
+
+<style scoped>
 </style>
