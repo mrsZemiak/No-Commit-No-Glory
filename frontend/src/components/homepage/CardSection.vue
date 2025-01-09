@@ -129,7 +129,7 @@ export default defineComponent({
     color: #444;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    min-height: 200px;
+    min-height: 250px;
 
     .v-card-title {
       margin-bottom: 10px !important;
@@ -142,7 +142,6 @@ export default defineComponent({
     }
   }
 
-
   .card-item {
     margin-bottom: 20px;
   }
@@ -151,14 +150,14 @@ export default defineComponent({
     margin-right: 10px;
     color: #28655c; /* Dark green color */
   }
+}
 
 
-  v-btn {
-    background-color: #bc463a;
-    color: white;
-    &:hover {
-      background-color: #922e25;
-    }
+v-btn {
+  background-color: #bc463a;
+  color: white;
+  &:hover {
+    background-color: #922e25;
   }
 }
 </style>

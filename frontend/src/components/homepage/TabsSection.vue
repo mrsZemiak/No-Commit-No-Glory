@@ -170,7 +170,7 @@ export default defineComponent({
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  max-width: 80%;
+  max-width: 70%;
 
   .tab-content {
     padding: 20px;

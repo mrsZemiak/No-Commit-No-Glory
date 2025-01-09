@@ -9,30 +9,42 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;
 
-        //Find user by email
+        //Validate input
+        if (!email || !password) {
+            res.status(400).json({ message: 'Email and password are required' });
+            return;
+        }
+
+        //Find user in the database
         const user = await User.findOne({ email });
         if (!user) {
-            res.status(404).json({ message: 'User not found' });
+            res.status(401).json({ message: 'Invalid email or password' });
             return;
         }
 
         //Verify password
-        const isMatch = await argon2.verify(password, user.password);
-        if (!isMatch) {
-            res.status(401).json({ message: 'Invalid credentials' });
+        const isPasswordValid = await argon2.verify(user.password, password);
+        if (!isPasswordValid) {
+            res.status(401).json({ message: 'Invalid email or password' });
             return;
         }
 
-        //Generate JWT with userId and role
+        //Check if the user is verified
+        if (!user.isVerified) {
+            res.status(403).json({ message: 'Please verify your email before logging in' });
+            return;
+        }
+
+        //Generate JWT
         const token = jwt.sign(
-            { userId: user._id, role: user.role },
-            config.jwtSecret,
-            { expiresIn: '1h' }
+          { userId: user._id, email: user.role },
+          config.jwtSecret,
+          { expiresIn: '1h' }
         );
 
         //Generate refresh token
         user.refreshToken = jwt.sign(
-          { userId: user._id },
+          { userId: user._id},
           config.jwtSecret,
           { expiresIn: '7d' } // Longer expiration for refresh token
         );
