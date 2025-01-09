@@ -15,8 +15,8 @@ const router = Router();
 
 // Unauthenticated routes
 router.get('/homepage', getHomepageData);
-router.post('/register', registerValidationRules, validateRequest, registerUser); // Registration
-router.post('/login', loginUser); // Login
-router.post('/verify-email', verifyEmailValidationRules, validateRequest, verifyEmail); // Email verification
+router.post('/register', registerValidationRules, validateRequest, registerUser);
+router.post('/login', loginUser);
+router.get('/verify-email', verifyEmailValidationRules, validateRequest, verifyEmail);
 
 export default router;

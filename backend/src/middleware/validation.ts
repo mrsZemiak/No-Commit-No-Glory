@@ -1,4 +1,4 @@
-import {body, param, validationResult} from 'express-validator';
+import {body, param, check, validationResult} from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
 import Role from '../models/Role'
 import Question from '../models/Question'
@@ -15,7 +15,7 @@ export const registerValidationRules = [
 
 //Validation rules for email verification
 export const verifyEmailValidationRules = [
-    param('token').notEmpty().withMessage('Verification token is required'),
+    check('token', 'Verification token is required').exists().isString().withMessage('Token must be a string').bail().trim().escape(),
 ];
 
 //Validation rules for profile update

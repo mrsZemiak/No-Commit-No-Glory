@@ -45,15 +45,15 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .footer {
-  background-color: #d1e8e2; /* Light green background */
+  background-color: #d1e8e2;
   padding: 20px 0;
   text-align: left;
 
   .footer-left,
   .footer-right {
-    color: #116466; /* Dark green text color */
+    color: #116466;
   }
 
   .footer-title {

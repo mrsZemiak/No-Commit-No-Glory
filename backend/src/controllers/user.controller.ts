@@ -24,6 +24,15 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         // Hash password
         const hashedPassword = await argon2.hash(password);
 
+        const normalizedRole = role.toLowerCase();
+
+        // Check if the role exists in the database
+        const validRoles = ['admin', 'student', 'reviewer'];
+        if (!validRoles.includes(normalizedRole)) {
+            res.status(400).json({ message: `Role "${role}" does not exist` });
+            return;
+        }
+
         // Add user to database
         const newUser = new User({
             first_name,
@@ -31,8 +40,8 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
             email,
             password: hashedPassword,
             university,
-            role,
-            isVerified: false, // Initial verification state
+            role:normalizedRole,
+            isVerified: false,
         });
 
         // Generate JWT for email verification using userId
@@ -49,7 +58,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
             auth: { user: config.emailUser, pass: config.emailPass },
         } as nodemailer.TransportOptions);
 
-        const verificationUrl = `${config.baseUrl}/verify-email?token=${verificationToken}`;
+        const verificationUrl = `${config.baseUrl}/api/verify-email?token=${verificationToken}`;
         await transporter.sendMail({
             from: `"SciSubmit" <${config.emailUser}>`,
             to: email,
@@ -95,10 +104,10 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
 export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { token } = req.params;
+        const { token } = req.query;
 
         // Verify token
-        const decoded = jwt.verify(token, config.jwtSecret) as { userId: string };
+        const decoded = jwt.verify(token as string, config.jwtSecret) as { userId: string };
 
         // Find user by userId and token
         const user = await User.findOne({_id: decoded.userId, verificationToken: token});

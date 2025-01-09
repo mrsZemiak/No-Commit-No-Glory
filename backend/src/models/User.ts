@@ -15,7 +15,7 @@ export interface IUser extends Document {
   password: string;
   university: string;
   status: UserStatus;
-  role: string; // Store only the role name
+  role: string;
   created_at: Date;
   isVerified: boolean;
   verificationToken: string | null;
@@ -34,11 +34,15 @@ const UserSchema: Schema = new Schema(
       enum: Object.values(UserStatus),
       default: UserStatus.Pending,
     },
-    role: { type: String, required: true },
+    role: {
+      type: String,
+      required: true,
+      set: (value: string) => value.toLowerCase(),
+    },
     created_at: { type: Date, default: Date.now },
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String, required: false },
-    refreshToken: { type: String, required: false }, // New field
+    refreshToken: { type: String, required: false },
   },
   { collection: 'users' }
 );

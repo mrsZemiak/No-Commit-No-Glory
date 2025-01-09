@@ -7,6 +7,10 @@ services:
       - "5000:5000"
     volumes:
       - ./backend:/app
+    environment:
+      - JWT_SECRET=my-super-secret-key
+    env_file:
+      - ./backend/.env
 
   frontend:
     build:

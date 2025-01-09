@@ -12,7 +12,12 @@ const routes = [
     component: GuestLayout,
     children: [
       { path: '', name: 'Homepage', component: () => import('@/views/common/Homepage.vue')},
-      { path: 'verify-email', name: 'EmailVerification', component: () => import('@/views/verification/EmailVerification.vue')},
+      { path: 'verify-email',
+        name: 'EmailVerification', component: () => import('@/views/verification/EmailVerification.vue')},
+      { path: '/email-verified-success',
+        name: 'EmailVerifiedSuccess', component: () => import('@/views/verification/EmailVerifiedSuccess.vue')},
+      { path: '/email-verified-failure',
+        name: 'EmailVerifiedFailure', component: () => import('@/views/verification/EmailVerifiedFailure.vue')},
     ],
   },
 

@@ -58,7 +58,7 @@
           Tu sú detailné informácie o pokynoch pre autorov...
         </v-card-text>
         <v-card-actions>
-          <v-btn text @click="closeModal('authorInstructions')">Zatvoriť</v-btn>
+          <v-btn @click="closeModal('authorInstructions')">Zatvoriť</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -70,7 +70,7 @@
           Tu sú detailné informácie o výboroch konferencie...
         </v-card-text>
         <v-card-actions>
-          <v-btn text @click="closeModal('conferenceCommittees')">Zatvoriť</v-btn>
+          <v-btn @click="closeModal('conferenceCommittees')">Zatvoriť</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -82,7 +82,7 @@
           Tu sú detailné informácie o predchádzajúcich ročníkoch konferencie...
         </v-card-text>
         <v-card-actions>
-          <v-btn text @click="closeModal('pastEditions')">Zatvoriť</v-btn>
+          <v-btn @click="closeModal('pastEditions')">Zatvoriť</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -118,7 +118,7 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 
 .cards-section {
   margin-top: 20px;
@@ -138,7 +138,6 @@ export default defineComponent({
 
     .v-card-text {
       padding: 10px;
-      max-width: 300px;
       text-align: justify;
     }
   }

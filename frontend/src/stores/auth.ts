@@ -58,13 +58,9 @@ export const useAuthStore = defineStore('auth', {
 
     async verifyEmail(token: string) {
       try {
-        const response = await axios.post('/verify-email', { token });
-        if (response.data.success) {
-          console.log('Email verified successfully.');
-          if (this.user) {
-            this.user.isVerified = true; // Update user state
-          }
-        }
+        const response = await axios.get(`/api/verify-email?token=${token}`);
+        console.log('Email verification response:', response.data);
+        return response.data;
       } catch (error) {
         console.error('Email verification failed:', error);
         throw error;
