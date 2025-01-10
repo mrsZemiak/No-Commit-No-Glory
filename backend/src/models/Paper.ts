@@ -5,6 +5,7 @@ export enum PaperStatus {
     Submitted = 'submitted',
     UnderReview = 'under_review',
     Accepted = 'accepted',
+    AcceptedWithChanges = 'accepted_with_changes',
     Rejected = 'rejected',
 }
 
@@ -21,6 +22,8 @@ export interface IPaper extends Document {
     keywords: string[];
     authors: { firstName: string; lastName: string }[];
     reviewer?: mongoose.Schema.Types.ObjectId;
+    awarded: boolean;
+    deadline_date: Date;
     created_at: Date;
     updated_at: Date;
 }
@@ -47,7 +50,8 @@ const PaperSchema: Schema = new Schema({
     }],
     reviewer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false }, // Assigned by admin
     created_at: { type: Date, default: Date.now },
-    updated_at: { type: Date, default: Date.now }
+    updated_at: { type: Date, default: Date.now },
+    awarded: { type: Boolean, default: false }
 });
 
 export default mongoose.model<IPaper>('Paper', PaperSchema);

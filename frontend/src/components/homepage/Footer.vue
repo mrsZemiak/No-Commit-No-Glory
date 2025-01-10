@@ -53,7 +53,7 @@ export default defineComponent({
 
   .footer-left,
   .footer-right {
-    color: #116466;
+    color: #2c3531;
   }
 
   .footer-title {
@@ -76,12 +76,12 @@ export default defineComponent({
   }
 }
 .copyright-section {
-  background-color: #116466;
+  background-color: #2C3531;
   color: #ffffff; /* White text */
   padding: 10px 0;
 
   .copyright {
-    font-size: 14px;
+    font-size: 16px;
     text-align: center;
   }
 }

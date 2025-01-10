@@ -8,6 +8,7 @@
       <thead>
       <tr>
         <th>Názov kategórie</th>
+        <th>Aktívna</th>
         <th>Akcie</th>
       </tr>
       </thead>
@@ -15,7 +16,12 @@
       <tr v-for="category in paginatedCategories" :key="category._id">
         <td>{{ category.name }}</td>
         <td>
-          <button class="btn btn-edit btn-sm" @click="openEditModal(category)">Upraviť</button>
+          <span :class="category.isActive ? 'badge badge-green' : 'badge badge-red'">
+            {{ category.isActive ? "Áno" : "Nie" }}
+          </span>
+        </td>
+        <td class="button-group">
+          <button class="icon-button" @click="openEditModal(category)"><i class="fa-solid fa-pen-to-square"></i></button>
         </td>
       </tr>
       </tbody>
@@ -28,7 +34,7 @@
           @click="currentPage > 1 && (currentPage--)"
           :disabled="currentPage === 1"
         >
-          Predchádzajúca
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
         <span class="pagination-current">Strana {{ currentPage }}</span>
         <button
@@ -36,7 +42,7 @@
           @click="currentPage < totalPages && (currentPage++)"
           :disabled="currentPage === totalPages"
         >
-          Ďalšia
+          <i class="fa-solid fa-chevron-right"></i>
         </button>
       </div>
     </footer>
@@ -82,7 +88,12 @@ export default defineComponent({
       return Math.ceil(this.totalCategories / this.perPage);
     },
     paginatedCategories() {
-      return this.categories;
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      return this.categories.slice(startIndex, startIndex + this.perPage);
+    },
+    remainingItems() {
+      const startIndex = (this.currentPage - 1) * this.perPage;
+      return this.categories.length - startIndex;
     },
   },
   mounted() {
@@ -93,8 +104,7 @@ export default defineComponent({
       if (this.isLoading) return;
       this.isLoading = true;
       try {
-        const response = await axios.get(
-          `http://localhost:5000/admin/categories?limit=${this.perPage}&page=${this.currentPage}`
+        const response = await axios.get(`/api/admin/categories?limit=${this.perPage}&page=${this.currentPage}`
         );
         this.categories = response.data.categories;
         this.totalCategories = response.data.total;
@@ -121,10 +131,11 @@ export default defineComponent({
       if (this.isLoading) return;
       this.isLoading = true;
       try {
-        const response = await axios.post('http://localhost:5000/admin/categories', {
+        const response = await axios.post('/api/admin/categories', {
           name: newCategory.name,
+          isActive: newCategory.isActive,
         });
-        this.categories.push({ _id: response.data.id, name: newCategory.name, isActive: true });
+        this.categories.push({ _id: response.data.id, name: newCategory.name, isActive: newCategory.isActive });
         this.totalCategories += 1;
         this.closeModal();
       } catch (error) {
@@ -139,11 +150,14 @@ export default defineComponent({
       if (this.isLoading) return;
       this.isLoading = true;
       try {
-        await axios.patch(`http://localhost:5000/admin/categories/${updatedCategory._id}`, {
+        await axios.patch(`/api/admin/categories/${updatedCategory._id}`, {
           name: updatedCategory.name,
+          isActive: updatedCategory.isActive,
         });
         const index = this.categories.findIndex((cat) => cat._id === updatedCategory._id);
-        if (index !== -1) this.categories[index] = updatedCategory;
+        if (index !== -1) {
+          this.categories[index] = updatedCategory;
+        }
         this.closeModal();
       } catch (error) {
         console.error('Error updating category:', error);

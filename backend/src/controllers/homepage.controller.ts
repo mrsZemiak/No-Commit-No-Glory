@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Conference, { ConferenceStatus } from '../models/Conference';
 import Category from '../models/Category';
 import User from '../models/User';
+import Paper from '../models/Paper'
 
 export const getHomepageData = async (_req: Request, res: Response): Promise<void> => {
   try {
@@ -20,6 +21,8 @@ export const getHomepageData = async (_req: Request, res: Response): Promise<voi
       .select('name')
       .sort({name:1});
 
+    const papers = await Paper.find().select('title authors').sort({ category: 1 });
+    const awardedPapers = await Paper.find({ awarded: true }).select('title authors').sort({ category: 1 });
     // Fetch active reviewers
     const reviewers = await User.find({ role: 'reviewer' }).select('firstName lastName');
 
@@ -27,6 +30,8 @@ export const getHomepageData = async (_req: Request, res: Response): Promise<voi
       ongoingConference,
       pastConferences,
       activeCategories,
+      papers,
+      awardedPapers,
       reviewers: reviewers.map((reviewer) => ({
         fullName: `${reviewer.first_name} ${reviewer.last_name}`,
       })),

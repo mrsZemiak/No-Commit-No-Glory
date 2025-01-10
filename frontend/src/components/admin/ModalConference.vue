@@ -132,13 +132,11 @@ import type { PropType } from "vue";
 import type { Category } from "@/types/category.ts";
 import type { ConferenceAdmin } from "@/types/conference.ts";
 import flatpickr from "vue-flatpickr-component";
-import VueMultiselect from 'vue-multiselect';
 
 export default defineComponent({
   name: "ModalConference",
   components: {
     flatpickr,
-    VueMultiselect
   },
   props: {
     conference: {
@@ -237,8 +235,8 @@ export default defineComponent({
       };
 
       const apiUrl = this.isEditMode
-        ? `http://localhost:5000/admin/conferences/${this.localConference._id}`
-        : `http://localhost:5000/admin/conferences`;
+        ? `/api/admin/conferences/${this.localConference._id}`
+        : `/api/admin/conferences`;
 
       const method = this.isEditMode ? "PUT" : "POST";
 
@@ -272,7 +270,6 @@ export default defineComponent({
 });
 </script>
 
-<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
-<style scoped lang="scss">
+<style lang="scss">
 
 </style>

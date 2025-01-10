@@ -92,8 +92,8 @@ export const useAuthStore = defineStore('auth', {
   },
 
   getters: {
-    isParticipant: (state) => state.user?.role === 'participant',
-    isAdmin: (state) => state.user?.role === 'admin',
-    isReviewer: (state) => state.user?.role === 'reviewer',
+    isParticipant: (state) => state.user?.role?.name === 'participant',
+    isAdmin: (state) => state.user?.role?.name === 'admin',
+    isReviewer: (state) => state.user?.role?.name === 'reviewer',
   },
 });

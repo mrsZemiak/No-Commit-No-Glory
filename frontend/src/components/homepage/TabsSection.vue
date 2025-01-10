@@ -170,7 +170,7 @@ export default defineComponent({
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  max-width: 70%;
+  max-width: 73%;
 
   .tab-content {
     padding: 20px;
@@ -191,13 +191,13 @@ export default defineComponent({
       li {
         margin-bottom: 10px;
         line-height: 1.3;
-        font-size: 1.1rem;
+        font-size: 1.3rem;
         color: #444;
         display: flex;
         align-items: center;
 
         &::before {
-          content: '⊛';
+          content: '≫';
           color: #116466;
           font-size: 2rem;
           margin-right: 10px;
@@ -208,13 +208,13 @@ export default defineComponent({
   }
 
   p {
-    font-size: 1rem;
+    font-size: 1.3rem;
     color: #444;
     line-height: 1.5;
   }
 
   .note {
-    color: #bc463a;
+    color: #5c2018;
     font-style: oblique;
     margin-top: 15px;
     text-align: center;
@@ -225,11 +225,13 @@ export default defineComponent({
     font-size: 2rem;
   }
   .v-tab {
-    font-size: 18px;
+    font-size: 1.5rem;
     font-weight: bold;
     color: #116466;
+    background-color: rgb(16,100,102, 0.1);
+    margin: 0 5px 0 5px;
     text-transform: uppercase;
-    padding: 12px 16px;
+    padding: 10px 16px;
   }
 
   .tabs-window {

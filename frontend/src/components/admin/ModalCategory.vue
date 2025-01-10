@@ -1,23 +1,23 @@
 <template>
-  <div class="modal-container">
-    <button class="btn-close" @click="closeModal">✕</button>
+  <div class="modal-content">
+    <button class="btn-close" @click="closeModal"></button>
     <h4>{{ isEditMode ? 'Upraviť kategóriu' : 'Pridať kategóriu' }}</h4>
 
-    <form class="submission-form" @submit.prevent="submitCategory">
-      <div class="form-group">
+    <form @submit.prevent="submitCategory">
+      <div class="form-group mb-3">
         <label for="name">Názov kategórie</label>
-        <input
-          type="text"
-          v-model="localCategory.name"
-          id="name"
-          required
-        />
-        <span v-if="!localCategory.name" class="error-message">Názov kategórie je povinný.</span>
+        <input type="text" v-model="localCategory.name" id="name" required />
       </div>
 
-      <button type="submit" class="btn btn-primary" :disabled="isLoading">
-        <span v-if="isLoading">Loading...</span>
-        <span v-else>{{ isEditMode ? 'Aktualizovať kategóriu' : 'Pridať kategóriu' }}</span>
+      <div class="form-group mb-3">
+        <label for="isActive">Stav kategórie</label>
+        <select id="isActive" v-model="localCategory.isActive" class="form-select">
+          <option :value="true">Aktívna</option>
+          <option :value="false">Neaktívna</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        {{ isEditMode ? 'Aktualizovať kategóriu' : 'Pridať kategóriu' }}
       </button>
     </form>
   </div>
@@ -45,7 +45,7 @@ export default defineComponent({
     return {
       localCategory: this.category
         ? { ...this.category }
-        : { name: '' },
+        : { name: '', isActive: true },
       isLoading: false,
     };
   },
@@ -68,6 +68,7 @@ export default defineComponent({
       try {
         const event = this.isEditMode ? 'update' : 'add';
         this.$emit(event, this.localCategory);
+        this.closeModal();
       } catch (error) {
         console.error('Error submitting category:', error);
       } finally {

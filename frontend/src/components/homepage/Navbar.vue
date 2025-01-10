@@ -263,6 +263,10 @@ export default defineComponent({
       max-height: 60px;
       height: auto;
     }
+
+    img:hover {
+      transform: scale(1.1);
+    }
   }
 
   .login-button {

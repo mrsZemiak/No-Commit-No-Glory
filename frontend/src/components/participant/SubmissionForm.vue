@@ -124,8 +124,6 @@ import axios from 'axios';
 const route = useRoute();
 const workId = route.params.workId;
 
-const TEMP_USER_ID = "676edcaa19ea5a907dc17565"; // Temporary User ID
-
 const categories = ref([] as { id: string; name: string }[]);
 const fileName = ref<string>('');
 const conferences = ref([] as { id: string; location: string }[]);
@@ -146,8 +144,8 @@ onMounted(async () => {
   try {
     // Fetch categories and conferences
     const [categoriesResponse, conferencesResponse] = await Promise.all([
-      axios.get("http://localhost:5000/api/admin/categories"),
-      axios.get("http://localhost:5000/api/admin/conferences"),
+      axios.get("/api/participant/categories"),
+      axios.get("/api/participant/conferences"),
     ]);
     categories.value = categoriesResponse.data.map((category: any) => ({
       id: category._id,
@@ -159,7 +157,7 @@ onMounted(async () => {
     }));
 
     if (workId) {
-      const response = await axios.get(`http://localhost:5000/api/participant/papers/${workId}`);
+      const response = await axios.get(`/api/participant/papers/${workId}`);
       const data = response.data;
       console.log(data);
       form.value.submissionName = data.title;
@@ -210,13 +208,13 @@ async function handleSubmit() {
         return { firstName, lastName };
       })
     ],
-    user: TEMP_USER_ID
+    //user: this.user;
   };
 
   const workId = route.params.workId;
   const url = workId
-    ? `http://localhost:5000/api/participants/papers/${workId}`
-    : "http://localhost:5000/api/participants/papers";
+    ? `/api/participants/papers/${workId}`
+    : "/api/participants/papers";
 
   try {
     let response;

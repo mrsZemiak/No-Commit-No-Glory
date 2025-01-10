@@ -6,12 +6,13 @@ export enum UserStatus {
 }
 
 export interface User {
-  firstName: string;
-  lastName: string;
+  _id: string;
+  first_name: string;
+  last_name: string;
   email: string;
   university: string;
   status: UserStatus;
-  role: string;
+  role?: {name: string};
   isVerified: boolean;
   verificationToken: string | null;
   refreshToken: string | null;

@@ -7,7 +7,7 @@
 
       <div class="filters">
         <div class="filter-dropdown">
-          <button @click="dropdownOpen = !dropdownOpen" class="btn btn-primary">
+          <button @click="dropdownOpen = !dropdownOpen" class="btn filter-btn btn-primary">
             Filter
           </button>
           <div v-if="dropdownOpen" class="dropdown-content">
@@ -101,21 +101,25 @@
             <td>{{ user.university }}</td>
             <td>
                  <span :class="{
-                    'badge badge-success': user.status === 'active',
+                    'badge badge-green': user.status === 'active',
                     'badge badge-secondary': user.status === 'inactive',
-                    'badge badge-warning': user.status !== 'active' && user.status !== 'inactive'
+                    'badge badge-red': user.status === 'pending',
+                    'badge badge-primary': user.status !== 'active' && user.status !== 'inactive' && user.status !== 'pending'
                   }">
-                    {{ user.status === 'active' ? 'aktívny' : (user.status === 'inactive' ? 'neaktívny' : user.status) }}
+                    {{ user.status === 'active' ? 'aktívny' :
+                   (user.status === 'inactive' ? 'neaktívny' :
+                     (user.status === 'suspended' ? 'pozastavený' :
+                       (user.status === 'pending' ? 'čakajúci' : user.status))) }}
                   </span>
             </td>
             <td>
-                <span class="badge badge-info">
-                  {{ user.role}}
+                <span class="badge badge-primary">
+                    {{ user.role ? roleLabels[user.role.name] || user.role.name : 'Žiadna rola' }}
                 </span>
             </td>
-            <td>
-              <button class="btn btn-edit btn-sm ml-2" @click="editUser(user)">Upraviť</button>
-              <button class="btn btn-delete btn-sm ml-2" @click="deleteUser(user)">Vymazať</button>
+            <td class="button-group">
+              <button class="icon-button" @click="editUser(user)"><i class="fa-solid fa-pen-to-square"></i></button>
+              <!--              <button class="icon-button" @click="deleteUser(user)"><i class="fa-solid fa-trash-can"></i></button>-->
             </td>
           </tr>
           </tbody>
@@ -129,7 +133,7 @@
             @click="currentPage > 1 && (currentPage--)"
             :disabled="currentPage === 1"
           >
-            Previous
+            <i class="fa-solid fa-chevron-left"></i>
           </button>
           <span class="pagination-current">Strana {{ currentPage }}</span>
           <button
@@ -137,7 +141,7 @@
             @click="currentPage < totalPages && (currentPage++)"
             :disabled="currentPage === totalPages || remainingItems <= perPage"
           >
-            Next
+            <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>
       </footer>
@@ -158,12 +162,13 @@ import ModalEditUser from './ModalEditUser.vue';
 import axios from "axios";
 
 interface User {
+  _id: string;
   first_name: string;
   last_name: string;
   email: string;
   university: string;
   status: string;
-  role: string;
+  role: { name: 'admin' | 'reviewer' | 'participant' };
 }
 
 export default defineComponent({
@@ -187,6 +192,11 @@ export default defineComponent({
       perPage: 10,
       isModalVisible: false,
       selectedUser: {} as User,
+      roleLabels: {
+        participant: "Účastník",
+        reviewer: "Recenzent",
+        admin: "Admin",
+      },
     };
   },
   computed: {
@@ -220,7 +230,7 @@ export default defineComponent({
           ? this.filters.selectedStatus.includes(user.status ? 'true' : 'false')
           : true;
         const matchesRole = this.filters.selectedRole.length
-          ? this.filters.selectedRole.includes(user.role.toLowerCase())
+          ? this.filters.selectedRole.includes(user.role.name.toLowerCase())
           : true;
 
         return matchesfirst_name && matcheslast_name && matchesEmail && matchesUniversity && matchesStatus && matchesRole;
@@ -230,7 +240,7 @@ export default defineComponent({
   methods: {
     async fetchUsers() {
       try {
-        const response = await axios.get("http://localhost:5000/api/admin/users")
+        const response = await axios.get("/api/admin/users")
         this.users = response.data;
       } catch (error) {
         console.error('Error fetching users:', error);

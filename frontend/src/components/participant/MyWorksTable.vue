@@ -109,23 +109,36 @@
                   'badge badge-secondary': work.status === 'submitted',
                   'badge badge-warning': work.status === 'under_review',
                   'badge badge-success': work.status === 'accepted',
+                  'badge badge-tretiary': work.status === 'accepted_with_changes',
                   'badge badge-danger': work.status === 'rejected',
                   'badge badge-primary': work.status === 'draft',
+
                 }"
               >
                 {{ statusLabels[work.status] || "Neznámy stav" }}
               </span>
           </td>
-          <td>
-            <button @click="viewReview(work)" class="btn btn-primary btn-sm">
-              Pozrieť hodnotenie
-            </button>
-            <button
+          <td class="button-group-multiple">
+            <router-link
+              v-if="work.status === 'accepted' || work.status === 'rejected'"
+              :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
+                isEditable: 'false',
+                isReviewer: 'false'
+              } }">
+              <button class="btn btn-edit btn-sm ml-2">Pozrieť hodnotenie</button>
+            </router-link>
+            <div v-else>
+              <button class="btn btn-edit btn-sm ml-2" disabled>Pozrieť hodnotenie</button>
+            </div>
+            <button v-if="work.status === 'draft'"
               class="btn btn-edit btn-sm ml-2"
               @click="editWork(work)"
             >
               Upraviť
             </button>
+            <div v-else>
+              <button class="btn btn-edit btn-sm ml-2" disabled>Upraviť</button>
+            </div>
           </td>
         </tr>
         </tbody>
@@ -168,7 +181,7 @@ export interface Paper {
   title: string;
   category: { id: string; name: string };
   submission_date: number;
-  status: "submitted" | "under_review" | "accepted" | "rejected" | "draft";
+  status: "submitted" | "under_review" | "accepted" | "accepted_with_changes" | "rejected" | "draft";
   conference: { id: string; year: number };
   authors: Author[];
   keywords: string[];
@@ -193,8 +206,9 @@ export default defineComponent({
       statusLabels: {
         draft: "Návrh",
         submitted: "Odoslané",
-        "under_review": "V procese hodnotenia",
-        accepted: "Schválené",
+        under_review: "V procese hodnotenia",
+        accepted: "Prijaté",
+        accepted_with_changes: "Prijaté so zmenami",
         rejected: "Zamietnuté",
       },
     };
@@ -236,12 +250,12 @@ export default defineComponent({
         const token = "token123"; // Replace with the actual token from your database
         //const token = localStorage.getItem('authToken'); // Replace with your actual token retrieval logic
 
-        const response = await axios.get('http://localhost:5000/api/participant/papers', {
+        const response = await axios.get('/api/participant/papers', {
           headers: {
             Authorization: `Bearer ${token}`, // Include the token
           },
           params: {
-            userId: "676edcaa19ea5a907dc17565", // Include query params
+            userId: "", // Include query params
           },
         });
         this.works = response.data.map((work: any) => ({

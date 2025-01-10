@@ -527,3 +527,16 @@ $border-radius-8: 8px;
   padding: 0;
   cursor: pointer;
 }
+
+.header-buttons button{
+  margin-right: 10px;
+}
+.button-group-multiple {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+}
+.button-group-multiple svg, .button-group svg {
+  color: $primary;
+  font-size: 1.2em;
+}
