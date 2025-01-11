@@ -116,7 +116,7 @@
               <v-select
                 v-model="registerRole"
                 :items="roles"
-                label="Role"
+                label="Rola"
                 :error-messages="getError('role')"
                 required
                 class="large-text-field"

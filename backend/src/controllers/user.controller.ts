@@ -30,7 +30,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            res.status(400).json({ message: 'Email already registered' });
+            res.status(400).json({ message: 'Email je už zaregistrovaný' });
             return;
         }
 
@@ -42,7 +42,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         // Check if the role exists in the database
         const validRoles = ['admin', 'student', 'reviewer'];
         if (!validRoles.includes(normalizedRole)) {
-            res.status(400).json({ message: `Role "${role}" does not exist` });
+            res.status(400).json({ message: `Rola "${role}" neexistuje` });
             return;
         }
 
@@ -107,11 +107,11 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         });
 
         res.status(201).json({
-            message: 'User registered successfully. Check your email for verification.',
+            message: 'Používateľ bol úspešne zaregistrovaný. Skontrolujte svoj email pre overenie.',
         });
     } catch (error) {
         console.error('Error registering user:', error);
-        res.status(500).json({ message: 'Something went wrong. Please try again later.', error });
+        res.status(500).json({ message: 'Niečo sa pokazilo. Skúste to prosím neskôr.', error });
     }
 };
 
@@ -125,7 +125,7 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
         // Find user by userId and token
         const user = await User.findOne({_id: decoded.userId, verificationToken: token});
         if (!user || user.isVerified) {
-            res.status(400).json({ message: 'Invalid or expired token' });
+            res.status(400).json({ message: 'Neplatný alebo expirovaný token' });
             return;
         }
 
@@ -135,10 +135,10 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
         user.verificationToken = null; //Clear token
         await user.save();
 
-        res.status(200).json({ message: 'Email successfully verified' });
+        res.status(200).json({ message: 'Email bol úspešne overený' });
     } catch (error) {
         console.error('Error verifying email:', error);
-        res.status(500).json({ message: 'Email verification failed', error });
+        res.status(500).json({ message: 'Nepodarilo sa overiť email', error });
     }
 };
 
@@ -149,14 +149,14 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
         // Find the user by ID
         const user = await User.findById(userId).select("-password -refreshToken");
         if (!user) {
-            res.status(404).json({ message: 'User not found' });
+            res.status(404).json({ message: 'Používateľ nebol nájdený' });
             return;
         }
 
         res.status(200).json({ user }); // Wrap the user in a "user" field
     } catch (error) {
         console.error('Error retrieving profile:', error);
-        res.status(500).json({ message: 'Error retrieving profile', error });
+        res.status(500).json({ message: 'Chyba pri získavaní profilu', error });
     }
 };
 
@@ -164,14 +164,14 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
     try {
         const userId = req.user?.userId;
         if (!userId) {
-            res.status(401).json({ message: 'Unauthorized. Missing user information.' });
+            res.status(401).json({ message: 'Neautorizované. Chýbajú informácie o používateľovi.' });
             return;
         }
 
         // Find the user by ID
         const user = await User.findById(userId);
         if (!user) {
-            res.status(404).json({ message: 'User not found' });
+            res.status(404).json({ message: 'Používateľ nebol nájdený' });
             return;
         }
 
@@ -182,7 +182,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
             // Verify current password
             const isMatch = await argon2.verify(user.password, updates.currentPassword);
             if (!isMatch) {
-                res.status(400).json({ message: 'Current password is incorrect' });
+                res.status(400).json({ message: 'Aktuálne heslo je nesprávne' });
                 return;
             }
 
@@ -208,17 +208,17 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
           "-password -refreshToken"
         );
         if (!updatedUser) {
-            res.status(404).json({ message: 'Failed to update profile' });
+            res.status(404).json({ message: 'Nepodarilo sa aktualizovať profil' });
             return;
         }
 
         res.status(200).json({
-            message: 'Profile updated successfully',
+            message: 'Profil bol úspešne aktualizovaný',
             user: updatedUser,
         });
     } catch (error) {
         console.error('Error updating profile:', error);
-        res.status(500).json({ message: 'Error updating profile', error });
+        res.status(500).json({ message: 'Chyba pri aktualizovaní profilu', error });
     }
 };
 
@@ -229,7 +229,7 @@ export const getAllCategories = async (_req: Request, res: Response): Promise<vo
         res.status(200).json(categories);
     } catch (error) {
         console.error('Error fetching categories:', error);
-        res.status(500).json({ message: 'Failed to fetch categories', error });
+        res.status(500).json({ message: 'Napodarilo sa načítať kategórie', error });
     }
 };
 
@@ -243,6 +243,6 @@ export const getAllConferences = async (_req: Request, res: Response): Promise<v
         res.status(200).json(conferences);
     } catch (error) {
         console.error('Error fetching conferences:', error);
-        res.status(500).json({ message: 'Failed to fetch conferences', error });
+        res.status(500).json({ message: 'Nepodarilo sa načítať konferencie', error });
     }
 };

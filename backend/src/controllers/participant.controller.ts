@@ -6,7 +6,7 @@ export const submitPaper = async (req: AuthRequest, res: Response): Promise<void
     try {
         const userId = req.user?.userId; // Extract user ID from AuthRequest
         if (!userId) {
-            res.status(401).json({ message: 'Unauthorized. User is not logged in.' });
+            res.status(401).json({ message: 'Neautorizované. Používateľ nie je prihlásený.' });
             return;
         }
 
@@ -14,7 +14,7 @@ export const submitPaper = async (req: AuthRequest, res: Response): Promise<void
 
         // Check for required fields
         if (!title || !abstract || !keywords || !file_link || !category || !conference) {
-            res.status(400).json({ message: 'Missing required fields' });
+            res.status(400).json({ message: 'Chýbajú povinné polia' });
             return;
         }
 
@@ -40,12 +40,12 @@ export const submitPaper = async (req: AuthRequest, res: Response): Promise<void
         const savedPaper = await paper.save();
 
         res.status(201).json({
-            message: final_submission ? 'Paper submitted successfully' : 'Paper saved as draft',
+            message: final_submission ? 'Práca bola úspešne odoslaná' : 'Práca bola uložená ako koncept',
             paper: savedPaper,
         });
     } catch (error) {
         console.error('Error submitting paper:', error);
-        res.status(500).json({ message: 'Failed to submit paper', error });
+        res.status(500).json({ message: 'Nepodarilo sa odoslať prácu', error });
     }
 };
 
@@ -54,7 +54,7 @@ export const viewMyPapers = async (req: AuthRequest, res: Response): Promise<voi
     try {
         const userId = req.user?.userId; // Extract user ID from AuthRequest
         if (!userId) {
-            res.status(401).json({ message: 'Unauthorized. User not logged in.' });
+            res.status(401).json({ message: 'Neautorizované. Používateľ nie je prihlásený.' });
             return;
         }
 
@@ -63,7 +63,7 @@ export const viewMyPapers = async (req: AuthRequest, res: Response): Promise<voi
         res.status(200).json(papers);
     } catch (error) {
         console.error('Error fetching user papers:', error);
-        res.status(500).json({ message: 'Failed to fetch papers', error });
+        res.status(500).json({ message: 'Nepodarilo sa načítať práce', error });
     }
 };
 
@@ -78,7 +78,7 @@ export const getPaperById = async (req: AuthRequest, res: Response): Promise<voi
 
         res.status(200).json(paper);
     } catch (error) {
-        res.status(500).json({ message: 'Failed to fetch paper', error });
+        res.status(500).json({ message: 'Nepodarilo sa načítať prácu', error });
     }
 };
 
@@ -92,7 +92,7 @@ export const editPaper = async (req: AuthRequest, res: Response): Promise<void> 
         // Check if the paper exists and belongs to the user
         const paper = await Paper.findOne({ _id: paperId, user: userId });
         if (!paper) {
-            res.status(404).json({ message: 'Paper not found or you are not authorized to edit it.' });
+            res.status(404).json({ message: 'Práca nebola nájdená alebo nemáte oprávnenie na jej úpravu.' });
             return;
         }
 
@@ -106,11 +106,11 @@ export const editPaper = async (req: AuthRequest, res: Response): Promise<void> 
         const updatedPaper = await paper.save();
 
         res.status(200).json({
-            message: 'Paper updated successfully',
+            message: 'Práca bola úspešne aktualizovaná',
             paper: updatedPaper,
         });
     } catch (error) {
         console.error('Error editing paper:', error);
-        res.status(500).json({ message: 'Failed to edit paper', error });
+        res.status(500).json({ message: 'Prácu sa nepodarilo aktualizovať', error });
     }
 };

@@ -11,27 +11,27 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
         //Validate input
         if (!email || !password) {
-            res.status(400).json({ message: 'Email and password are required' });
+            res.status(400).json({ message: 'Email a heslo sú povinné' });
             return;
         }
 
         //Find user and validate credentials
         const user = await User.findOne({ email });
         if (!user) {
-            res.status(404).json({ message: 'User not found' });
+            res.status(404).json({ message: 'Používateľ nebol nájdený' });
             return;
         }
 
         //Verify password
         const isPasswordValid = await argon2.verify(user.password, password);
         if (!isPasswordValid) {
-            res.status(401).json({ message: 'Invalid credentials' });
+            res.status(401).json({ message: 'Neplatné prihlasovacie údaje' });
             return;
         }
 
         //Check if the user is verified
         if (!user.isVerified) {
-            res.status(403).json({ message: 'Please verify your email before logging in' });
+            res.status(403).json({ message: 'Prosím overte svoj email pred prihlásením' });
             return;
         }
 
@@ -51,9 +51,9 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         //Save the refresh token in database
         await user.save();
 
-        res.status(200).json({ token, role: user.role, message: 'Login successful' });
+        res.status(200).json({ token, role: user.role, message: 'Prihlásenie bolo úspešne' });
     } catch (error) {
-        res.status(500).json({ message: 'Login failed', error });
+        res.status(500).json({ message: 'Prihlásenie zlyhalo', error });
     }
 };
 
@@ -68,9 +68,9 @@ export const logoutUser = async (req: AuthRequest, res: Response): Promise<void>
             await user.save();
         }
 
-        res.status(200).json({ message: 'Logout successful' });
+        res.status(200).json({ message: 'Odhlásenie bolo úspešné' });
     } catch (error) {
-        res.status(500).json({ message: 'Logout failed', error });
+        res.status(500).json({ message: 'Odhlásenie zlyhalo', error });
     }
 };
 
@@ -83,7 +83,7 @@ export const refreshToken = async (req: AuthRequest, res: Response): Promise<voi
         const user = await User.findById(decoded.userId);
 
         if (!user || user.refreshToken !== refreshToken) {
-            res.status(401).json({ message: 'Invalid or expired refresh token' });
+            res.status(401).json({ message: 'Neplatný alebo expirovaný obnovovací token' });
             return;
         }
 
@@ -96,6 +96,6 @@ export const refreshToken = async (req: AuthRequest, res: Response): Promise<voi
 
         res.status(200).json({ token: newToken });
     } catch (error) {
-        res.status(401).json({ message: 'Invalid or expired refresh token', error });
+        res.status(401).json({ message: 'Neplatný alebo expirovaný obnovovací token', error });
     }
 };

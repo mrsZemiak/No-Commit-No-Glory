@@ -25,6 +25,6 @@ export const updateConferenceStatusMiddleware = async (_req: Request, _res: Resp
     next();
   } catch (error) {
     console.error('Error updating conference statuses:', error);
-    _res.status(500).json({ message: 'Error updating conference statuses', error });
+    _res.status(500).json({ message: 'Chyba pri aktualizovaní stavu konferencie', error });
   }
 };

@@ -11,7 +11,7 @@ export const viewAssignedPapers = async (req: AuthRequest, res: Response): Promi
 
         res.status(200).json(papers);
     } catch (error) {
-        res.status(500).json({ message: 'Failed to fetch assigned papers', error });
+        res.status(500).json({ message: 'Nepodarilo sa načítať pridelené práce', error });
     }
 };
 
@@ -27,7 +27,7 @@ export const submitReview = async (req: AuthRequest, res: Response): Promise<voi
             existingReview.recommendation = recommendation;
 
             await existingReview.save();
-            res.status(200).json({ message: 'Review updated successfully', review: existingReview });
+            res.status(200).json({ message: 'Recenzia bola úspešne aktualizovaná', review: existingReview });
         } else {
             const newReview = new Review({
                 paper: paperId,
@@ -37,7 +37,7 @@ export const submitReview = async (req: AuthRequest, res: Response): Promise<voi
                 status,
             });
             await newReview.save();
-            res.status(201).json({ message: 'Review submitted successfully', review: newReview });
+            res.status(201).json({ message: 'Recenzia bola úspešne odoslaná', review: newReview });
         }
         let paperStatus = 'under review';
         if (recommendation === 'publish') {
@@ -49,7 +49,7 @@ export const submitReview = async (req: AuthRequest, res: Response): Promise<voi
         }
         await Paper.findByIdAndUpdate(paperId, { status: paperStatus });
     } catch (error) {
-        res.status(500).json({ message: 'Failed to submit review', error });
+        res.status(500).json({ message: 'Nepodarilo sa odoslať recenziu', error });
     }
 };
 
@@ -61,11 +61,11 @@ export const getReviewById = async (req: AuthRequest, res: Response): Promise<vo
         const review = await Review.findOne({ paper: paperId, reviewer: reviewerId });
 
         if (review) {
-            res.status(200).json({ message: 'Review found', review });
+            res.status(200).json({ message: 'Recenzia bola nájdená', review });
         } else {
-            res.status(404).json({ message: 'Review not found' });
+            res.status(404).json({ message: 'Recenzia nebola nájdená' });
         }
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching review', error });
+        res.status(500).json({ message: 'Nepodarilo sa načítať recenzie', error });
     }
 };
