@@ -3,16 +3,16 @@ import { useAuthStore } from '@/stores/auth';
 
 // Create an Axios instance
 const axiosInstance = axios.create({
-  baseURL: '/api', // Replace with your backend API base URL
-  timeout: 5000, // Optional: Set a timeout for requests
+  baseURL: 'http://localhost:5000/api',
+  timeout: 5000,
 });
 
 // Add Axios response interceptor
 axiosInstance.interceptors.response.use(
-  (response) => response, // Pass through successful responses
+  (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      const authStore = useAuthStore(); // Initialize the store here
+      const authStore = useAuthStore();
       try {
         await authStore.refreshAccessToken(); // Attempt to refresh the token
 

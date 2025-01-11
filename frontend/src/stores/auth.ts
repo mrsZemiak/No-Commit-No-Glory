@@ -53,8 +53,8 @@ export const useAuthStore = defineStore('auth', {
 
     async fetchUserProfile() {
       try {
-        const response = await axios.get('/api/profile');
-        this.user = response.data.user
+        const response = await axios.get('/api/auth/profile');
+        this.user = response.data.user;
       } catch (error) {
         console.error('Error fetching user profile:', error);
         throw error;
@@ -68,7 +68,7 @@ export const useAuthStore = defineStore('auth', {
           formData.append(key, updatedProfile[key]);
         });
 
-        const response = await axios.patch('/api/profile', formData, {
+        const response = await axios.patch('/api/auth/profile', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
 

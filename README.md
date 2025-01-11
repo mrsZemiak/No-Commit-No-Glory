@@ -15,12 +15,12 @@ SciSubmit is a project management system for conference submissions and reviews.
 SciSubmit is a web application designed to streamline the process of submitting papers to academic conferences and managing the review process. Admins can create conferences, assign reviewers, and manage paper submissions, while students can submit their work for review.
 
 ## Technologies Used
-- **Frontend**: Vue.js (with TypeScript)
+- **Frontend**: Vue 3 (with TypeScript)
 - **Backend**: Express.js (Node.js) with TypeScript
 - **Database**: MongoDB (Mongoose ORM)
 - **Containerization**: Docker
 - **Version Control**: Git and GitHub
-- **Other Tools**: Docker Compose, ESLint, Prettier
+- **Other Tools**: Docker Compose, Vuetify, ESLint, Prettier
 
 ## Installation
 To get a local copy up and running, follow these steps:

@@ -1,8 +1,13 @@
 <template>
-  <div>
-    <h1>Email Verification</h1>
-    <p>Verifying your email...</p>
-  </div>
+  <v-container class="email-verification-container">
+    <!-- Card for Message -->
+    <v-card class="text-center" outlined>
+      <v-card-title class="text-h3">Email Verification</v-card-title>
+      <v-card-text>
+        <p>Your email is being verified. Please wait...</p>
+      </v-card-text>
+    </v-card>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -31,6 +36,28 @@ export default defineComponent({
 });
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+.email-verification-container {
+  display: flex;
+  flex-direction: column; /* Stack image and card vertically */
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  text-align: center;
+  padding: 20px;
+}
 
+.verification-image {
+  max-width: 300px; /* Adjust as needed */
+  margin-bottom: 16px;
+}
+
+v-card {
+  max-width: 400px;
+  padding: 16px;
+}
+
+p {
+  font-size: 1.2rem;
+}
 </style>

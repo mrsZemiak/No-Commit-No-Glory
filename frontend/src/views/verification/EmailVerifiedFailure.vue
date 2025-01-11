@@ -4,9 +4,9 @@
     <img src="../../assets/logo.png" alt="SciSubmit Logo" class="logo" />
 
     <!-- Failure Message -->
-    <h2>Email Verification Failed</h2>
+    <h2>Overenie e-mailu zlyhalo</h2>
     <p>
-      We could not verify your email address. Please ensure the link is correct or try again.
+      Nepodarilo sa nám overiť vašu e-mailovú adresu. Uistite sa, že je odkaz správny, alebo to skúste znova.
     </p>
 
     <!-- Back Home Button -->
@@ -49,7 +49,7 @@ export default defineComponent({
 }
 
 .logo {
-  max-width: 100px;
+  max-width: 150px;
   margin-bottom: 20px;
 }
 

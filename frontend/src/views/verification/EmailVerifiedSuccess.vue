@@ -53,7 +53,7 @@ export default defineComponent({
 }
 
 .logo {
-  max-width: 100px;
+  max-width: 150px;
   margin-bottom: 20px;
 }
 

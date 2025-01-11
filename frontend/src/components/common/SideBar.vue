@@ -1,15 +1,16 @@
 <template>
   <v-navigation-drawer app permanent class="sidebar">
+
+    <!-- Logo Section -->
+
+    <div class="logo-container">
+      <router-link to="/" class="logo-link">
+      <img src="@/assets/images/logo.png" alt="SciSubmit Logo" class="sidebar-logo" />
+      </router-link>
+    </div>
+
     <!-- General Links Top -->
-    <v-list>
-      <v-list-item
-        v-for="(link, index) in generalLinksTop"
-        :key="'general-top-' + index"
-        @click="navigateTo(link.path)"
-      >
-        <v-list-item-title>{{ link.name }}</v-list-item-title>
-      </v-list-item>
-    </v-list>
+
 
     <!-- Role-Based Links -->
     <template v-if="roleSpecificLinks.length">
@@ -56,14 +57,13 @@ const router = useRouter();
 const authStore = useAuthStore();
 
 // Link definitions
-const generalLinksTop: Link[] = [{ name: "SciSubmit", path: "/" }];
 const generalLinksBottom: Link[] = [
   { name: "Profil", path: "/auth/profile" },
   { name: "Odhlásiť sa", path: "/auth/logout" },
 ];
 const participantLinks: Link[] = [
-  { name: "Odovzdanie práce", path: "/auth/reviewer/submit" },
-  { name: "Moje práce", path: "/auth/reviewer/participant" },
+  { name: "Odovzdanie práce", path: "/auth/participant/submit" },
+  { name: "Moje práce", path: "/auth/participant/works" },
 ];
 const reviewerLinks: Link[] = [
   { name: "Práce na hodnotenie", path: "/auth/reviewer/reviews" },
@@ -72,7 +72,7 @@ const reviewerLinks: Link[] = [
 const adminLinks: Link[] = [
   { name: "Konferencie", path: "/auth/admin/conferences" },
   { name: "Používatelia", path: "/auth/admin/users" },
-  { name: "Práce", path: "/auth/admin/papers" },
+  { name: "Práce", path: "/auth/admin/papers-list" },
   { name: "Kategórie", path: "/auth/admin/categories" },
   { name: "Otázky", path: "/auth/admin/questions" },
 ];
@@ -96,12 +96,29 @@ function navigateTo(path: string): void {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .sidebar {
-  width: 250px;
+  width: 300px;
+  top: 0;
   background-color: #f8f9fa;
+  border-radius: 10px;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   font-size: 1.5rem;
+
+  .logo-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 150px;
+    margin-bottom: 16px;
+  }
+
+  .sidebar-logo {
+    width: 80%;
+    height: auto;
+    margin-left: 30px;
+    object-fit: contain;
+  }
 
   .v-list-item-title {
     font-size: 1.5rem;

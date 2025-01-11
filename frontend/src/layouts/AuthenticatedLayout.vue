@@ -9,7 +9,7 @@
     <SideBar />
     <!-- Main Content -->
     <v-main>
-      <v-container fluid>
+      <v-container class="main-container" fluid>
         <router-view />
       </v-container>
     </v-main>
@@ -34,7 +34,7 @@ export default defineComponent({
 .banner-container {
   position: relative;
   width: 100%;
-  height: 400px;
+  height: 300px; /* Adjust banner height */
   overflow: hidden;
 
   .banner-image {
@@ -54,20 +54,45 @@ export default defineComponent({
     width: 100%;
     height: 100%;
     z-index: 2;
-    background: linear-gradient(
-        to bottom,
-        rgba(44, 53, 49, 0.7),
-        rgba(0, 0, 0, 0.4)
-    );
+    background: linear-gradient(to bottom, rgba(44, 53, 49, 0.7), rgba(0, 0, 0, 0.4));
   }
 }
 
+/* Main content styling */
 .v-main {
-  margin-left: 250px;
-  padding: 20px;
-  width: calc(100% - 250px);
-  overflow: auto;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 1200px;
+  overflow: visible;
+  padding-top: 0;
+  position: relative;
+  z-index: 2;
 }
+
+.main-container {
+  position: relative;
+  top: -100px;
+
+  /* Profile card container styling */
+  .profile {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3;
+    position: relative;
+    margin-top: -30px;
+  }
+
+  .profile-card {
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    width: 90%;
+    max-width: 900px;
+  }
+}
+
 
 
 </style>

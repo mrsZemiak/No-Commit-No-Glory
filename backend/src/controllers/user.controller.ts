@@ -153,7 +153,7 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
             return;
         }
 
-        res.status(200).json(user);
+        res.status(200).json({ user }); // Wrap the user in a "user" field
     } catch (error) {
         console.error('Error retrieving profile:', error);
         res.status(500).json({ message: 'Error retrieving profile', error });
