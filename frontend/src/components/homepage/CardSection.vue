@@ -44,7 +44,6 @@
             Objavte úspechy a zaujímavé práce z aktuálného a tiež predchádzajúcich ročníkov konferencie.
           </v-card-text>
           <v-card-actions class="card-actions">
-            <v-btn @click="openModal('submittedWorks')">Prijaté</v-btn>
             <v-btn @click="openModal('awardedWorks')">Ocenené</v-btn>
             <v-btn @click="openModal('pastConferences')">Všetko</v-btn>
           </v-card-actions>

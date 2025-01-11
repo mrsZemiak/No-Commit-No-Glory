@@ -7,18 +7,39 @@ export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null as User | null, // User details
     token: null as string | null, // JWT token
-    isAuthenticated: false, // Authentication status
+    role: null,
+    isAuthenticated: false,
   }),
 
   actions: {
+
+    async register(payload: {
+      first_name: string;
+      last_name: string;
+      email: string;
+      password: string;
+      university: string;
+      role: string;
+    }) {
+      try {
+        const response = await axiosInstance.post('/register', payload);
+        console.log('Registration successful:', response.data);
+        return response.data; // Return success message or additional data if needed
+      } catch (error) {
+        console.error('Registration failed:', error);
+        throw error; // Rethrow error for the component to handle
+      }
+    },
+
     async login(email: string, password: string) {
       try {
         const response = await axiosInstance.post('/login', { email, password });
         this.user = response.data.user;
+        this.role = response.data.role;
         this.token = response.data.token;
         this.isAuthenticated = true;
 
-        // Store tokens in localStorage for persistence
+        //Store tokens in localStorage for persistence
         if (this.token) {
           localStorage.setItem('authToken', this.token);
           localStorage.setItem('refreshToken', response.data.refreshToken); // Save refresh token
@@ -26,6 +47,35 @@ export const useAuthStore = defineStore('auth', {
         }
       } catch (error) {
         console.error('Login failed:', error);
+        throw error;
+      }
+    },
+
+    async fetchUserProfile() {
+      try {
+        const response = await axios.get('/api/profile');
+        this.user = response.data.user
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+        throw error;
+      }
+    },
+
+    async updateProfile(updatedProfile: any) {
+      try {
+        const formData = new FormData();
+        Object.keys(updatedProfile).forEach((key) => {
+          formData.append(key, updatedProfile[key]);
+        });
+
+        const response = await axios.patch('/api/profile', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        this.user = response.data.user; // Update the user data in the store
+        console.log('Profile updated successfully:', response.data.user);
+      } catch (error) {
+        console.error('Error updating profile:', error);
         throw error;
       }
     },
@@ -72,28 +122,28 @@ export const useAuthStore = defineStore('auth', {
       const refreshToken = localStorage.getItem('refreshToken');
 
       if (token) {
-        // Initialize the access token and headers
+        //Initialize the access token and headers
         this.token = token;
         this.isAuthenticated = true;
         axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
       } else if (refreshToken) {
-        // If no access token, try to refresh using the refresh token
+        //If no access token, try to refresh using the refresh token
         try {
           await this.refreshAccessToken();
           this.isAuthenticated = true;
         } catch (error) {
           console.error('Failed to refresh token:', error);
-          await this.logout(); // Clear invalid tokens
+          await this.logout(); //Clear invalid tokens
         }
       } else {
-        await this.logout(); // No valid tokens, log out
+        await this.logout(); //No valid tokens, log out
       }
     }
   },
 
   getters: {
-    isParticipant: (state) => state.user?.role?.name === 'participant',
-    isAdmin: (state) => state.user?.role?.name === 'admin',
-    isReviewer: (state) => state.user?.role?.name === 'reviewer',
+    isParticipant: (state) => state.role === 'participant',
+    isAdmin: (state) => state.role === 'admin',
+    isReviewer: (state) => state.role === 'reviewer',
   },
 });

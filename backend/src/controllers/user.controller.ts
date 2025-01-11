@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
+import multer from 'multer';
 import { config } from '../config';
 import { AuthRequest } from '../middleware/authenticateToken';
 import { updateConferenceStatus } from '../middleware/updateStatus';
@@ -9,6 +10,18 @@ import User, { UserStatus } from '../models/User'
 import Conference from '../models/Conference'
 import Category from '../models/Category'
 import path from 'node:path'
+
+//Set up Multer for avatar uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/avatars/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    },
+});
+
+export const upload = multer({ storage });
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -118,7 +131,7 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
 
         // Update user state to verified and status to active
         user.isVerified = true;
-        user.status = UserStatus.Active;
+        user.status = UserStatus.Pending;
         user.verificationToken = null; //Clear token
         await user.save();
 
@@ -129,13 +142,12 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
     }
 };
 
-
 export const getUserProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const userId = req.user?.userId; // Extracted from token middleware
+        const userId = req.user?.userId;
 
-        // Find the user by ID without populating the role
-        const user = await User.findById(userId);
+        // Find the user by ID
+        const user = await User.findById(userId).select("-password -refreshToken");
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
@@ -150,27 +162,51 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
 
 export const updateUserProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const userId = req.user?.userId; // Extracted from token middleware
-
+        const userId = req.user?.userId;
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized. Missing user information.' });
             return;
         }
 
-        // Find the user by ID without populating the role
+        // Find the user by ID
         const user = await User.findById(userId);
         if (!user) {
             res.status(404).json({ message: 'User not found' });
             return;
         }
 
-        // Exclude fields email and role to prevent unauthorized modifications
         const updates = { ...req.body };
+
+        // Handle password update if requested
+        if (updates.currentPassword && updates.newPassword) {
+            // Verify current password
+            const isMatch = await argon2.verify(user.password, updates.currentPassword);
+            if (!isMatch) {
+                res.status(400).json({ message: 'Current password is incorrect' });
+                return;
+            }
+
+            // Hash the new password
+            updates.password = await argon2.hash(updates.newPassword);
+
+            // Remove password-related fields from the updates to avoid extra modifications
+            delete updates.currentPassword;
+            delete updates.newPassword;
+        }
+
+        // Handle avatar upload
+        if (req.file) {
+            updates.avatar = `/uploads/avatars/${req.file.filename}`;
+        }
+
+        // Exclude email and role from being updated
         delete updates.email;
         delete updates.role;
 
         // Update the user's profile
-        const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true });
+        const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true }).select(
+          "-password -refreshToken"
+        );
         if (!updatedUser) {
             res.status(404).json({ message: 'Failed to update profile' });
             return;

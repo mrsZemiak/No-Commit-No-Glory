@@ -15,17 +15,17 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
-        //Find user in the database
+        //Find user and validate credentials
         const user = await User.findOne({ email });
         if (!user) {
-            res.status(401).json({ message: 'Invalid email or password' });
+            res.status(404).json({ message: 'User not found' });
             return;
         }
 
         //Verify password
         const isPasswordValid = await argon2.verify(user.password, password);
         if (!isPasswordValid) {
-            res.status(401).json({ message: 'Invalid email or password' });
+            res.status(401).json({ message: 'Invalid credentials' });
             return;
         }
 
@@ -51,7 +51,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         //Save the refresh token in database
         await user.save();
 
-        res.status(200).json({ token, message: 'Login successful' });
+        res.status(200).json({ token, role: user.role, message: 'Login successful' });
     } catch (error) {
         res.status(500).json({ message: 'Login failed', error });
     }

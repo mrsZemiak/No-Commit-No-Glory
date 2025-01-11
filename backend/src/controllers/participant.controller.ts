@@ -18,10 +18,10 @@ export const submitPaper = async (req: AuthRequest, res: Response): Promise<void
             return;
         }
 
-        // Set status based on final_submission flag
+        //Set status based on final_submission flag
         const status = final_submission ? PaperStatus.Submitted : PaperStatus.Draft;
 
-        // Create the paper document
+        //Create the paper document
         const paper = new Paper({
             title,
             abstract,
@@ -49,7 +49,7 @@ export const submitPaper = async (req: AuthRequest, res: Response): Promise<void
     }
 };
 
-// Participant: View all papers submitted by the user
+//View all papers submitted by the user
 export const viewMyPapers = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.userId; // Extract user ID from AuthRequest

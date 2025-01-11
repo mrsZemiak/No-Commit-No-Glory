@@ -10,7 +10,7 @@
     </p>
 
     <!-- Login Button -->
-    <button @click="navigateToLogin" class="button">
+    <button @click="openLoginModal" class="button">
       Log In
     </button>
   </div>
@@ -22,14 +22,18 @@ import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'EmailVerificationSuccess',
-  setup() {
-    const router = useRouter();
-
-    const navigateToLogin = () => {
-      router.push('/login'); // Redirect to login page
+  props: {
+    onOpenLoginModal: {
+      type: Function,
+      required: true,
+    },
+  },
+  setup(props) {
+    const openLoginModal = () => {
+      props.onOpenLoginModal();
     };
 
-    return { navigateToLogin };
+    return { openLoginModal };
   },
 });
 </script>

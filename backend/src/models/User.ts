@@ -14,12 +14,15 @@ export interface IUser extends Document {
   email: string;
   password: string;
   university: string;
-  status: UserStatus;
   role: string;
   created_at: Date;
   isVerified: boolean;
+  status: UserStatus;
   verificationToken: string | null;
   refreshToken: string | null;
+  faculty?: string;
+  about?: string;
+  avatar?: string;
 }
 
 const UserSchema: Schema = new Schema(
@@ -43,6 +46,9 @@ const UserSchema: Schema = new Schema(
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String, required: false },
     refreshToken: { type: String, required: false },
+    faculty: { type: String },
+    about: { type: String },
+    avatar: { type: String },
   },
   { collection: 'users' }
 );

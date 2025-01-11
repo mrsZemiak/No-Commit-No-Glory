@@ -8,10 +8,24 @@ export const registerValidationRules = [
     body('first_name').notEmpty().withMessage('First name is required'),
     body('last_name').notEmpty().withMessage('Last name is required'),
     body('email').isEmail().withMessage('Valid email is required'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+    body('password')
+      .isLength({ min: 6 })
+      .withMessage('Password must be at least 6 characters long'),
+    body('confirmPassword').custom((value, { req }) => {
+        if (value !== req.body.password) {
+            throw new Error('Passwords do not match');
+        }
+        return true;
+    }),
     body('university').notEmpty().withMessage('University is required'),
     body('role').notEmpty().withMessage('Role is required'),
 ];
+
+export const loginValidationRules = [
+    body('email').isEmail().withMessage('Valid email is required'),
+    body('password').notEmpty().withMessage('Password is required'),
+];
+
 
 //Validation rules for email verification
 export const verifyEmailValidationRules = [
@@ -90,20 +104,20 @@ export const validateReviewSubmission = async (req: Request, res: Response, next
     try {
         const { paper, reviewer, responses, recommendation, comments } = req.body;
 
-        // Ensure all required fields are provided
+        //Ensure all required fields are provided
         if (!paper || !reviewer || !responses || !recommendation) {
             res.status(400).json({ message: 'Missing required fields' });
             return;
         }
 
-        // Validate recommendation value
+        //Validate recommendation value
         const validRecommendations = ['publish', 'publish_with_changes', 'reject'];
         if (!validRecommendations.includes(recommendation)) {
             res.status(400).json({ message: 'Invalid recommendation value' });
             return;
         }
 
-        // Validate responses
+        //Validate responses
         for (const response of responses) {
             const question = await Question.findById(response.question);
             if (!question) {
@@ -136,7 +150,7 @@ export const validateReviewSubmission = async (req: Request, res: Response, next
             }
         }
 
-        // If all validations pass, move to the next middleware/controller
+        //If all validations pass, move to the next middleware/controller
         next();
     } catch (error) {
         console.error('Validation error:', error);

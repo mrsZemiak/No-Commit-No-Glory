@@ -1,5 +1,5 @@
 # Use Node.js version
-FROM node:20
+FROM node:22
 
 # Create and set the working directory
 WORKDIR /usr/src/app

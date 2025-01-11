@@ -10,7 +10,6 @@
       <img src="@/assets/images/logo_h.png" alt="Logo"/>
     </v-app-bar-title>
 
-    <!-- Spacer -->
     <v-spacer></v-spacer>
 
     <!-- Login Button -->
@@ -40,18 +39,28 @@
           <div v-if="activeTab === 'login'">
             <!-- Login Form -->
             <v-form ref="loginForm" @submit.prevent="handleLogin">
-              <v-text-field v-model="loginEmail" label="Email" type="email" required></v-text-field>
+              <v-text-field
+                v-model="loginEmail"
+                label="Email"
+                type="email"
+                :error-messages="getError('email')"
+                required
+                class="large-text-field"
+              ></v-text-field>
               <v-text-field
                 v-model="loginPassword"
                 :type="showPassword ? 'text' : 'password'"
                 label="Heslo"
                 :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                 @click:append="togglePasswordVisibility"
-                required></v-text-field>
+                :error-messages="getError('password')"
+                required
+                class="large-text-field"
+              ></v-text-field>
               <v-btn color="primary" type="submit" block>Prihlásiť sa</v-btn>
             </v-form>
             <div class="forgot-password">
-              <v-btn small @click="activeTab = 'forgotPassword'">Zabudnuté heslo?</v-btn>
+              <v-btn small @click="activeTab = 'forgotPassword'" class="margin-top-btn">Zabudnuté heslo?</v-btn>
             </div>
           </div>
           <div v-if="activeTab === 'register'">
@@ -61,18 +70,21 @@
                 label="Meno"
                 :error-messages="getError('first_name')"
                 required
+                class="large-text-field"
               ></v-text-field>
               <v-text-field
                 v-model="registerLastName"
                 label="Priezvisko"
                 :error-messages="getError('last_name')"
                 required
+                class="large-text-field"
               ></v-text-field>
               <v-text-field
                 v-model="registerEmail"
                 label="Email"
                 type="email"
                 required
+                class="large-text-field"
               ></v-text-field>
               <v-text-field
                 v-model="registerPassword"
@@ -80,16 +92,18 @@
                 label="Heslo"
                 :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                 @click:append="togglePasswordVisibility"
+                :error-messages="passwordError"
                 required
+                class="large-text-field"
               ></v-text-field>
               <!-- Confirm Password Field -->
               <v-text-field
                 v-model="confirmPassword"
                 :type="showConfirmPassword ? 'text' : 'password'"
                 label="Zopakujte heslo"
-                :append-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                @click:append="toggleConfirmPasswordVisibility"
+                :error-messages="passwordError"
                 required
+                class="large-text-field"
               ></v-text-field>
               <v-select
                 v-model="registerUniversity"
@@ -97,6 +111,7 @@
                 label="Univerzita"
                 :error-messages="getError('university')"
                 required
+                class="large-text-field"
               ></v-select>
               <v-select
                 v-model="registerRole"
@@ -104,8 +119,9 @@
                 label="Role"
                 :error-messages="getError('role')"
                 required
+                class="large-text-field"
               ></v-select>
-              <v-btn color="primary" type="submit" block>Registrovať sa</v-btn>
+              <v-btn color="primary" type="submit" block :disabled="passwordMismatch">Registrovať sa</v-btn>
             </v-form>
           </div>
           <div v-if="activeTab === 'forgotPassword'">
@@ -123,12 +139,29 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <!-- Email Verification Success -->
+    <EmailVerificationSuccess :onOpenLoginModal="openLoginModal" />
   </v-app-bar>
+  <v-snackbar
+    v-model="snackbar.show"
+    :color="snackbar.color"
+    :timeout="snackbar.timeout"
+    top
+  >
+    {{ snackbar.message }}
+    <template v-slot:actions>
+      <v-btn @click="snackbar.show = false">
+        Close
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { computed, defineComponent, ref } from 'vue'
 import axios from 'axios';
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth';
 
 export default defineComponent({
   name: 'Navbar',
@@ -148,20 +181,62 @@ export default defineComponent({
     const registerPassword = ref('');
     const registerUniversity = ref(null);
     const registerRole = ref(null);
-    const universities = ref(['UKF', 'UMB', 'UCM']);
-    const roles = ref(['Student', 'Reviewer', 'Admin']);
-    const errors = ref<Record<string, string[]>>({});
+    const universities = ref(['Univerzita Konštantína Filozofa', 'Univerzita Mateja Bela', 'Univerzita sv. Cyrila a Metoda']);
+    const roles = ref(['Účastník', 'Recenzent', 'Admin']);
 
+    const router = useRouter();
+    const authStore = useAuthStore();
+
+    //Password mismatch check
+    const passwordError = ref<string | null>(null);
+    const passwordMismatch = computed(() => {
+      const mismatch =
+        registerPassword.value !== confirmPassword.value && confirmPassword.value !== '';
+      passwordError.value = mismatch ? 'Heslá sa nezhodujú.' : null;
+      return mismatch;
+    });
+
+    //Error pop-ups for better UX
+    const errors = ref<Record<string, string[]>>({});
+    const snackbar = ref({
+      show: false,
+      message: '',
+      color: 'error',
+      timeout: 5000,
+    });
+
+    const openLoginModal = () => {
+      loginDialog.value = true; // Open the login modal
+    };
+
+    const showSnackbar = ({ message, color = 'error' }: { message: string; color?: string }) => {
+      snackbar.value = { show: true, message, color, timeout: 5000 };
+    };
+
+    //Login modal
     const handleLogin = async () => {
       try {
-        const response = await axios.post('/api/login', {
-          email: loginEmail.value,
-          password: loginPassword.value,
-        });
-        console.log('Login successful:', response.data);
+        // Call the login action from the auth store
+        await authStore.login(loginEmail.value, loginPassword.value);
+
+        // Show success message
+        showSnackbar({ message: 'Prihlásenie bolo úspešné.', color: 'success' });
+        console.log('Login successful:', authStore.user);
+
+        // Close the login dialog
         loginDialog.value = false;
+
+        // Redirect to the /auth route (role-based redirection handled by the router)
+        await router.push('/auth');
       } catch (error) {
-        console.error('Login failed:', error);
+        if (axios.isAxiosError(error)) {
+          const backendMessage = error.response?.data?.message || 'An unexpected error occurred.';
+          console.error('Login failed:', backendMessage);
+          showSnackbar({ message: backendMessage, color: 'error' });
+        } else {
+          console.error('Unexpected error:', error);
+          showSnackbar({ message: 'An unexpected error occurred.', color: 'error' });
+        }
       }
     };
 
@@ -185,6 +260,7 @@ export default defineComponent({
       }
     };
 
+    //Registration modal
     const handleRegister = async () => {
       try {
         const response = await axios.post('/api/register', {
@@ -195,6 +271,7 @@ export default defineComponent({
           university: registerUniversity.value,
           role: registerRole.value,
         });
+        showSnackbar({ message: response.data.message, color: 'success' });
         console.log('Registration successful:', response.data);
         loginDialog.value = false;
       } catch (error: unknown) {
@@ -228,6 +305,8 @@ export default defineComponent({
       confirmPassword,
       showPassword,
       showConfirmPassword,
+      passwordError,
+      passwordMismatch,
       loginEmail,
       loginPassword,
       forgotPasswordEmail,
@@ -239,6 +318,9 @@ export default defineComponent({
       registerRole,
       universities,
       roles,
+      snackbar,
+      openLoginModal,
+      showSnackbar,
       togglePasswordVisibility,
       toggleConfirmPasswordVisibility,
       handleLogin,
@@ -325,6 +407,28 @@ export default defineComponent({
 
 .text-h5 {
   text-align: center;
+}
+
+.v-snackbar {
+  font-size: 1.5rem;
+  background: transparent;
+  color: white;
+}
+
+.large-text-field input {
+  font-size: 20px;
+}
+
+.large-text-field label {
+  font-size: 20px;
+}
+
+.large-text-field .v-input__control {
+  font-size: 20px;
+}
+
+.margin-top-btn {
+  margin-top: 20px;
 }
 
 </style>

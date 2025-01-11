@@ -1,7 +1,23 @@
+<template>
+  <div class="banner-container">
+    <div class="banner-overlay"></div>
+    <img
+      src="@/assets/images/bannerAuth.jpg"
+      class="banner-image"
+      alt="Banner"/>
+  </div>
+    <SideBar />
+    <!-- Main Content -->
+    <v-main>
+      <v-container fluid>
+        <router-view />
+      </v-container>
+    </v-main>
+</template>
+
 <script lang="ts">
 import {defineComponent} from 'vue'
 import SideBar from "@/components/common/SideBar.vue";
-
 
 export default defineComponent({
   name: "AuthenticatedLayout" ,
@@ -9,34 +25,49 @@ export default defineComponent({
 })
 </script>
 
-<template>
-  <div class="layout">
-    <SideBar class="sidebar"/>
-    <div class="main-content">
-      <router-view />
+<style lang="scss">
 
-
-    </div>
-  </div>
-</template>
-
-<style scoped>
-.layout {
-  display: flex;
-  height: 100vh;
-}
 .sidebar {
-  width: 250px;
-  background-color: #f8f9fa;
-  height: 100%;
-  position: fixed;
   z-index: 10;
 }
 
-.main-content {
+.banner-container {
+  position: relative;
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+
+  .banner-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+
+  .banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    background: linear-gradient(
+        to bottom,
+        rgba(44, 53, 49, 0.7),
+        rgba(0, 0, 0, 0.4)
+    );
+  }
+}
+
+.v-main {
   margin-left: 250px;
   padding: 20px;
   width: calc(100% - 250px);
   overflow: auto;
 }
+
+
 </style>

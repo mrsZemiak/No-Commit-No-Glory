@@ -1,102 +1,190 @@
 <template>
-  <div>
-    <!-- Profile Card -->
-    <b-card no-body class="card-profile" alt="Image placeholder">
-      <b-row class="d-flex flex-column align-items-center">
-        <b-col lg="3" md="4" sm="6" xs="12">
-          <div class="card-profile-image">
-            <a href="#">
-              <img :src="profileImage" class="img-thumbnail rounded-circle mx-auto d-block" />
-            </a>
-          </div>
-        </b-col>
-      </b-row>
+  <v-container class="profile">
+    <v-card class="profile-card" outlined>
+      <!-- Profile Header -->
+      <v-row>
+        <v-col cols="12" md="3" class="d-flex justify-center">
+          <v-avatar size="120">
+            <v-img :src="profile?.avatar || defaultAvatar"  alt="Avatar"></v-img>/
+          </v-avatar>
+        </v-col>
+        <v-col cols="12" md="9">
+          <h3>{{ profile?.first_name }} {{ profile?.last_name }}</h3>
+          <p>{{ profile?.university }}</p>
+          <p>{{ profile?.faculty }}</p>
+          <p>{{ profile?.about }}</p>
+          <v-btn color="primary" @click="toggleEditMode" v-if="!editMode">Edit</v-btn>
+        </v-col>
+      </v-row>
 
-      <b-card-body class="pt-0">
-        <div class="text-center">
-          <h5 class="h3">{{ profile.firstName }} {{ profile.lastName }}</h5>
-          <h5>
-            <span class="font-weight-800">27</span>
-          </h5>
-          <div class="h5 font-weight-300">
-            <i class="ni location_pin mr-2"></i>{{ profile.school }}
-          </div>
-          <div class="h5 mt-4">
-            <i class="ni business_briefcase-24 mr-2"></i>{{ profile.position }}
-          </div>
-          <div>
-            <i class="ni education_hat mr-2"></i>{{ profile.university }}
-          </div>
-          <hr class="my-4" />
-          <p>
-            {{ profile.aboutMe }}
-          </p>
-          <div class="text-center mt-4">
-            <b-button variant="primary" class="btn btn-primary" @click="openModal">Upraviť profil</b-button>
-          </div>
-        </div>
-      </b-card-body>
-    </b-card>
+      <v-divider class="my-4"></v-divider>
 
-    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-      <div class="modal-container">
-        <EditProfileForm
-          :profile="profile"
-          @update="updateProfile"
-          @close="closeModal"
-        />
-      </div>
-    </div>
-  </div>
+      <!-- Edit Profile Form -->
+      <v-form v-if="editMode" ref="formRef" v-model="valid">
+        <v-row>
+          <v-col cols="12" md="6">
+            <v-text-field v-model="form.first_name" label="First Name" outlined></v-text-field>
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field v-model="form.last_name" label="Last Name" outlined></v-text-field>
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field v-model="form.university" label="University" outlined></v-text-field>
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field v-model="form.faculty" label="Faculty" outlined></v-text-field>
+          </v-col>
+          <v-col cols="12">
+            <v-textarea v-model="form.about" label="About Me" outlined></v-textarea>
+          </v-col>
+          <v-col cols="12">
+            <v-file-input
+              v-model="form.avatar"
+              label="Upload Avatar"
+              accept="image/*"
+              outlined
+            ></v-file-input>
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="form.currentPassword"
+              label="Current Password"
+              type="password"
+              outlined
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" md="6">
+            <v-text-field
+              v-model="form.newPassword"
+              label="New Password"
+              type="password"
+              outlined
+            ></v-text-field>
+          </v-col>
+        </v-row>
+
+        <!-- Form Actions -->
+        <v-row>
+          <v-col cols="12" class="d-flex justify-end">
+            <v-btn color="secondary" @click="toggleEditMode">Cancel</v-btn>
+            <v-btn color="primary" :disabled="!valid" @click="saveProfile">Save</v-btn>
+          </v-col>
+        </v-row>
+      </v-form>
+    </v-card>
+  </v-container>
 </template>
 
-<script>
-import { ref } from "vue";
-import EditProfileForm from "./EditProfileForm.vue";
-import UnknownPersonPicture from "@/assets/Unknown_person.jpg";
+<script lang="ts">
+import { ref, computed, onMounted } from "vue";
+import { useAuthStore } from "@/stores/auth";
+import axios from "axios";
+import defaultAvatar from "@/assets/images/unknown_person.jpg";
 
 export default {
-  components: {
-    EditProfileForm,
-  },
   setup() {
-    const profileImage = UnknownPersonPicture;
-    const showModal = ref(false);
+    const authStore = useAuthStore();
+    const profile = computed(() => authStore.user); // Reactive user data from the store
 
-    const profile = ref({
-      firstName: "Jessica",
-      lastName: "Jones",
-      school: "Názov školy",
-      position: "Solution Manager",
-      university: "University of Computer Science",
-      aboutMe: "Ryan — the name taken by Melbourne-raised, Brooklyn-based Nick Murphy writes, performs and records all of his own music.",
+    const editMode = ref(false); // Toggle form visibility
+    const valid = ref(true); // Form validation state
+
+    const isLoading = ref(false);
+
+    // Initialize form with store data
+    const form = ref({
+      first_name: profile.value?.first_name || "",
+      last_name: profile.value?.last_name || "",
+      university: profile.value?.university || "",
+      faculty: profile.value?.faculty || "",
+      about: profile.value?.about || "",
+      avatar: null,
+      currentPassword: "",
+      newPassword: "",
     });
 
-    const openModal = () => {
-      showModal.value = true;
+    const toggleEditMode = () => {
+      if (editMode.value) {
+        // Reset form data if canceled
+        form.value = {
+          first_name: profile.value?.first_name || "",
+          last_name: profile.value?.last_name || "",
+          university: profile.value?.university || "",
+          faculty: profile.value?.faculty || "",
+          about: profile.value?.about || "",
+          avatar: null,
+          currentPassword: "",
+          newPassword: "",
+        };
+      }
+      editMode.value = !editMode.value;
     };
 
-    const closeModal = () => {
-      showModal.value = false;
+    const saveProfile = async () => {
+      isLoading.value = true;
+      try {
+        const formData = new FormData();
+        Object.keys(form.value).forEach((key) => {
+          const value = form.value[key as keyof typeof form.value];
+          if (value) {
+            formData.append(key, value as Blob | string); // Use `append` instead of direct assignment
+          }
+        });
+
+        const response = await axios.patch("/api/profile", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        authStore.user = response.data.user;
+        toggleEditMode();
+        console.log("Profile updated successfully:", response.data.user);
+      } catch (error) {
+        console.error("Error saving profile:", error);
+      } finally {
+        isLoading.value = false;
+      }
     };
 
-    const updateProfile = (updatedData) => {
-      console.log("Profile updated with data:", updatedData);
-      profile.value = {...updatedData};
-      closeModal();
-    };
+    onMounted(() => {
+      authStore.fetchUserProfile(); // Fetch user profile when component mounts
+    });
 
     return {
-      showModal,
-      openModal,
-      closeModal,
-      updateProfile,
-      profileImage,
       profile,
+      defaultAvatar,
+      editMode,
+      valid,
+      form,
+      toggleEditMode,
+      saveProfile,
     };
   },
 };
 </script>
 
-<style scoped>
+<style lang="scss">
+
+.profile-card {
+  padding: 16px;
+  border-radius: 10px;
+}
+
+.v-avatar img {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.v-card-title {
+  font-weight: bold;
+}
+
+.v-textarea,
+.v-text-field,
+.v-file-input {
+  margin-bottom: 16px;
+}
+
+.v-btn {
+  margin-left: 8px;
+}
 </style>

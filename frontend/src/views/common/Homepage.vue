@@ -12,15 +12,14 @@
         alt="Banner"
         class="banner-image"
       />
+      <div class="banner-text">
+        <span>{{ displayedText }}</span>
+      </div>
       <!-- Logos Section -->
       <div class="logos-section">
         <v-container>
           <v-row justify="space-around" align="center">
-            <!-- Dynamic Section -->
-            <div  v-if="showLogos" class="text-wrapper">
-              <h3 class="dynamic-text">ŠTUDENTSKÁ VEDECKÁ KONFERENCIA</h3>
-            </div>
-            <div v-else class="logos-wrapper">
+            <div class="logos-wrapper">
               <v-col cols="12" sm="4" md="3" class="logo-item">
                 <a href="https://www.fpv.umb.sk/"><img src="@/assets/images/umb.png" alt="Logo 1" /></a>
               </v-col>
@@ -89,6 +88,18 @@ export default defineComponent({
       location: '',
     });
 
+    const message = 'ŠTUDENTSKÁ VEDECKÁ KONFERENCIA';
+    const displayedText = ref('');
+    let index = 0;
+
+    const typeText = () => {
+      if (index < message.length) {
+        displayedText.value += message[index];
+        index++;
+        setTimeout(typeText, 100); // Typing speed
+      }
+    };
+
     const showLogos = ref(true); // Toggle state
     let interval: number | null = null;
 
@@ -104,7 +115,7 @@ export default defineComponent({
 
     const getHomepageData = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/homepage');
+        const response = await axios.get('/api/homepage');
         const ongoingConference = response.data.ongoingConference;
 
         if (ongoingConference) {
@@ -139,13 +150,14 @@ export default defineComponent({
     onMounted(() => {
       getHomepageData();
       startToggle();
+      typeText();
     });
 
     onUnmounted(() => {
       stopToggle();
     });
 
-    return { eventData, showLogos };
+    return { eventData, showLogos, displayedText };
   },
 });
 </script>
@@ -187,6 +199,21 @@ export default defineComponent({
         rgba(0, 0, 0, 0.3),
         rgba(0, 0, 0, 0.7)
     );
+  }
+
+  .banner-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    font-family: 'Lato', sans-serif;
+    font-size: 4rem;
+    font-weight: bold;
+    z-index: 3;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+
   }
 
   .logos-section {

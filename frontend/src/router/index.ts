@@ -14,9 +14,9 @@ const routes = [
       { path: '', name: 'Homepage', component: () => import('@/views/common/Homepage.vue')},
       { path: 'verify-email',
         name: 'EmailVerification', component: () => import('@/views/verification/EmailVerification.vue')},
-      { path: '/email-verified-success',
+      { path: 'email-verified-success',
         name: 'EmailVerifiedSuccess', component: () => import('@/views/verification/EmailVerifiedSuccess.vue')},
-      { path: '/email-verified-failure',
+      { path: 'email-verified-failure',
         name: 'EmailVerifiedFailure', component: () => import('@/views/verification/EmailVerifiedFailure.vue')},
     ],
   },
@@ -32,7 +32,7 @@ const routes = [
 
       // Admin Routes
       {
-        path: 'admin',
+        path: '/admin',
         meta: { role: 'admin' },
         children: [
           { path: 'conferences', name: 'ConferenceTable', component: () => import('@/components/admin/ConferenceTable.vue')},
@@ -41,7 +41,7 @@ const routes = [
           { path: 'papers-list', name: 'PapersList', component: () => import('@/components/admin/WorksTable.vue')},
           { path: 'questions', name: 'QuestionsTable', component: () => import('@/components/admin/QuestionTable.vue')},
           {
-            path: '/conference-papers/:conferenceId',
+            path: 'conference-papers/:conferenceId',
             name: 'ConferencePapers',
             component: () => import('@/components/admin/WorksTable.vue'),
             props: true
@@ -65,12 +65,18 @@ const routes = [
             component: () => import('@/components/admin/ModalEditUser.vue'),
             props: true,
           },
+          {
+            path: 'questions/edit/:id',
+            name: 'EditQuestion',
+            component: () => import('@/components/admin/ModalQuestion.vue'),
+            props: true,
+          },
         ],
       },
 
       // Participant Routes
       {
-        path: 'participant',
+        path: '/participant',
         meta: { role: 'participant' },
         children: [
           { path: 'submit', name: 'SubmitWork', component: () => import('@/components/participant/SubmissionForm.vue')},
@@ -86,7 +92,7 @@ const routes = [
 
       // Reviewer Routes
       {
-        path: 'reviewer',
+        path: '/reviewer',
         meta: { role: 'reviewer' },
         children: [
           { path: 'reviews', name: 'ReviewTable', component: () => import('@/components/reviewer/ReviewTable.vue') },
@@ -126,6 +132,20 @@ router.beforeEach((to, from, next) => {
       return next({ name: 'Unauthorized' }); // Redirect to Unauthorized page
     }
   }
+
+  //Handle redirection from /auth to role-specific subpaths
+  if (to.path === '/auth') {
+    if (authStore.isAdmin) {
+      return next('/auth/admin');
+    } else if (authStore.isParticipant) {
+      return next('/auth/participant');
+    } else if (authStore.isReviewer) {
+      return next('/auth/reviewer');
+    } else {
+      return next('/auth/profile'); // Default to profile
+    }
+  }
+
   // Check role-based access control
   if (to.meta.role) {
     const hasAccess =

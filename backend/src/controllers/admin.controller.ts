@@ -250,7 +250,7 @@ export const updateQuestion = async (req: Request, res: Response): Promise<void>
         const { questionId } = req.params;
         const updates = req.body;
 
-        // Find and update the question
+        //Find and update the question
         const updatedQuestion = await Question.findByIdAndUpdate(questionId, updates, {
             new: true, // Return the updated document
             runValidators: true, // Ensure validations are run
