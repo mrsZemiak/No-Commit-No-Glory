@@ -13,7 +13,7 @@ export interface User {
   password: string;
   university: string;
   status: UserStatus;
-  role?: {name: string};
+  role: {name: string};
   isVerified: boolean;
   verificationToken: string | null;
   refreshToken: string | null;

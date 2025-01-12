@@ -2,16 +2,18 @@ import { Request, Response } from 'express';
 import AdmZip from 'adm-zip';
 import User from '../models/User';
 import Conference, { ConferenceStatus } from '../models/Conference'
+import { AuthRequest } from '../middleware/authenticateToken'
 import Category from '../models/Category';
 import Paper from '../models/Paper'
 import path from 'node:path'
 import { promises as fs } from 'fs';
 import Question from '../models/Question'
 
+
 //Get all users
-export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
+export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const users = await User.find().populate('role');
+        const users = await User.find();
         res.status(200).json(users);
     } catch (error) {
         res.status(500).json({ message: 'Failed to fetch users', error });

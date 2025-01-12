@@ -34,7 +34,7 @@ export default defineComponent({
 .banner-container {
   position: relative;
   width: 100%;
-  height: 300px; /* Adjust banner height */
+  height: 600px;
   overflow: hidden;
 
   .banner-image {
@@ -42,7 +42,7 @@ export default defineComponent({
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 700px;
     object-fit: cover;
     z-index: 1;
   }

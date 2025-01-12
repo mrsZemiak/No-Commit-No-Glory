@@ -11,6 +11,12 @@ export const registerValidationRules = [
     body('password')
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters long'),
+    //.matches(/[A-Z]/)
+    //.withMessage('Password must include at least one uppercase letter')
+    //.matches(/\d/)
+    //.withMessage('Password must include at least one number')
+    //.matches(/[@$!%*?&]/)
+    //.withMessage('Password must include at least one special character (@, $, etc.)');
     body('confirmPassword').custom((value, { req }) => {
         if (value !== req.body.password) {
             throw new Error('Passwords do not match');

@@ -1,5 +1,5 @@
 <script lang="ts">
-import ParticipantWorksTable from "@/components/Participant/ParticipantWorksTable.vue";
+import ParticipantWorksTable from "@/components/participant/ParticipantWorksTable.vue";
 
 export default {
   name: "ParticipantView",

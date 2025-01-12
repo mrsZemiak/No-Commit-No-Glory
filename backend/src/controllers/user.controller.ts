@@ -11,18 +11,6 @@ import Conference from '../models/Conference'
 import Category from '../models/Category'
 import path from 'node:path'
 
-//Set up Multer for avatar uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/avatars/');
-    },
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-    },
-});
-
-export const upload = multer({ storage });
-
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { first_name, last_name, email, password, university, role } = req.body;
@@ -40,7 +28,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         const normalizedRole = role.toLowerCase();
 
         // Check if the role exists in the database
-        const validRoles = ['admin', 'student', 'reviewer'];
+        const validRoles = ['admin', 'participant', 'reviewer'];
         if (!validRoles.includes(normalizedRole)) {
             res.status(400).json({ message: `Role "${role}" does not exist` });
             return;
@@ -125,7 +113,13 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
         // Find user by userId and token
         const user = await User.findOne({_id: decoded.userId, verificationToken: token});
         if (!user || user.isVerified) {
-            res.status(400).json({ message: 'Invalid or expired token' });
+            //res.status(400).json({ message: 'Invalid or expired token' });
+            return res.redirect(`${config.baseFrontendUrl}/email-verified-failure`);
+        }
+
+        // Check if the user is already verified
+        if (user.isVerified) {
+            res.status(400).json({ message: 'Email is already verified' });
             return;
         }
 
@@ -135,13 +129,54 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
         user.verificationToken = null; //Clear token
         await user.save();
 
-        res.status(200).json({ message: 'Email successfully verified' });
+        //res.status(200).json({ message: 'Email successfully verified' });
+        res.redirect(`${config.baseFrontendUrl}/email-verified-success`);
     } catch (error) {
+        if (error === 'TokenExpiredError') {
+            // Token expired, suggest requesting a new verification link
+            res.status(400).json({
+                message: 'Email verification failed',
+                error: error,
+                suggestion: 'Request a new email verification link.',
+            });
+            return;
+        }
         console.error('Error verifying email:', error);
-        res.status(500).json({ message: 'Email verification failed', error });
+        //res.status(500).json({ message: 'Email verification failed', error });
+        res.redirect(`${config.baseFrontendUrl}/email-verified-failure`);
     }
 };
+/*
+export const resendVerificationEmail = async (req: Request, res: Response) => {
+    try {
+        const { token } = req.body;
 
+        // Decode the expired token to extract user info
+        const decoded = jwt.decode(token);
+        if (!decoded || !decoded.userId) {
+            return res.status(400).json({ message: 'Invalid token' });
+        }
+
+        const user = await User.findOne({_id:decoded.userId});
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Generate a new token
+        const newToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+            expiresIn: '1h',
+        });
+
+        // Send the new verification email
+        await sendVerificationEmail(user.email, newToken);
+
+        res.status(200).json({ message: 'Verification email sent successfully' });
+    } catch (error) {
+        console.error('Error resending verification email:', error);
+        res.status(500).json({ message: 'Error resending verification email', error });
+    }
+};
+*/
 export const getUserProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const userId = req.user?.userId;
@@ -159,6 +194,30 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
         res.status(500).json({ message: 'Error retrieving profile', error });
     }
 };
+
+//Set up Multer for avatar uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/avatars/');
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    },
+});
+
+export const upload = multer({
+    storage,
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = /jpeg|jpg|png/;
+        const extName = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimeType = allowedTypes.test(file.mimetype);
+        if (extName && mimeType) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only images are allowed'));
+        }
+    },
+});
 
 export const updateUserProfile = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -196,7 +255,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
 
         // Handle avatar upload
         if (req.file) {
-            updates.avatar = `/uploads/avatars/${req.file.filename}`;
+            updates.avatar = `./uploads/avatars/${req.file.filename}`;
         }
 
         // Exclude email and role from being updated

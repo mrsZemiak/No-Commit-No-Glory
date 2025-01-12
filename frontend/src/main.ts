@@ -1,5 +1,6 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
+import { useAuthStore } from '@/stores/auth.ts'
 import App from './App.vue';
 import router from './router';
 import vuetify from './plugins/vuetify';
@@ -12,5 +13,9 @@ app.use(vuetify);
 app.use(router);
 app.use(createPinia());
 
+const authStore = useAuthStore();
+
 // Mount the app to the DOM
-app.mount('#app');
+authStore.loadAuthState().then(() => {
+  app.mount('#app');
+});

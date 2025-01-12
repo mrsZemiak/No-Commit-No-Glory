@@ -32,9 +32,11 @@ const routes = [
 
       // Admin Routes
       {
-        path: '/admin',
+        path: 'admin',
         meta: { role: 'admin' },
         children: [
+          // Redirect /auth/admin to /auth/admin/conferences
+          { path: '', redirect: { name: 'ConferenceTable' } },
           { path: 'conferences', name: 'ConferenceTable', component: () => import('@/components/admin/ConferenceTable.vue')},
           { path: 'categories', name: 'CategoryTable', component: () => import('@/components/admin/CategoryTable.vue')},
           { path: 'users', name: 'UserTable', component: () => import('@/components/admin/UserTable.vue')},
@@ -76,7 +78,7 @@ const routes = [
 
       // Participant Routes
       {
-        path: '/participant',
+        path: 'participant',
         meta: { role: 'participant' },
         children: [
           { path: 'submit', name: 'SubmitWork', component: () => import('@/components/participant/SubmissionForm.vue')},
@@ -92,7 +94,7 @@ const routes = [
 
       // Reviewer Routes
       {
-        path: '/reviewer',
+        path: 'reviewer',
         meta: { role: 'reviewer' },
         children: [
           { path: 'reviews', name: 'ReviewTable', component: () => import('@/components/reviewer/ReviewTable.vue') },

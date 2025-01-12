@@ -10,8 +10,8 @@
     </p>
 
     <!-- Login Button -->
-    <button @click="openLoginModal" class="button">
-      Log In
+    <button @click="navigateToHome" class="button">
+      Späť na hlavnú stránku
     </button>
   </div>
 </template>
@@ -22,18 +22,14 @@ import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'EmailVerificationSuccess',
-  props: {
-    onOpenLoginModal: {
-      type: Function,
-      required: true,
-    },
-  },
-  setup(props) {
-    const openLoginModal = () => {
-      props.onOpenLoginModal();
+  setup() {
+    const router = useRouter();
+
+    const navigateToHome = () => {
+      router.push('/'); // Redirect to home page
     };
 
-    return { openLoginModal };
+    return { navigateToHome };
   },
 });
 </script>

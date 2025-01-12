@@ -214,6 +214,14 @@ export default defineComponent({
     z-index: 3;
     text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
 
+    @media (min-width: 768px) {
+      font-size: 2.5rem;
+    }
+
+    @media (min-width: 1200px) {
+      font-size: 4rem;
+    }
+
   }
 
   .logos-section {

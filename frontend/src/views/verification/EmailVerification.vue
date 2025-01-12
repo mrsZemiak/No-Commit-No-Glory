@@ -1,5 +1,7 @@
 <template>
   <v-container class="email-verification-container">
+    <!-- Logo -->
+    <img src="@/assets/images/logo.png" alt="SciSubmit Logo" class="logo" />
     <!-- Card for Message -->
     <v-card class="text-center" outlined>
       <v-card-title class="text-h3">Email Verification</v-card-title>
@@ -15,6 +17,7 @@ import { defineComponent } from 'vue';
 import { useAuthStore } from '@/stores/auth.ts';
 
 export default defineComponent({
+  name: 'EmailVerification',
   async mounted() {
     const query = new URLSearchParams(window.location.search);
     const token = query.get('token'); // Extract the token from the query string
@@ -23,6 +26,7 @@ export default defineComponent({
       try {
         const authStore = useAuthStore();
         await authStore.verifyEmail(token); // Call the Pinia action for verification
+
         this.$router.push('/email-verified-success'); // Redirect to success page
       } catch (error) {
         console.error('Email verification failed:', error);
@@ -39,17 +43,11 @@ export default defineComponent({
 <style scoped lang="scss">
 .email-verification-container {
   display: flex;
-  flex-direction: column; /* Stack image and card vertically */
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
   height: 100vh;
   text-align: center;
   padding: 20px;
-}
-
-.verification-image {
-  max-width: 300px; /* Adjust as needed */
-  margin-bottom: 16px;
 }
 
 v-card {
@@ -59,5 +57,10 @@ v-card {
 
 p {
   font-size: 1.2rem;
+}
+
+.v-snackbar {
+  font-size: 1.5rem;
+  color: white;
 }
 </style>

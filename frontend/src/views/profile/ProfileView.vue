@@ -88,9 +88,9 @@ import defaultAvatar from "@/assets/images/unknown_person.jpg";
 export default {
   setup() {
     const authStore = useAuthStore();
-    const profile = computed(() => authStore.user); // Reactive user data from the store
-    const editMode = ref(false); // Toggle form visibility
-    const valid = ref(true); // Form validation state
+    const profile = computed(() => authStore.user); // reactive user data from the store
+    const editMode = ref(false); // toggle form visibility
+    const valid = ref(true); // form validation state
     const isLoading = ref(false);
 
     // Initialize form with store data

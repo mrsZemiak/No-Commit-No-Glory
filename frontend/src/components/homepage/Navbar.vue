@@ -43,6 +43,7 @@
                 v-model="loginEmail"
                 label="Email"
                 type="email"
+                autocomplete="email"
                 :error-messages="getError('email')"
                 required
                 class="large-text-field"
@@ -51,6 +52,7 @@
                 v-model="loginPassword"
                 :type="showPassword ? 'text' : 'password'"
                 label="Heslo"
+                autocomplete="password"
                 :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                 @click:append="togglePasswordVisibility"
                 :error-messages="getError('password')"
@@ -68,6 +70,7 @@
               <v-text-field
                 v-model="registerFirstName"
                 label="Meno"
+                autocomplete="given-name"
                 :error-messages="getError('first_name')"
                 required
                 class="large-text-field"
@@ -75,6 +78,7 @@
               <v-text-field
                 v-model="registerLastName"
                 label="Priezvisko"
+                autocomplete="family-name"
                 :error-messages="getError('last_name')"
                 required
                 class="large-text-field"
@@ -83,6 +87,7 @@
                 v-model="registerEmail"
                 label="Email"
                 type="email"
+                autocomplete="email"
                 required
                 class="large-text-field"
               ></v-text-field>
@@ -90,6 +95,7 @@
                 v-model="registerPassword"
                 :type="showPassword ? 'text' : 'password'"
                 label="Heslo"
+                autocomplete="new-password"
                 :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                 @click:append="togglePasswordVisibility"
                 :error-messages="passwordError"
@@ -101,6 +107,7 @@
                 v-model="confirmPassword"
                 :type="showConfirmPassword ? 'text' : 'password'"
                 label="Zopakujte heslo"
+                name="new-password"
                 :error-messages="passwordError"
                 required
                 class="large-text-field"
@@ -139,8 +146,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <!-- Email Verification Success -->
-    <EmailVerificationSuccess :onOpenLoginModal="openLoginModal" />
   </v-app-bar>
   <v-snackbar
     v-model="snackbar.show"
@@ -162,6 +167,7 @@ import { computed, defineComponent, ref } from 'vue'
 import axios from 'axios';
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth';
+import axiosInstance from '@/config/axiosConfig.ts'
 
 export default defineComponent({
   name: 'Navbar',
@@ -179,8 +185,8 @@ export default defineComponent({
     const registerLastName = ref('');
     const registerEmail = ref('');
     const registerPassword = ref('');
-    const registerUniversity = ref(null);
-    const registerRole = ref(null);
+    const registerUniversity = ref('');
+    const registerRole = ref('');
     const universities = ref(['Univerzita Konštantína Filozofa', 'Univerzita Mateja Bela', 'Univerzita sv. Cyrila a Metoda']);
     const roles = ref(['Účastník', 'Recenzent', 'Admin']);
 
@@ -250,7 +256,7 @@ export default defineComponent({
 
     const handleForgotPassword = async () => {
       try {
-        const response = await axios.post('/api/forgot-password', {
+        const response = await axiosInstance.post('/forgot-password', {
           email: forgotPasswordEmail.value,
         });
         console.log('Password recovery email sent:', response.data);
@@ -263,35 +269,53 @@ export default defineComponent({
     //Registration modal
     const handleRegister = async () => {
       try {
-        const response = await axios.post('/api/register', {
+        const translatedRole =
+          registerRole.value === 'Účastník'
+            ? 'participant'
+            : registerRole.value === 'Recenzent'
+              ? 'reviewer'
+              : registerRole.value === 'Admin'
+                ? 'admin'
+                : '';
+
+        const payload = {
           first_name: registerFirstName.value,
           last_name: registerLastName.value,
           email: registerEmail.value,
           password: registerPassword.value,
+          confirmPassword: confirmPassword.value,
           university: registerUniversity.value,
-          role: registerRole.value,
-        });
-        showSnackbar({ message: response.data.message, color: 'success' });
+          role: translatedRole,
+        };
+        const response = await authStore.register(payload);
+
+        showSnackbar({ message: response.message || 'Registrácia úspešná!', color: 'success' });
         console.log('Registration successful:', response.data);
+
         loginDialog.value = false;
-      } catch (error: unknown) {
-        // Assert the error as AxiosError
-        if (axios.isAxiosError(error) && error.response && error.response.data.errors) {
-          processErrors(error.response.data.errors);
+        resetForm();
+
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          const backendMessage = error.response?.data?.message || 'Nastala neočakávaná chyba pri registrácii.';
+          console.error('Registration failed:', backendMessage);
+          showSnackbar({ message: backendMessage, color: 'error' });
         } else {
           console.error('Unexpected error:', error);
+          showSnackbar({ message: 'Nastala neočakávaná chyba.', color: 'error' });
         }
       }
     };
 
-    const processErrors = (serverErrors: any[]) => {
-      errors.value = {};
-      serverErrors.forEach((error: any) => {
-        if (!errors.value[error.path]) {
-          errors.value[error.path] = [];
-        }
-        errors.value[error.path].push(error.msg);
-      });
+    // Reset form fields after successful registration
+    const resetForm = () => {
+      registerFirstName.value = '';
+      registerLastName.value = '';
+      registerEmail.value = '';
+      registerPassword.value = '';
+      confirmPassword.value = '';
+      registerUniversity.value = '';
+      registerRole.value = '';
     };
 
     const getError = (field: string) => {
@@ -327,6 +351,7 @@ export default defineComponent({
       handleForgotPassword,
       handleRegister,
       getError,
+      resetForm,
     };
   },
 });

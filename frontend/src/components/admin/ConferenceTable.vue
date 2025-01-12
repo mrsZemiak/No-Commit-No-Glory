@@ -205,7 +205,7 @@ export default defineComponent({
   methods: {
     async fetchConferences() {
       try {
-        const response = await axios.get("/api/admin/conferences");
+        const response = await axios.get("/auth/admin/conferences");
         this.conferences = response.data;
       } catch (error) {
         console.error("Error fetching conferences:", error);

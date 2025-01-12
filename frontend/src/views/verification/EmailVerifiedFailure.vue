@@ -11,7 +11,7 @@
 
     <!-- Back Home Button -->
     <button @click="navigateToHome" class="button">
-      Back to Home
+      Späť na hlavnú stránku
     </button>
   </div>
 </template>
@@ -77,4 +77,5 @@ p {
 .button:hover {
   background-color: #a03931;
 }
+
 </style>

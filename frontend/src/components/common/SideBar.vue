@@ -23,7 +23,7 @@
           :key="authStore.role + '-' + index"
           @click="navigateTo(link.path)"
         >
-          <v-list-item-title class="text-h6">{{ link.name }}</v-list-item-title>
+          <v-list-item-title>{{ link.name }}</v-list-item-title>
         </v-list-item>
       </v-list>
     </template>
@@ -126,4 +126,7 @@ function navigateTo(path: string): void {
     color: #2c3531;
   }
 }
+
+
+
 </style>

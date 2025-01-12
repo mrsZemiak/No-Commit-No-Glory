@@ -1,285 +1,354 @@
 <template>
-  <div>
-    <div class="table-card">
-      <div class="card-header">
+    <!-- Card Header -->
+    <v-card class="table-card">
+      <v-card-title>
         <h3>Správa používateľov</h3>
-      </div>
+      </v-card-title>
 
-      <div class="filters">
-        <div class="filter-dropdown">
-          <button @click="dropdownOpen = !dropdownOpen" class="btn filter-btn btn-primary">
-            Filter
-          </button>
-          <div v-if="dropdownOpen" class="dropdown-content">
-            <div class="filter-group">
-              <label class="fw-bold">Meno:</label>
-              <input type="text" class="form-control" v-model="filters.first_name" placeholder="Filtrovať podľa mena" />
-            </div>
+      <!-- Filters Section -->
+      <v-card-subtitle>
+        <v-row>
+          <v-col cols="12" md="3">
+            <v-text-field
+              v-model="filters.first_name"
+              label="Filtrovať podľa mena"
+              outlined
+              dense
+            />
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-text-field
+              v-model="filters.last_name"
+              label="Filtrovať podľa priezviska"
+              outlined
+              dense
+            />
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-text-field
+              v-model="filters.email"
+              label="Filtrovať podľa emailu"
+              outlined
+              dense
+            />
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-text-field
+              v-model="filters.university"
+              label="Filtrovať podľa univerzity"
+              outlined
+              dense
+            />
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-select
+              v-model="filters.selectedStatus"
+              :items="statusOptions"
+              label="Stav"
+              outlined
+              dense
+              multiple
+            />
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-select
+              v-model="filters.selectedRole"
+              :items="roleOptions"
+              label="Rola"
+              outlined
+              dense
+              multiple
+            />
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-btn
+              color="primary"
+              block
+              @click="resetFilters"
+              small
+            >
+              Zrušiť filtrovanie
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-card-subtitle>
 
-            <div class="filter-group">
-              <label class="fw-bold">Priezvisko:</label>
-              <input type="text" class="form-control" v-model="filters.last_name" placeholder="Filtrovať podľa priezviska" />
-            </div>
-
-            <div class="filter-group">
-              <label class="fw-bold">Email:</label>
-              <input type="text" class="form-control" v-model="filters.email" placeholder="Filtrovať podľa emailu" />
-            </div>
-
-            <div class="filter-group">
-              <label class="fw-bold">Univerzita:</label>
-              <input type="text" class="form-control" v-model="filters.university" placeholder="Filtrovať podľa univerzity" />
-            </div>
-
-            <div class="filter-group">
-              <label class="fw-bold">Stav:</label>
-              <div class="filter-checkbox">
-                <input
-                  type="checkbox"
-                  value="true"
-                  v-model="filters.selectedStatus"
-                />
-                <label>Aktívny</label>
-                <input
-                  type="checkbox"
-                  value="false"
-                  v-model="filters.selectedStatus"
-                />
-                <label>Neaktívny</label>
-              </div>
-            </div>
-
-            <div class="filter-group">
-              <label class="fw-bold">Rola:</label>
-              <div class="filter-checkbox">
-                <input
-                  type="checkbox"
-                  value="participant"
-                  v-model="filters.selectedRole"
-                />
-                <label>Študent</label>
-                <input
-                  type="checkbox"
-                  value="reviewer"
-                  v-model="filters.selectedRole"
-                />
-                <label>Recenzent</label>
-                <input
-                  type="checkbox"
-                  value="admin"
-                  v-model="filters.selectedRole"
-                />
-                <label>Admin</label>
-              </div>
-            </div>
-
-            <div class="filter-group">
-              <button @click="resetFilters" class="btn btn-primary btn-sm">Zrušiť filtrovanie</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="table-responsive">
-        <table class="table">
-          <thead>
-          <tr>
-            <th>Meno</th>
-            <th>Priezvisko</th>
-            <th>Email</th>
-            <th>Univerzita</th>
-            <th>Stav</th>
-            <th>Role</th>
-            <th>Akcie</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr v-for="(user, index) in paginatedUsers" :key="index">
+      <!-- Table -->
+      <v-data-table
+        :headers="tableHeaders"
+        :items="paginatedUsers"
+        :items-per-page="perPage"
+        class="elevation-1"
+        dense
+        item-value="_id"
+      >
+        <template v-slot:top>
+          <v-toolbar flat>
+            <v-spacer></v-spacer>
+            <v-pagination
+              v-model="currentPage"
+              :length="totalPages"
+              :total-visible="7"
+              color="primary"
+              dense
+            />
+          </v-toolbar>
+        </template>
+        <template v-slot:body="{ items }">
+          <tr v-for="user in items" :key="user._id">
             <td>{{ user.first_name }}</td>
             <td>{{ user.last_name }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.university }}</td>
             <td>
-                 <span :class="{
-                    'badge badge-green': user.status === 'active',
-                    'badge badge-secondary': user.status === 'inactive',
-                    'badge badge-red': user.status === 'pending',
-                    'badge badge-primary': user.status !== 'active' && user.status !== 'inactive' && user.status !== 'pending'
-                  }">
-                    {{ user.status === 'active' ? 'aktívny' :
-                   (user.status === 'inactive' ? 'neaktívny' :
-                     (user.status === 'suspended' ? 'pozastavený' :
-                       (user.status === 'pending' ? 'čakajúci' : user.status))) }}
-                  </span>
+              <v-chip
+                :color="statusColors[user.status as keyof typeof statusColors]"
+                dark
+                small
+              >
+                {{statusLabels[user.status as keyof typeof statusLabels] || user.status }}
+              </v-chip>
             </td>
             <td>
-                <span class="badge badge-primary">
-                    {{ user.role ? roleLabels[user.role.name] || user.role.name : 'Žiadna rola' }}
-                </span>
+              <v-chip
+                color="primary"
+                dark
+                small
+              >
+                {{ roleLabels[user.role.name as keyof typeof roleLabels] || user.role.name }}
+              </v-chip>
             </td>
-            <td class="button-group">
-              <button class="icon-button" @click="editUser(user)"><i class="fa-solid fa-pen-to-square"></i></button>
-              <!--              <button class="icon-button" @click="deleteUser(user)"><i class="fa-solid fa-trash-can"></i></button>-->
+            <td>
+              <v-btn
+                @click="editUser(user)"
+                color="primary"
+              >
+                <v-icon>mdi-pencil</v-icon>
+              </v-btn>
             </td>
           </tr>
-          </tbody>
-        </table>
-      </div>
+        </template>
+      </v-data-table>
+    </v-card>
 
-      <footer class="pagination-footer">
-        <div class="pagination">
-          <button
-            class="btn btn-primary"
-            @click="currentPage > 1 && (currentPage--)"
-            :disabled="currentPage === 1"
-          >
-            <i class="fa-solid fa-chevron-left"></i>
-          </button>
-          <span class="pagination-current">Strana {{ currentPage }}</span>
-          <button
-            class="btn btn-primary"
-            @click="currentPage < totalPages && (currentPage++)"
-            :disabled="currentPage === totalPages || remainingItems <= perPage"
-          >
-            <i class="fa-solid fa-chevron-right"></i>
-          </button>
-        </div>
-      </footer>
-
-      <!-- Modal -->
-      <div v-if="isModalVisible" class="modal-overlay" @click.self="closeModal">
-        <div class="modal-container">
-          <modal-edit-user :user="selectedUser" @update="updateUser" @close="closeModal" />
-        </div>
-      </div>
-    </div>
-  </div>
+    <!-- Modal for Editing -->
+    <v-dialog v-model="isModalVisible" max-width="600px">
+      <v-card>
+        <v-card-title>Edit User</v-card-title>
+        <v-card-text>
+          <modal-edit-user
+            :user="selectedUser"
+            @update="updateUser"
+            @close="closeModal"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="primary" @click="closeModal">Zatvoriť</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  <v-snackbar
+    v-model="snackbarVisible"
+    color="error"
+    :timeout="3000"
+    top
+  >
+    {{ snackbarMessage }}
+    <template v-slot:actions>
+      <v-btn @click="snackbarVisible = false">
+        Close
+      </v-btn>
+    </template>
+  </v-snackbar>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
-import ModalEditUser from './ModalEditUser.vue';
+import { defineComponent, ref, computed, onMounted } from "vue";
 import axios from "axios";
-
-interface User {
-  _id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  university: string;
-  status: string;
-  role: { name: 'admin' | 'reviewer' | 'participant' };
-}
+import ModalEditUser from "./ModalEditUser.vue";
+import type { User } from "@/types/user";
+import axiosInstance from '@/config/axiosConfig.ts'
 
 export default defineComponent({
-  name: 'UserTable',
+  name: "UserTable",
   components: {
     ModalEditUser,
   },
-  data() {
-    return {
-      users: [] as User[],
-      filters: {
-        first_name: '',
-        last_name: '',
-        email: '',
-        university: '',
-        selectedStatus: [] as string[],
-        selectedRole: [] as string[],
-      },
-      dropdownOpen: false,
-      currentPage: 1,
-      perPage: 10,
-      isModalVisible: false,
-      selectedUser: {} as User,
-      roleLabels: {
-        participant: "Účastník",
-        reviewer: "Recenzent",
-        admin: "Admin",
-      },
-    };
-  },
-  computed: {
-    totalPages() {
-      return Math.ceil(this.filteredUsers.length / this.perPage);
-    },
-    paginatedUsers() {
-      const startIndex = (this.currentPage - 1) * this.perPage;
-      return this.filteredUsers.slice(startIndex, startIndex + this.perPage);
-    },
-    remainingItems() {
-      const startIndex = (this.currentPage - 1) * this.perPage;
-      const remaining = this.filteredUsers.length - startIndex;
-      return remaining;
-    },
-    filteredUsers() {
-      return this.users.filter((user) => {
-        const matchesfirst_name = this.filters.first_name
-          ? user.first_name.toLowerCase().includes(this.filters.first_name.toLowerCase())
-          : true;
-        const matcheslast_name = this.filters.last_name
-          ? user.last_name.toLowerCase().includes(this.filters.last_name.toLowerCase())
-          : true;
-        const matchesEmail = this.filters.email
-          ? user.email.toLowerCase().includes(this.filters.email.toLowerCase())
-          : true;
-        const matchesUniversity = this.filters.university
-          ? user.university.toLowerCase().includes(this.filters.university.toLowerCase())
-          : true;
-        const matchesStatus = this.filters.selectedStatus.length
-          ? this.filters.selectedStatus.includes(user.status ? 'true' : 'false')
-          : true;
-        const matchesRole = this.filters.selectedRole.length
-          ? this.filters.selectedRole.includes(user.role.name.toLowerCase())
-          : true;
+  setup() {
+    const users = ref<User[]>([]);
+    const filters = ref({
+      first_name: "",
+      last_name: "",
+      email: "",
+      university: "",
+      selectedStatus: [] as string[],
+      selectedRole: [] as string[],
+    });
+    const currentPage = ref(1);
+    const perPage = ref(10);
+    const isModalVisible = ref(false);
+    const selectedUser = ref<User | null>(null);
+    const snackbarMessage = ref("");
+    const snackbarVisible = ref(false);
 
-        return matchesfirst_name && matcheslast_name && matchesEmail && matchesUniversity && matchesStatus && matchesRole;
-      });
-    },
-  },
-  methods: {
-    async fetchUsers() {
+    // Table headers
+    const tableHeaders = [
+      { text: "Meno", value: "first_name" },
+      { text: "Priezvisko", value: "last_name" },
+      { text: "Email", value: "email" },
+      { text: "Univerzita", value: "university" },
+      { text: "Stav", value: "status" },
+      { text: "Role", value: "role.name" },
+      { text: "Akcie", value: "actions", sortable: false },
+    ];
+
+    // Options for filtering
+    const statusOptions = [
+      { text: "Aktívny", value: "active" },
+      { text: "Neaktívny", value: "inactive" },
+      { text: "Čakajúci", value: "pending" },
+      { text: "Pozastavený", value: "suspended" },
+    ];
+    const roleOptions = [
+      { text: "Účastník", value: "participant" },
+      { text: "Recenzent", value: "reviewer" },
+      { text: "Admin", value: "admin" },
+    ];
+
+    // Labels and colors for status and roles
+    const statusLabels = {
+      active: "aktívny",
+      inactive: "neaktívny",
+      pending: "čakajúci",
+      suspended: "pozastavený",
+    };
+    const roleLabels = {
+      participant: "Účastník",
+      reviewer: "Recenzent",
+      admin: "Admin",
+    };
+    const statusColors = {
+      active: "green",
+      inactive: "grey",
+      pending: "blue",
+      suspended: "red",
+    };
+
+    // Computed properties
+    const filteredUsers = computed(() =>
+      (users.value || []).filter((user) => {
+        return (
+          (!filters.value.first_name ||
+            user.first_name
+              .toLowerCase()
+              .includes(filters.value.first_name.toLowerCase())) &&
+          (!filters.value.last_name ||
+            user.last_name
+              .toLowerCase()
+              .includes(filters.value.last_name.toLowerCase())) &&
+          (!filters.value.email ||
+            user.email
+              .toLowerCase()
+              .includes(filters.value.email.toLowerCase())) &&
+          (!filters.value.university ||
+            user.university
+              .toLowerCase()
+              .includes(filters.value.university.toLowerCase())) &&
+          (!filters.value.selectedStatus.length ||
+            filters.value.selectedStatus.includes(user.status)) &&
+          (!filters.value.selectedRole.length ||
+            filters.value.selectedRole.includes(user.role.name))
+        );
+      })
+    );
+
+    const totalPages = computed(() =>
+      Math.ceil(filteredUsers.value.length / perPage.value)
+    );
+
+    const paginatedUsers = computed(() => {
+      const startIndex = (currentPage.value - 1) * perPage.value;
+      return filteredUsers.value.slice(
+        startIndex,
+        startIndex + perPage.value
+      );
+    });
+
+    // Fetch users from the server
+    const fetchUsers = async () => {
       try {
-        const response = await axios.get("/api/admin/users")
-        this.users = response.data;
+        const response = await axiosInstance.get<User[]>("/auth/admin/users", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`,
+          },
+        });
+        users.value = response.data || [];
       } catch (error) {
-        console.error('Error fetching users:', error);
+        snackbarMessage.value = "Error fetching users!";
+        snackbarVisible.value = true;
+        console.error("Error fetching users:", error);
       }
-    },
-    editUser(user: User): void {
-      this.selectedUser = { ...user };
-      this.isModalVisible = true;
-    },
-    closeModal(): void {
-      this.isModalVisible = false;
-    },
-    updateUser(updatedUser: User): void {
-      const index = this.users.findIndex((user) => user.email === updatedUser.email);
+    };
+
+    // Modal methods
+    const editUser = (user: any) => {
+      selectedUser.value = { ...user };
+      isModalVisible.value = true;
+    };
+    const closeModal = () => {
+      isModalVisible.value = false;
+    };
+    const updateUser = (updatedUser: any) => {
+      const index = users.value.findIndex(
+        (user) => user._id === updatedUser._id
+      );
       if (index !== -1) {
-        this.users[index] = { ...updatedUser };
+        users.value[index] = { ...updatedUser };
       }
-      this.closeModal();
-    },
-    deleteUser(user: User): void {
-      alert(`Deleting user: ${user.first_name} ${user.last_name}`);
-    },
-    resetFilters() {
-      this.filters = {
-        first_name: '',
-        last_name: '',
-        email: '',
-        university: '',
+      closeModal();
+    };
+
+    // Reset filters
+    const resetFilters = () => {
+      filters.value = {
+        first_name: "",
+        last_name: "",
+        email: "",
+        university: "",
         selectedStatus: [],
         selectedRole: [],
       };
-    },
-  },
-  mounted() {
-    this.fetchUsers();
+    };
+
+    // Fetch data on component mount
+    onMounted(fetchUsers);
+
+    return {
+      users,
+      filters,
+      currentPage,
+      perPage,
+      isModalVisible,
+      selectedUser,
+      snackbarMessage,
+      snackbarVisible,
+      tableHeaders,
+      statusOptions,
+      roleOptions,
+      statusLabels,
+      roleLabels,
+      statusColors,
+      filteredUsers,
+      totalPages,
+      paginatedUsers,
+      fetchUsers,
+      editUser,
+      closeModal,
+      updateUser,
+      resetFilters,
+    };
   },
 });
 </script>
 
-<style scoped>
-
-</style>
+<style></style>

@@ -19,10 +19,13 @@ app.use(express.json());
 const corsOptions = {
   origin: ['http://localhost:5174', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: '*',
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
 };
-app.use('/api', cors(corsOptions));
+// Apply CORS globally
+app.use(cors(corsOptions));
+// Handle CORS preflight requests globally
+app.options('*', cors(corsOptions));
 
 // Initialize database
 const initializeDatabase = async () => {
@@ -43,8 +46,8 @@ initializeDatabase().catch((error) => {
 // API Routes
 app.use('/api', commonRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/participant', participantRoutes);
-app.use('/api/reviewer', reviewerRoutes);
+app.use('/api/auth/admin', adminRoutes);
+app.use('/api/auth/participant', participantRoutes);
+app.use('/api/auth/reviewer', reviewerRoutes);
 
 export default app;
