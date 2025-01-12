@@ -139,8 +139,8 @@
           <td>
               <span :class="{
                 'badge badge-secondary': work.status === 'submitted',
-                'badge badge-yellow': work.status === 'under review',
-                'badge badge-green': work.status === 'accepted',
+                'badge badge-yellow': work.status === 'under_review',
+                'badge badge-green': work.status === 'accepted' || work.status === 'accepted_with_changes',
                 'badge badge-red': work.status === 'rejected',
                 'badge badge-primary': work.status === 'draft',
               }">
@@ -157,7 +157,7 @@
               <i class="fa-solid fa-file-arrow-down"></i>
             </button>
             <router-link
-              v-if="work.status === 'accepted' || work.status === 'rejected'"
+              v-if="work.status === 'accepted' || work.status === 'rejected' || work.status === 'accepted_with_changes'"
               :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
                 isEditable: 'false',
                 isReviewer: 'false'
@@ -246,7 +246,7 @@ interface Paper {
   title: string;
   category: { name: string };
   submission_date: number;
-  status: 'submitted' | 'under review' | 'accepted' | 'rejected' | 'draft';
+  status: "submitted" | "under_review" | "accepted" | "accepted_with_changes" | "rejected" | "draft";
   conference: { year: number; location: string };
   user: { first_name: string; last_name: string };
   reviewer?: User;
@@ -299,9 +299,10 @@ export default defineComponent({
       statusLabels: {
         draft: "Návrh",
         submitted: "Odoslané",
-        'under review': "V procese hodnotenia",
+        under_review: "V procese hodnotenia",
         accepted: "Schválené",
         rejected: "Zamietnuté",
+        accepted_with_changes: "Schválené so zmenami",
       },
       reviewers: [] as User[],
       activeReviewers: [] as User[],

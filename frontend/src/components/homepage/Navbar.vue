@@ -269,6 +269,7 @@ export default defineComponent({
           last_name: registerLastName.value,
           email: registerEmail.value,
           password: registerPassword.value,
+          confirmPassword: confirmPassword.value,
           university: registerUniversity.value,
           role: registerRole.value,
         });

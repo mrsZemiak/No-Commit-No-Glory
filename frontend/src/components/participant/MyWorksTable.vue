@@ -109,7 +109,7 @@
                   'badge badge-secondary': work.status === 'submitted',
                   'badge badge-warning': work.status === 'under_review',
                   'badge badge-success': work.status === 'accepted',
-                  'badge badge-tretiary': work.status === 'accepted_with_changes',
+                  'badge badge-tertiary': work.status === 'accepted_with_changes',
                   'badge badge-danger': work.status === 'rejected',
                   'badge badge-primary': work.status === 'draft',
 
@@ -120,7 +120,7 @@
           </td>
           <td class="button-group-multiple">
             <router-link
-              v-if="work.status === 'accepted' || work.status === 'rejected'"
+              v-if="work.status === 'accepted' || work.status === 'rejected' || work.status === 'accepted_with_changes'"
               :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
                 isEditable: 'false',
                 isReviewer: 'false'
@@ -130,7 +130,7 @@
             <div v-else>
               <button class="btn btn-edit btn-sm ml-2" disabled>Pozrieť hodnotenie</button>
             </div>
-            <button v-if="work.status === 'draft'"
+            <button  v-if="work.status === 'draft' || work.status === 'accepted_with_changes'"
               class="btn btn-edit btn-sm ml-2"
               @click="editWork(work)"
             >
@@ -208,9 +208,9 @@ export default defineComponent({
         draft: "Návrh",
         submitted: "Odoslané",
         under_review: "V procese hodnotenia",
-        accepted: "Prijaté",
-        accepted_with_changes: "Prijaté so zmenami",
+        accepted: "Schválené",
         rejected: "Zamietnuté",
+        accepted_with_changes: "Schválené so zmenami",
       },
     };
   },
@@ -271,12 +271,9 @@ export default defineComponent({
       const date = new Date(timestamp);
       return date.toLocaleString();
     },
-    viewReview(work: Paper): void {
-      this.$router.push({ name: "ReviewResult", params: { id: work._id } });
-    },
     editWork(work: Paper): void {
       this.$router.push({
-        name: "EditSubmission",
+        name: "SubmissionForm",
         params: { workId: work._id },
       });
     },

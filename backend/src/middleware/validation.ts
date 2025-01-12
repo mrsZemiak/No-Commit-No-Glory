@@ -5,100 +5,101 @@ import Question from '../models/Question'
 
 //Validation rules for user registration
 export const registerValidationRules = [
-    body('first_name').notEmpty().withMessage('First name is required'),
-    body('last_name').notEmpty().withMessage('Last name is required'),
-    body('email').isEmail().withMessage('Valid email is required'),
+    body('first_name').notEmpty().withMessage('Meno je povinné'),
+    body('last_name').notEmpty().withMessage('Priezvisko je povinné'),
+    body('email').isEmail().withMessage('Vyžaduje sa platný e-mail'),
     body('password')
       .isLength({ min: 6 })
-      .withMessage('Password must be at least 6 characters long'),
+      .withMessage('Heslo musí mať aspoň 6 znakov'),
     body('confirmPassword').custom((value, { req }) => {
         if (value !== req.body.password) {
-            throw new Error('Passwords do not match');
+            throw new Error('Heslá sa nezhodujú');
         }
         return true;
     }),
     body('university').notEmpty().withMessage('University is required'),
-    body('role').notEmpty().withMessage('Role is required'),
+    body('role').notEmpty().withMessage('Rola je povinná'),
 ];
 
 export const loginValidationRules = [
-    body('email').isEmail().withMessage('Valid email is required'),
-    body('password').notEmpty().withMessage('Password is required'),
+    body('email').isEmail().withMessage('Vyžaduje sa platný e-mail'),
+    body('password').notEmpty().withMessage('Heslo je povinné'),
 ];
 
 
 //Validation rules for email verification
 export const verifyEmailValidationRules = [
-    check('token', 'Verification token is required').exists().isString().withMessage('Token must be a string').bail().trim().escape(),
+    check('token', 'Verification token is required').exists().isString().withMessage('Token musí byť reťazec').bail().trim().escape(),
 ];
 
 //Validation rules for profile update
 export const updateProfileValidationRules = [
-    body('first_name').optional().notEmpty().withMessage('First name cannot be empty'),
-    body('last_name').optional().notEmpty().withMessage('Last name cannot be empty'),
-    body('university').optional().notEmpty().withMessage('University cannot be empty'),
+    body('first_name').optional().notEmpty().withMessage('Meno nemôže byť prázdne'),
+    body('last_name').optional().notEmpty().withMessage('Priezvisko nemôže byť prázdne'),
+    body('university').optional().notEmpty().withMessage('Univerzita nemôže byť prázdna'),
     body('password')
         .optional()
         .isLength({ min: 6 })
-        .withMessage('Password must be at least 6 characters long'),
+        .withMessage('Heslo musí mať aspoň 6 znakov'),
 ];
 
 //Validation rules for admin to edit user status and role
 export const validateEditUserDetails = [
-    body('userId').notEmpty().withMessage('User ID is required'),
-    body('status').optional().isIn(['new', 'active', 'suspended', 'inactive']).withMessage('Invalid status value'),
+    body('userId').notEmpty().withMessage('Je potrebné zadať ID používateľa'),
+    body('status').optional().isIn(['new', 'active', 'suspended', 'inactive']).withMessage('Neplatná hodnota pre status'),
     body('role').optional().custom(async (value) => {
         const roleExists = await Role.findById(value);
         if (!roleExists) {
-            throw new Error('Invalid role value');
+            throw new Error('Neplatná hodnota pre rolu');
         }
         return true;
     }),
-    body('email').optional().isEmail().withMessage('Invalid email address'),
+    body('email').optional().isEmail().withMessage('Neplatná e-mailová adresa'),
 ];
 
 export const validateSubmitPaper = [
     body('title')
-      .notEmpty()
-      .withMessage('Title is required.')
-      .isLength({ max: 200 })
-      .withMessage('Title must be at most 200 characters.'),
+        .notEmpty()
+        .withMessage('Názov je povinný.')
+        .isLength({ max: 200 })
+        .withMessage('Názov môže mať maximálne 200 znakov.'),
     body('abstract')
-      .notEmpty()
-      .withMessage('Abstract is required.')
-      .isLength({ max: 150 })
-      .withMessage('Abstract must be at most 1000 characters.'),
+        .notEmpty()
+        .withMessage('Abstrakt je povinný.')
+        .isLength({ max: 150 })
+        .withMessage('Abstrakt môže mať maximálne 1000 znakov.'),
     body('keywords')
-      .isArray({ min: 1 })
-      .withMessage('At least one keyword is required.')
-      .custom((keywords: string[]) => keywords.every(k => true))
-      .withMessage('Keywords must be an array of strings.'),
+        .isArray({ min: 1 })
+        .withMessage('Je potrebné zadať aspoň jedno kľúčové slovo.')
+        .custom((keywords: string[]) => keywords.every(k => true))
+        .withMessage('Kľúčové slová musia byť pole reťazcov.'),
     body('file_link')
-      .notEmpty()
-      .withMessage('File link is required.')
-      .isURL()
-      .withMessage('File link must be a valid URL.'),
+        .notEmpty()
+        .withMessage('Odkaz na súbor je povinný.')
+        .isURL()
+        .withMessage('Odkaz na súbor musí mať platnú URL adresu.'),
     body('category')
-      .notEmpty()
-      .withMessage('Category is required.')
-      .isMongoId()
-      .withMessage('Category must be a valid MongoDB ID.'),
+        .notEmpty()
+        .withMessage('Kategória je povinná.')
+        .isMongoId()
+        .withMessage('Kategória musí mať platné MongoDB ID.'),
     body('conference')
-      .notEmpty()
-      .withMessage('Conference is required.')
-      .isMongoId()
-      .withMessage('Conference must be a valid MongoDB ID.'),
+        .notEmpty()
+        .withMessage('Konferencia je povinná.')
+        .isMongoId()
+        .withMessage('Konferencia musí mať platné MongoDB ID.'),
     body('authors')
-      .isArray({ min: 1 })
-      .withMessage('At least one author is required.')
-      .custom(authors =>
-        authors.every(
-          (author: { firstName: string; lastName: string }) =>
-            true
+        .isArray({ min: 1 })
+        .withMessage('Je potrebné zadať aspoň jedného autora.')
+        .custom(authors =>
+            authors.every(
+                (author: { firstName: string; lastName: string }) =>
+                    true
+            )
         )
-      )
-      .withMessage('Each author must have a valid first name and last name.'),
+        .withMessage('Každý autor musí mať platné meno a priezvisko.'),
 ];
+
 
 export const validateReviewSubmission = async (req: Request, res: Response, next: Function): Promise<void> => {
     try {

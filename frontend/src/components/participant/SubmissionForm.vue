@@ -110,8 +110,8 @@
         </div>
         <small class="form-text text-muted">Akceptované formáty: PDF, Word (.docx)</small>
       </div>
-
-      <button type="submit" class="btn btn-primary">Odovzdať</button>
+      <button type="submit" @click="handleSubmitDraft" class="btn btn-primary">Odovzdať</button>
+      <button type="submit" @click="handleSubmit" class="btn btn-primary">Odovzdať</button>
     </form>
   </div>
 </template>
@@ -188,10 +188,9 @@ function handleFileChange(event: Event) {
   form.value.projectFile = file;
   fileName.value = file ? file.name : '';
 }
-
-async function handleSubmit() {
+async function handleSubmitDraft() {
   if (!form.value.first_name || !form.value.last_name || !form.value.submissionName || !form.value.abstract || !form.value.categoryPick || !form.value.conferencePick) {
-    alert("Prosím vyplňte všetky políčka.");
+    alert("Prosím vyplňte všetky polia.");
     return;
   }
 
@@ -202,6 +201,7 @@ async function handleSubmit() {
     conference: form.value.conferencePick,
     abstract: form.value.abstract,
     keywords: form.value.keywords,
+    final_submission: false,
     authors: [
       { firstName: form.value.first_name, lastName: form.value.last_name },
       ...form.value.otherAuthors.map(name => {
@@ -221,14 +221,59 @@ async function handleSubmit() {
     let response;
     if (workId) {
       response = await axiosInstance.put(url, payload);
-      alert("Work updated successfully!");
+      alert('Práca bola uložená ako koncept!');
     } else {
       response = await axiosInstance.post(url, payload);
-      alert("Work submitted successfully!");
+      alert('Práca bola uložená ako koncept!');
     }
     console.log("Response:", response.data);
   } catch (error) {
-    alert("Failed to save the work. Please try again.");
+    alert('Chyba pri ukladaní práce. Skúste znova.');
+    console.error("Submission error:", error);
+  }
+}
+
+async function handleSubmit() {
+  if (!form.value.first_name || !form.value.last_name || !form.value.submissionName || !form.value.abstract || !form.value.categoryPick || !form.value.conferencePick) {
+    alert("Prosím vyplňte všetky polia.");
+    return;
+  }
+
+  const payload = {
+    title: form.value.submissionName,
+    file_link: "temporary_file_path",
+    category: form.value.categoryPick,
+    conference: form.value.conferencePick,
+    abstract: form.value.abstract,
+    keywords: form.value.keywords,
+    final_submission: true,
+    authors: [
+      { firstName: form.value.first_name, lastName: form.value.last_name },
+      ...form.value.otherAuthors.map(name => {
+        const [firstName, lastName] = name.split(" ");
+        return { firstName, lastName };
+      })
+    ],
+    //user: this.user;
+  };
+
+  const workId = route.params.workId;
+  const url = workId
+    ? `/participants/papers/${workId}`
+    : "/participants/papers";
+
+  try {
+    let response;
+    if (workId) {
+      response = await axiosInstance.put(url, payload);
+      alert('Práca bola úspešne odovzdaná!');
+    } else {
+      response = await axiosInstance.post(url, payload);
+      alert('Práca bola úspešne odovzdaná!');
+    }
+    console.log("Response:", response.data);
+  } catch (error) {
+    alert('Práca bola úspešne odovzdaná!');
     console.error("Submission error:", error);
   }
 }
