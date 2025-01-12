@@ -1,4 +1,3 @@
-
 <template>
   <div class="table-card">
     <div class="card-header">
@@ -12,22 +11,42 @@
         <thead>
         <tr>
           <th>Názov</th>
-          <th>Čas poslania</th>
+          <th>Rok konferencie</th>
           <th>Hodnotenie</th>
           <th>Akcie</th>
         </tr>
         </thead>
         <tbody>
-        <tr v-for="(work, index) in works" :key="index">
-          <td>{{ work.name }}</td>
-          <td>{{ formatTimestamp(work.timestamp) }}</td>
+        <tr v-for="(work, index) in paginatedWorks" :key="index">
+          <td>{{ work.title }}</td>
+          <td>{{ work.conferenceYear }}</td>
           <td>
-              <span :class="work.reviewed ? 'badge badge-success' : 'badge badge-secondary'">
-                {{ work.reviewed ? "Ohodnotené" : "Neohodnotené" }}
+              <span
+                :class="{
+                  'badge badge-secondary': work.status === 'submitted',
+                  'badge badge-yellow': work.status === 'under review',
+                  'badge badge-red':  work.status === 'rejected',
+                  'badge badge-green': work.status === 'accepted',
+                  'badge badge-primary': work.status === 'draft',
+                }"
+              >
+                {{ statusLabels[work.status] || "Neznámy stav" }}
               </span>
           </td>
-          <td>
-            <router-link :to="{ name: 'ReviewForm', params: { id: work.timestamp } }">
+          <td class="button-group-multiple">
+            <button
+              @click="downloadPaper"
+              class="icon-button"
+              title="Stiahnuť"
+            >
+              <i class="fa-solid fa-file-arrow-down"></i>
+            </button>
+            <router-link :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
+                title: work.title,
+                isEditable: (work.status === 'under review' || work.status === 'draft') ? 'true' : 'false',
+                isReviewer: 'true'
+                }
+            }">
               <button class="btn btn-edit btn-sm">Hodnotiť</button>
             </router-link>
           </td>
@@ -43,42 +62,50 @@
           @click="currentPage > 1 && (currentPage--)"
           :disabled="currentPage === 1"
         >
-          Previous
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
         <span class="pagination-current">Strana {{ currentPage }}</span>
         <button
           class="btn btn-primary"
           @click="currentPage < totalPages && (currentPage++)"
-          :disabled="currentPage === totalPages || remainingItems <= perPage"
+          :disabled="currentPage === totalPages || paginatedWorks.length === 0"
         >
-          Next
+          <i class="fa-solid fa-chevron-right"></i>
         </button>
       </div>
     </footer>
   </div>
 </template>
+
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, ref } from "vue";
+import axios from "axios";
+import axiosInstance from "@/config/axiosConfig.ts";
+
 
 interface Work {
-  name: string;
-  timestamp: number;
-  reviewed: boolean;
+  _id: string;
+  title: string;
+  conferenceYear: number;
+  status: "submitted" | "under review" | "accepted" | "rejected" | "draft";
+
 }
 
 export default defineComponent({
   name: "ReviewTable",
   data() {
     return {
-      works: [
-        { name: "Math Assignment 1", timestamp: 1678901234000, reviewed: true },
-        { name: "History Essay", timestamp: 1678992345000, reviewed: false },
-        { name: "Physics Lab Report", timestamp: 1679083456000, reviewed: true },
-        { name: "Literature Review", timestamp: 1679174567000, reviewed: false },
-      ] as Work[],
+      works: [] as Work[],
       currentPage: 1,
       perPage: 10,
-      totalWorks: 50,  //toto potom zmeniť
+      totalWorks: 0,
+      statusLabels: {
+        draft: "Návrh",
+        submitted: "Odoslané",
+        "under review": "V procese hodnotenia",
+        accepted: "Schválené",
+        rejected: "Zamietnuté",
+      },
     };
   },
   computed: {
@@ -89,27 +116,33 @@ export default defineComponent({
       const startIndex = (this.currentPage - 1) * this.perPage;
       return this.works.slice(startIndex, startIndex + this.perPage);
     },
-    remainingItems() {
-      const startIndex = (this.currentPage - 1) * this.perPage;
-      const remaining = this.works.length - startIndex;
-      return remaining;
-    },
   },
   methods: {
-    formatTimestamp(timestamp: number): string {
-      const date = new Date(timestamp);
-      return date.toLocaleString();
+    async fetchWorks() {
+      try {
+        const reviewerId = "6775538dedbad0434a6f9ca8"; //temporary id
+        const response = await axiosInstance.get(`/reviewer/assigned-papers?reviewerId=${reviewerId}`);
+        this.works = response.data.map((paper: any) => ({
+          _id: paper._id,
+          title: paper.title,
+          conferenceYear: paper.conference?.year || "Neznámy rok",
+          status: paper.status,
+        }));
+        this.totalWorks = this.works.length;
+      } catch (error) {
+        console.error("Failed to fetch works:", error);
+      }
     },
-
-    reviewWork(work: Work): void {
-      alert(`Editing work: ${work.name}`);
-
+    downloadPaper() {
+      alert("Downloading work");
     },
+  },
+  mounted() {
+    this.fetchWorks();
   },
 });
 </script>
 
 <style scoped>
-
 
 </style>

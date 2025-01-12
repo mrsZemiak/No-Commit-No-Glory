@@ -147,6 +147,7 @@ import { defineComponent } from 'vue'
 import ModalConference from '@/components/admin/ModalConference.vue'
 import type { ConferenceAdmin } from '@/types/conference.ts'
 import axios from 'axios'
+import axiosInstance from "@/config/axiosConfig.ts";
 
 export default defineComponent({
   name: "ConferenceTable",
@@ -205,7 +206,7 @@ export default defineComponent({
   methods: {
     async fetchConferences() {
       try {
-        const response = await axios.get("/api/admin/conferences");
+        const response = await axiosInstance.get("/admin/conferences");
         this.conferences = response.data;
       } catch (error) {
         console.error("Error fetching conferences:", error);

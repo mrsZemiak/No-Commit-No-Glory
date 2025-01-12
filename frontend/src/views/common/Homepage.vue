@@ -73,6 +73,7 @@ import axios from 'axios'
 import TabsSection from '@/components/homepage/TabsSection.vue'
 import CardsSection from '@/components/homepage/CardSection.vue'
 import Footer from '@/components/homepage/Footer.vue'
+import axiosInstance from "@/config/axiosConfig.ts";
 
 export default defineComponent({
   name: 'Homepage',
@@ -115,7 +116,7 @@ export default defineComponent({
 
     const getHomepageData = async () => {
       try {
-        const response = await axios.get('/api/homepage');
+        const response = await axiosInstance.get('homepage');
         const ongoingConference = response.data.ongoingConference;
 
         if (ongoingConference) {

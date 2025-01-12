@@ -67,6 +67,7 @@ import { defineComponent } from 'vue';
 import axios from 'axios';
 import ModalCategory from './ModalCategory.vue';
 import type { Category} from '@/types/category.ts';
+import axiosInstance from "@/config/axiosConfig.ts";
 
 export default defineComponent({
   name: 'CategoryTable',
@@ -104,7 +105,7 @@ export default defineComponent({
       if (this.isLoading) return;
       this.isLoading = true;
       try {
-        const response = await axios.get(`/api/admin/categories?limit=${this.perPage}&page=${this.currentPage}`
+        const response = await axiosInstance.get(`/admin/categories?limit=${this.perPage}&page=${this.currentPage}`
         );
         this.categories = response.data.categories;
         this.totalCategories = response.data.total;
@@ -131,7 +132,7 @@ export default defineComponent({
       if (this.isLoading) return;
       this.isLoading = true;
       try {
-        const response = await axios.post('/api/admin/categories', {
+        const response = await axiosInstance.post('/admin/categories', {
           name: newCategory.name,
           isActive: newCategory.isActive,
         });
@@ -150,7 +151,7 @@ export default defineComponent({
       if (this.isLoading) return;
       this.isLoading = true;
       try {
-        await axios.patch(`/api/admin/categories/${updatedCategory._id}`, {
+        await axiosInstance.patch(`/admin/categories/${updatedCategory._id}`, {
           name: updatedCategory.name,
           isActive: updatedCategory.isActive,
         });

@@ -162,6 +162,7 @@ import { computed, defineComponent, ref } from 'vue'
 import axios from 'axios';
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth';
+import axiosInstance from "@/config/axiosConfig.ts";
 
 export default defineComponent({
   name: 'Navbar',
@@ -250,7 +251,7 @@ export default defineComponent({
 
     const handleForgotPassword = async () => {
       try {
-        const response = await axios.post('/api/forgot-password', {
+        const response = await axiosInstance.post('/forgot-password', {
           email: forgotPasswordEmail.value,
         });
         console.log('Password recovery email sent:', response.data);
@@ -263,7 +264,7 @@ export default defineComponent({
     //Registration modal
     const handleRegister = async () => {
       try {
-        const response = await axios.post('/api/register', {
+        const response = await axiosInstance.post('/register', {
           first_name: registerFirstName.value,
           last_name: registerLastName.value,
           email: registerEmail.value,

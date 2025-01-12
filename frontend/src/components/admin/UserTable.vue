@@ -160,6 +160,7 @@
 import { defineComponent, ref } from 'vue';
 import ModalEditUser from './ModalEditUser.vue';
 import axios from "axios";
+import axiosInstance from "@/config/axiosConfig.ts";
 
 interface User {
   _id: string;
@@ -240,7 +241,7 @@ export default defineComponent({
   methods: {
     async fetchUsers() {
       try {
-        const response = await axios.get("/api/admin/users")
+        const response = await axiosInstance.get("/admin/users")
         this.users = response.data;
       } catch (error) {
         console.error('Error fetching users:', error);

@@ -53,7 +53,7 @@ export const useAuthStore = defineStore('auth', {
 
     async fetchUserProfile() {
       try {
-        const response = await axios.get('/api/auth/profile');
+        const response = await axiosInstance.get('/auth/profile');
         this.user = response.data.user;
       } catch (error) {
         console.error('Error fetching user profile:', error);
@@ -68,7 +68,7 @@ export const useAuthStore = defineStore('auth', {
           formData.append(key, updatedProfile[key]);
         });
 
-        const response = await axios.patch('/api/auth/profile', formData, {
+        const response = await axiosInstance.patch('/auth/profile', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
 
@@ -108,7 +108,7 @@ export const useAuthStore = defineStore('auth', {
 
     async verifyEmail(token: string) {
       try {
-        const response = await axios.get(`/api/verify-email?token=${token}`);
+        const response = await axiosInstance.get(`/verify-email?token=${token}`);
         console.log('Email verification response:', response.data);
         return response.data;
       } catch (error) {

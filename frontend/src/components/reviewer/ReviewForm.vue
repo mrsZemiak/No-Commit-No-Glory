@@ -57,6 +57,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import axios from 'axios';
+import axiosInstance from "@/config/axiosConfig.ts";
 
 interface Question {
   _id: string;
@@ -94,7 +95,7 @@ export default defineComponent({
   methods: {
     async fetchQuestions() {
       try {
-        const response = await axios.get('/api/questions');
+        const response = await axiosInstance.get('/questions');
         this.questions = response.data;
       } catch (error) {
         console.error('Error fetching questions:', error);
@@ -103,7 +104,7 @@ export default defineComponent({
 
     async fetchReview() {
       try {
-        const response = await axios.get(`/api/reviewer/reviews/${this.id}/${this.reviewerId}`);
+        const response = await axiosInstance.get(`/reviewer/reviews/${this.id}/${this.reviewerId}`);
         const review = response.data.review;
         if (review) {
           this.form.recommendation = review.recommendation;
@@ -154,7 +155,7 @@ export default defineComponent({
           recommendation: this.form.recommendation,
           isDraft: false,
         };
-        const response = await axios.post('/api/reviewer/reviews', reviewData);
+        const response = await axiosInstance.post('/reviewer/reviews', reviewData);
         console.log('Review submitted:', response.data);
         alert('Hodnotenie bolo úspešne odovzdané!');
         this.$router.push({ name: 'ReviewTable' });
@@ -176,7 +177,7 @@ export default defineComponent({
           recommendation: this.form.recommendation,
           isDraft: true,
         };
-        const response = await axios.post('/api/reviewer/reviews', reviewData);
+        const response = await axiosInstance.post('/reviewer/reviews', reviewData);
         console.log('Review saved as draft:', response.data);
         alert('Hodnotenie bolo uložené ako koncept!');
         this.$router.push({ name: 'ReviewTable' });

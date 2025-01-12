@@ -237,6 +237,7 @@
 import {defineComponent} from "vue";
 import axios from "axios";
 import Multiselect from "vue-multiselect";
+import axiosInstance from "@/config/axiosConfig.ts";
 
 
 
@@ -345,7 +346,7 @@ export default defineComponent({
 
     async fetchPapers() {
       try {
-        const response = await axios.get("/api/admin/papers");
+        const response = await axiosInstance.get("/admin/papers");
         console.log(response.data);
         console.log(this.conferenceId);
         if (this.conferenceId) {
@@ -367,7 +368,7 @@ export default defineComponent({
     },
     async fetchReviewers() {
       try {
-        const response = await axios.get("/api/admin/users");
+        const response = await axiosInstance.get("/admin/users");
 
         this.reviewers = response.data
           .filter((user: User) => user.role && user.role.name === 'reviewer')
@@ -383,7 +384,7 @@ export default defineComponent({
     },
     async fetchActiveReviewers() {
       try {
-        const response = await axios.get("/api/admin/users");
+        const response = await axiosInstance.get("/admin/users");
 
         this.activeReviewers = response.data
           .filter((user: User) => user.role && user.role.name === 'reviewer' && user.status === 'active')
@@ -405,8 +406,8 @@ export default defineComponent({
       alert("Downloading work");
     },
     downloadConferenceData(conferenceId: string) {
-      axios({
-        url: `/api/conferences/${conferenceId}/papers/download`,
+      axiosInstance({
+        url: `/conferences/${conferenceId}/papers/download`,
         method: 'GET',
         responseType: 'blob',
       })
@@ -452,7 +453,7 @@ export default defineComponent({
 
       if (this.selectedWork && this.selectedWork._id) {
         try {
-          const response = await axios.patch(`/api/admin/papers/${this.selectedWork._id}/reviewer`, {
+          const response = await axiosInstance.patch(`/admin/papers/${this.selectedWork._id}/reviewer`, {
             reviewerId: this.selectedReviewer,
           });
 

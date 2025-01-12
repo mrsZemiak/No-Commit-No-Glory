@@ -120,6 +120,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
+import axiosInstance from "@/config/axiosConfig.ts";
 
 const route = useRoute();
 const workId = route.params.workId;
@@ -144,8 +145,8 @@ onMounted(async () => {
   try {
     // Fetch categories and conferences
     const [categoriesResponse, conferencesResponse] = await Promise.all([
-      axios.get("/api/participant/categories"),
-      axios.get("/api/participant/conferences"),
+      axiosInstance.get("/participant/categories"),
+      axiosInstance.get("/participant/conferences"),
     ]);
     categories.value = categoriesResponse.data.map((category: any) => ({
       id: category._id,
@@ -157,7 +158,7 @@ onMounted(async () => {
     }));
 
     if (workId) {
-      const response = await axios.get(`/api/participant/papers/${workId}`);
+      const response = await axiosInstance.get(`/participant/papers/${workId}`);
       const data = response.data;
       console.log(data);
       form.value.submissionName = data.title;
@@ -213,16 +214,16 @@ async function handleSubmit() {
 
   const workId = route.params.workId;
   const url = workId
-    ? `/api/participants/papers/${workId}`
-    : "/api/participants/papers";
+    ? `/participants/papers/${workId}`
+    : "/participants/papers";
 
   try {
     let response;
     if (workId) {
-      response = await axios.put(url, payload);
+      response = await axiosInstance.put(url, payload);
       alert("Work updated successfully!");
     } else {
-      response = await axios.post(url, payload);
+      response = await axiosInstance.post(url, payload);
       alert("Work submitted successfully!");
     }
     console.log("Response:", response.data);

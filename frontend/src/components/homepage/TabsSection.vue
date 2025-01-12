@@ -85,6 +85,7 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import axios from 'axios';
 import type { ActiveCategory } from '@/types/conference';
+import axiosInstance from "@/config/axiosConfig.ts";
 
 export default defineComponent({
   name: 'TabsSection',
@@ -102,7 +103,7 @@ export default defineComponent({
 
     const getCategories = async () => {
       try {
-        const response = await axios.get('/api/homepage');
+        const response = await axiosInstance.get('/homepage');
         categories.value = response.data.activeCategories || [];
       } catch (error) {
         console.error('Error fetching categories:', error);
@@ -111,7 +112,7 @@ export default defineComponent({
 
     const getConferenceData = async () => {
       try {
-        const response = await axios.get('/api/homepage');
+        const response = await axiosInstance.get('/homepage');
         const ongoingConference = response.data.ongoingConference;
 
         if (ongoingConference) {
@@ -143,7 +144,7 @@ export default defineComponent({
 
     const getProgramDocument = async () => {
       try {
-        const response = await axios.get('/api/homepage');
+        const response = await axiosInstance.get('/homepage');
         programDocumentUrl.value = response.data.programDocument || '';
       } catch (error) {
         console.error('Error fetching program document:', error);

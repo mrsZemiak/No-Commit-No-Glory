@@ -235,8 +235,8 @@ export default defineComponent({
       };
 
       const apiUrl = this.isEditMode
-        ? `/api/admin/conferences/${this.localConference._id}`
-        : `/api/admin/conferences`;
+        ? `/admin/conferences/${this.localConference._id}`
+        : `/admin/conferences`;
 
       const method = this.isEditMode ? "PUT" : "POST";
 
