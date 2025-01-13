@@ -15,14 +15,16 @@ import {
     getAllQuestions,
     createQuestion, updateQuestion
 } from '../controllers/admin.controller'
-import { authorizeRole } from '../middleware/authorizeRole';
+//import { authorizeRole } from '../middleware/authorizeRole';
 import { authenticateToken } from '../middleware/authenticateToken';
 import { validateEditUserDetails, validateRequest } from '../middleware/validation';
+import { updateConferenceStatusMiddleware } from '../middleware/updateStatus'
 
 const router = Router();
 
 //Apply authentication and admin authorization globally for all admin routes
 router.use(authenticateToken);
+//router.use(updateConferenceStatusMiddleware);
 //router.use(authorizeRole(['admin']));
 
 //Users

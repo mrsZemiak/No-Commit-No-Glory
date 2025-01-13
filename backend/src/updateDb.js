@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var mongoose_1 = require("mongoose");
-var User_1 = require("./models/User"); // Adjust the path to your User model
+var Conference_1 = require("./models/Conference");
 var updateDatabase = function () { return __awaiter(void 0, void 0, void 0, function () {
     var result, error_1;
     return __generator(this, function (_a) {
@@ -52,17 +52,15 @@ var updateDatabase = function () { return __awaiter(void 0, void 0, void 0, func
                 // Connect to your MongoDB database
                 _a.sent();
                 console.log("Connected to the database.");
-                return [4 /*yield*/, User_1.default.updateMany({}, // Match all documents
+                return [4 /*yield*/, Conference_1.default.updateMany({}, // Match all documents
                     {
                         $set: {
-                            faculty: "", // Default value for 'faculty'
-                            about: "", // Default value for 'about'
-                            avatar: null, // Default value for 'avatar'
+                            date: "", // Default value for 'faculty'
                         },
                     })];
             case 2:
                 result = _a.sent();
-                console.log("".concat(result.modifiedCount, " users updated successfully."));
+                console.log("".concat(result.modifiedCount, " updated successfully."));
                 return [3 /*break*/, 6];
             case 3:
                 error_1 = _a.sent();

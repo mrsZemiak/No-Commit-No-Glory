@@ -3,12 +3,12 @@ export interface ConferenceAdmin {
   year: number;
   location: string;
   university: string;
-  date: Date;
+  date: number | Date;
   status: string;
-  start_date: Date;
-  end_date: Date;
-  deadline_submission: Date;
-  deadline_review?: Date;
+  start_date: number | Date;
+  end_date: number | Date;
+  deadline_submission: number | Date;
+  deadline_review?: number | Date;
   created_at: Date;
 }
 

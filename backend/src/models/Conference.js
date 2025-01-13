@@ -1,33 +1,22 @@
-import mongoose, { Schema, Document } from 'mongoose';
-
-export enum ConferenceStatus {
-    Upcoming = 'Nadchádzajúca',
-    Ongoing = 'Aktuálna',
-    Completed = 'Ukončená',
-    Canceled = 'Zrušená'
-}
-
-export interface IConference extends Document {
-    year: number;
-    location: string;
-    university: string;
-    date: Date;
-    status: ConferenceStatus;
-    start_date: Date;
-    end_date: Date;
-    deadline_submission: Date;
-    deadline_review?: Date;
-    created_at: Date;
-}
-
-const ConferenceSchema: Schema = new Schema({
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ConferenceStatus = void 0;
+var mongoose_1 = require("mongoose");
+var ConferenceStatus;
+(function (ConferenceStatus) {
+    ConferenceStatus["Upcoming"] = "Nadch\u00E1dzaj\u00FAca";
+    ConferenceStatus["Ongoing"] = "Aktu\u00E1lna";
+    ConferenceStatus["Completed"] = "Ukon\u010Den\u00E1";
+    ConferenceStatus["Canceled"] = "Zru\u0161en\u00E1";
+})(ConferenceStatus || (exports.ConferenceStatus = ConferenceStatus = {}));
+var ConferenceSchema = new mongoose_1.Schema({
     year: {
         type: Number,
         required: true,
         validate: {
-            validator: (value: number) => {
+            validator: function (value) {
                 //Validate that the year is a four-digit number between 2010 and the current year
-                const currentYear = new Date().getFullYear();
+                var currentYear = new Date().getFullYear();
                 return value >= 2010 && value <= currentYear + 5;
             },
             message: 'Year must be a valid four-digit year.'
@@ -47,5 +36,4 @@ const ConferenceSchema: Schema = new Schema({
     deadline_review: { type: Date, required: false },
     created_at: { type: Date, default: Date.now },
 }, { collection: 'conferences' });
-
-export default mongoose.model<IConference>('Conference', ConferenceSchema);
+exports.default = mongoose_1.default.model('Conference', ConferenceSchema);

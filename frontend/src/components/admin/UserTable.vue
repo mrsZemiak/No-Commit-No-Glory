@@ -132,7 +132,8 @@
           />
         </v-card-text>
         <v-card-actions>
-          <v-btn color="primary" @click="closeModal">Zatvoriť</v-btn>
+          <v-btn color="secondary" @click="closeModal">Zatvoriť</v-btn>
+          <v-btn color="primary" @click="updateUser">Uložiť</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -188,7 +189,7 @@ export default defineComponent({
       { title: "Univerzita", value: "university" },
       { title: "Stav", value: "status" },
       { title: "Role", value: "role.name" },
-      { title: "Akcie", value: "actions", sortable: false },
+      { title: "", value: "actions", sortable: false },
     ];
 
     // Options for filtering
@@ -357,8 +358,8 @@ export default defineComponent({
 
   .custom-table thead th{
     font-size: 1.3rem;
-    background-color: rgba(16, 100, 102, 0.4);
-    border-radius: 20px;
+    background-color: rgba(16, 100, 102, 0.2);
+    color: #2c3531;
 
   }
   .custom-table td {

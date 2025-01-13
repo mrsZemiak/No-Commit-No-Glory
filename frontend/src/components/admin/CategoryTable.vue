@@ -3,7 +3,6 @@
     <v-card-title>
       <div class="d-flex justify-space-between align-center w-100">
         <h3>Správa kategórií</h3>
-        <v-btn color="primary" @click="openDialog('add')">Pridať kategóriu</v-btn>
       </div>
     </v-card-title>
     <v-data-table
@@ -32,7 +31,7 @@
         </tr>
       </template>
     </v-data-table>
-
+    <v-btn color="primary" @click="openDialog('add')">Pridať kategóriu</v-btn>
     <!-- Add/Edit Dialog -->
     <v-dialog v-model="isDialogOpen" max-width="800px">
       <v-card>
@@ -81,6 +80,7 @@ export default defineComponent({
     const headers = ref([
       { title: "Názov kategórie", key: "name" },
       { title: "Stav", key: "isActive"},
+      { title: "", value: "actions", sortable: false },
     ]);
 
     const fetchCategories = async () => {
@@ -177,5 +177,9 @@ export default defineComponent({
       padding: 10px 8px;
     }
   }
+}
+
+div .v-btn {
+  font-size:1.2rem;
 }
 </style>

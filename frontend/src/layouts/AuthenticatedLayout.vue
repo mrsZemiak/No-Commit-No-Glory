@@ -10,7 +10,7 @@
     <!-- Main Content -->
     <v-main>
       <v-container class="main-container" fluid>
-        <router-view />
+        <router-view :key="$route.fullPath"/>
       </v-container>
     </v-main>
 
@@ -37,7 +37,7 @@ import { useAuthStore } from '@/stores/auth.ts'
 
 export default defineComponent({
   name: "AuthenticatedLayout" ,
-  components: { SideBar},
+  components: { SideBar },
   setup() {
     const showModal = ref(false);
     const authStore = useAuthStore();
@@ -81,7 +81,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-
 .sidebar {
   z-index: 10;
 }
@@ -148,5 +147,41 @@ export default defineComponent({
     max-width: 900px;
   }
 }
+.v-card {
+  padding: 25px;
+
+  .v-card-title {
+    margin: 10px;
+    font-size: 1.5rem;
+    color: #116466;
+    text-transform: uppercase;
+  }
+
+  .v-btn {
+    margin-left: 10px;
+  }
+
+  .custom-table thead th{
+    font-size: 1.3rem;
+    background-color: rgba(16, 100, 102, 0.2);
+    color: #2c3531;
+
+  }
+  .custom-table td {
+    font-size: 1.2rem;
+    font-weight: normal;
+    padding-top: 20px;
+
+    .custom-chip {
+      font-size: 1.1rem;
+      padding: 10px 8px;
+    }
+  }
+}
+
+div .v-btn {
+  font-size:1.2rem;
+}
+
 
 </style>

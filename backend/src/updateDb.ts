@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import User from "./models/User"; // Adjust the path to your User model
+import Confernce from "./models/Conference";
 
 const updateDatabase = async () => {
   try {
@@ -11,18 +11,16 @@ const updateDatabase = async () => {
     console.log("Connected to the database.");
 
     // Update all existing documents to include new fields
-    const result = await User.updateMany(
+    const result = await Confernce.updateMany(
       {}, // Match all documents
       {
         $set: {
-          faculty: "", // Default value for 'faculty'
-          about: "",   // Default value for 'about'
-          avatar: null, // Default value for 'avatar'
+          date: "", // Default value for 'faculty'
         },
       }
     );
 
-    console.log(`${result.modifiedCount} users updated successfully.`);
+    console.log(`${result.modifiedCount} updated successfully.`);
   } catch (error) {
     console.error("Error updating database:", error);
   } finally {

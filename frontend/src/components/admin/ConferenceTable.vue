@@ -3,14 +3,14 @@
     <v-card-title>
       <div class="d-flex justify-space-between align-center w-100">
         <h3>Konferencie</h3>
-        <v-btn color="primary" @click="openDialog('add')">Pridať konferenciu</v-btn>
+
       </div>
     </v-card-title>
 
     <!-- Filters Section -->
     <v-card-subtitle>
       <v-row>
-        <v-col cols="12" md="3">
+        <v-col cols="10" md="2">
           <v-text-field
             v-model="filters.year"
             label="Filtrovať podľa roku"
@@ -19,7 +19,7 @@
             dense
           />
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col cols="10" md="3">
           <v-text-field
             v-model="filters.university"
             label="Filtrovať podľa univerzity"
@@ -27,7 +27,7 @@
             dense
           />
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col cols="10" md="3">
           <v-text-field
             v-model="filters.location"
             label="Filtrovať podľa miesta"
@@ -35,7 +35,7 @@
             dense
           />
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col cols="10" md="2">
           <v-select
             v-model="filters.selectedStatus"
             :items="statusOptions"
@@ -45,11 +45,11 @@
             multiple
           />
         </v-col>
-      </v-row>
-      <v-row>
-        <v-col cols="12" class="d-flex justify-end">
+        <v-col cols="8" md="2">
           <v-btn color="primary" small @click="resetFilters">Zrušiť filtrovanie</v-btn>
         </v-col>
+      </v-row>
+      <v-row>
       </v-row>
     </v-card-subtitle>
 
@@ -64,13 +64,6 @@
     >
       <template v-slot:body="{ items }">
         <tr v-for="conference in items" :key="conference._id" class="custom-row">
-          <td>{{ conference.year }}</td>
-          <td>{{ formatTimestamp(conference.date) }}</td>
-          <td>{{ conference.university }}</td>
-          <td>{{ conference.location }}</td>
-          <td>{{ formatTimestamp(conference.start_date) }}</td>
-          <td>{{ formatTimestamp(conference.end_date) }}</td>
-          <td>{{ formatTimestamp(conference.deadline_submission) }}</td>
           <td>
             <v-chip
               :color="conference.status === 'Aktuálna' ? 'green' :
@@ -83,17 +76,29 @@
               {{ conference.status }}
             </v-chip>
           </td>
+          <td>{{ conference.year }}</td>
+          <td>{{ formatTimestamp(conference.date) }}</td>
+          <td>{{ conference.university }}</td>
+          <td>{{ conference.location }}</td>
+          <td>{{ formatTimestamp(conference.start_date) }}</td>
+          <td>{{ formatTimestamp(conference.end_date) }}</td>
+          <td>{{ formatTimestamp(conference.deadline_submission) }}</td>
           <td>
-            <v-btn @click="openDialog('edit', conference)">
+            <v-btn color="primary" @click="viewConferenceDetails(conference)">
+              <v-icon size="24">mdi-eye</v-icon>
+            </v-btn>
+            <v-btn color="#FFF4E2" @click="openDialog('edit', conference)">
               <v-icon size="24">mdi-pencil</v-icon>
             </v-btn>
-            <v-btn color="secondary" @click="viewWorksForConference(conference)">
+            <v-btn color="tertiary" @click="viewWorksForConference(conference)">
               <v-icon size="24">mdi-file</v-icon>
             </v-btn>
           </td>
         </tr>
       </template>
     </v-data-table>
+
+    <v-btn color="primary" class="add_new" @click="openDialog('add')">Pridať konferenciu</v-btn>
 
     <!-- Dialog for Add/Edit -->
     <v-dialog v-model="dialogVisible" max-width="800px" class="modal-card">
@@ -194,7 +199,7 @@
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-btn @click="closeDialog">Zrušiť</v-btn>
+          <v-btn color="secondary" @click="closeDialog">Zrušiť</v-btn>
           <v-btn color="primary" large @click="saveConference">Uložiť</v-btn>
         </v-card-actions>
       </v-card>
@@ -242,6 +247,7 @@ export default defineComponent({
       { title: "Koniec", value: "end_date", sortable: true },
       { title: "Odovzdanie prác", value: "deadline_submission" },
       { title: "Stav", value: "status" },
+      { title: "", value: "actions", sortable: false },
     ]);
     // Status options for filtering
     const statusOptions = ['Nadchádzajúca', 'Aktuálna', 'Ukončená', 'Zrušená'];
@@ -294,7 +300,14 @@ export default defineComponent({
     const fetchConferences = async () => {
       try {
         const response = await axiosInstance.get("/auth/admin/conferences");
-        conferences.value = response.data;
+        conferences.value = response.data.map((conference: any) => ({
+          ...conference,
+          date: new Date(conference.date), // Convert to Date object
+          start_date: new Date(conference.start_date),
+          end_date: new Date(conference.end_date),
+          deadline_submission: new Date(conference.deadline_submission),
+          deadline_review: conference.deadline_review ? new Date(conference.deadline_review) : null,
+        }));
         showSnackbar("Konferencie boli úspešne načítané", "success");
       } catch (error) {
         console.error("Error fetching conferences:", error);
@@ -318,22 +331,27 @@ export default defineComponent({
                 : '';
       });
 
-      // Initialize the dialog form
       if (mode === 'add') {
+        // Initialize form with default values
         dialogForm.value = {
           year: new Date().getFullYear(),
           university: '',
-          date: new Date(),
+          date: new Date(), // Keep as Date object
           location: '',
           start_date: new Date(),
           end_date: new Date(),
           deadline_submission: new Date(),
-          deadline_review: new Date(),
           status: 'Nadchádzajúca',
         };
-
       } else if (conference) {
-        dialogForm.value = { ...conference }; // Populate form with conference data for edit or view
+        // Populate form with conference data
+        dialogForm.value = {
+          ...conference, // Copy the conference data directly
+          date: new Date(conference.date), // Convert to Date objects
+          start_date: new Date(conference.start_date),
+          end_date: new Date(conference.end_date),
+          deadline_submission: new Date(conference.deadline_submission),
+        };
       }
     };
 
@@ -410,7 +428,8 @@ export default defineComponent({
     // Format timestamp for display
     const formatTimestamp = (value: number | Date | null): string => {
       if (!value) return "N/A";
-      const date = value instanceof Date ? value : new Date(value);
+      const date =
+        value instanceof Date ? value : new Date(value);
       const day = date.getDate().toString().padStart(2, "0");
       const month = (date.getMonth() + 1).toString().padStart(2, "0");
       const year = date.getFullYear();
@@ -450,83 +469,9 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-.v-dialog {
-  max-width: 1000px !important;
 
-  .v-card {
-    padding: 16px;
-
-    .v-btn {
-      font-size: 1.2rem;
-      padding: 12px 12px; /* Adjust button padding */
-    }
-
-    /* Align actions at the bottom */
-    .v-card-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-
-    .v-card-title {
-      font-size: 2rem;
-      font-weight: bold;
-      text-align: center;
-    }
-  }
-}
-
-.large-text-field input {
-  font-size: 20px;
-}
-
-.large-text-field label {
-  font-size: 20px;
-}
-
-.large-text-field select {
-  font-size: 20px;
-}
-
-.large-text-field .v-input__control {
-  font-size: 1.5rem;
-}
-
-
-.v-card {
-  padding: 10px;
-
-  .v-card-title {
-    margin: 10px;
-    font-size: 1.5rem;
-    color: #116466;
-    text-transform: uppercase;
-  }
-
-  .v-btn {
-    margin-left: 10px;
-  }
-
-  .custom-table thead th{
-    font-size: 1.3rem;
-    font-weight: bold;
-
-  }
-  .custom-table td {
-    font-size: 1.1rem;
-    font-weight: normal;
-    padding-top: 15px;
-
-    .custom-row {
-      font-size: 1.1rem;
-      padding-top: 10px;
-    }
-    .custom-chip {
-      font-size: 1.1rem;
-      padding: 10px 8px;
-    }
-  }
-
+.add_new {
+  margin-bottom: 20px;
 }
 
 </style>
