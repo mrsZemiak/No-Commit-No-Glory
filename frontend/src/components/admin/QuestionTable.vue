@@ -45,7 +45,8 @@
     <v-data-table
       :headers="tableHeaders"
       :items="paginatedQuestions"
-      :items-per-page="perPage"
+      :items-per-page="perPage":pageText="'{0}-{1} z {2}'"
+      items-per-page-text="Otázky na stránku"
       item-value="_id"
       dense
       class="elevation-1"

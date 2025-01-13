@@ -162,25 +162,26 @@ export default defineComponent({
   }
 
   .custom-table thead th{
-    font-size: 1.3rem;
+    font-size: 1.2rem;
+    font-weight: bold !important;
     background-color: rgba(16, 100, 102, 0.2);
     color: #2c3531;
+    padding-left: 20px !important;
 
   }
   .custom-table td {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: normal;
-    padding-top: 20px;
 
     .custom-chip {
       font-size: 1.1rem;
       padding: 10px 8px;
     }
-  }
+    }
 }
 
 div .v-btn {
-  font-size:1.2rem;
+  font-size:1rem !important;
 }
 
 

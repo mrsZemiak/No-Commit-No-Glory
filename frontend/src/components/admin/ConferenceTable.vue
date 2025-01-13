@@ -58,9 +58,12 @@
       :headers="tableHeaders"
       :items="paginatedConferences"
       :items-per-page="perPage"
+      :pageText="'{0}-{1} z {2}'"
+      items-per-page-text="Konferencie na stránku"
       item-value="_id"
       dense
       class="custom-table"
+
     >
       <template v-slot:body="{ items }">
         <tr v-for="conference in items" :key="conference._id" class="custom-row">
@@ -104,7 +107,7 @@
     <v-dialog v-model="dialogVisible" max-width="800px" class="modal-card">
       <v-card>
         <v-card-title>
-          {{ dialogMode === 'add' ? 'Pridať konferenciu' : 'Upraviť konferenciu' }}
+          {{ dialogMode === 'add' ? 'Pridať konferenciu' : dialogMode === 'edit' ? 'Upraviť konferenciu' : 'Detail konferencie' }}
         </v-card-title>
         <v-card-text>
           <v-form ref="formRef">
@@ -118,6 +121,7 @@
                   dense
                   required
                   class="large-text-field"
+                  :disabled="dialogMode === 'view'"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -129,6 +133,7 @@
                   type="number"
                   required
                   class="large-text-field"
+                  :disabled="dialogMode === 'view'"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -140,6 +145,8 @@
                   type="date"
                   required
                   class="large-text-field"
+                  :disabled="dialogMode === 'view'"
+
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -150,6 +157,7 @@
                   dense
                   required
                   class="large-text-field"
+                  :disabled="dialogMode === 'view'"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -160,6 +168,7 @@
                   dense
                   required
                   class="large-text-field"
+                  :disabled="dialogMode === 'view'"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -171,6 +180,7 @@
                   type="date"
                   required
                   class="large-text-field"
+                  :disabled="dialogMode === 'view'"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -182,6 +192,7 @@
                   type="date"
                   required
                   class="large-text-field"
+                  :disabled="dialogMode === 'view'"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -193,6 +204,7 @@
                   type="date"
                   required
                   class="large-text-field"
+                  :disabled="dialogMode === 'view'"
                 />
               </v-col>
             </v-row>
@@ -200,7 +212,8 @@
         </v-card-text>
         <v-card-actions>
           <v-btn color="secondary" @click="closeDialog">Zrušiť</v-btn>
-          <v-btn color="primary" large @click="saveConference">Uložiť</v-btn>
+          <v-btn v-if="dialogMode === 'view'" color="primary" @click="dialogMode = 'edit'">Upraviť</v-btn>
+          <v-btn v-if="dialogMode !== 'view'" color="primary" large @click="saveConference">Uložiť</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -239,6 +252,7 @@ export default defineComponent({
 
     // Table Headers
     const tableHeaders = ref([
+      { title: "Stav", value: "status" },
       { title: "Rok", value: "year", sortable: true },
       { title: "Konferencia", value: "date", sortable: true },
       { title: "Univerzita", value: "university" },
@@ -246,7 +260,7 @@ export default defineComponent({
       { title: "Začiatok", value: "start_date", sortable: true },
       { title: "Koniec", value: "end_date", sortable: true },
       { title: "Odovzdanie prác", value: "deadline_submission" },
-      { title: "Stav", value: "status" },
+
       { title: "", value: "actions", sortable: false },
     ]);
     // Status options for filtering
