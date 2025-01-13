@@ -11,12 +11,6 @@ export const registerValidationRules = [
     body('password')
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters long'),
-    //.matches(/[A-Z]/)
-    //.withMessage('Password must include at least one uppercase letter')
-    //.matches(/\d/)
-    //.withMessage('Password must include at least one number')
-    //.matches(/[@$!%*?&]/)
-    //.withMessage('Password must include at least one special character (@, $, etc.)');
     body('confirmPassword').custom((value, { req }) => {
         if (value !== req.body.password) {
             throw new Error('Passwords do not match');
@@ -112,14 +106,14 @@ export const validateReviewSubmission = async (req: Request, res: Response, next
 
         //Ensure all required fields are provided
         if (!paper || !reviewer || !responses || !recommendation) {
-            res.status(400).json({ message: 'Chýbajú povinné polia' });
+            res.status(400).json({ message: 'Missing required fields' });
             return;
         }
 
         //Validate recommendation value
         const validRecommendations = ['publish', 'publish_with_changes', 'reject'];
         if (!validRecommendations.includes(recommendation)) {
-            res.status(400).json({ message: 'Neplatná hodnota pre odporúčanie' });
+            res.status(400).json({ message: 'Invalid recommendation value' });
             return;
         }
 
@@ -127,31 +121,31 @@ export const validateReviewSubmission = async (req: Request, res: Response, next
         for (const response of responses) {
             const question = await Question.findById(response.question);
             if (!question) {
-                res.status(400).json({ message: `Neplatné ID otázky: ${response.question}` });
+                res.status(400).json({ message: `Invalid question ID: ${response.question}` });
                 return;
             }
 
             switch (question.type) {
                 case 'rating':
                     if (typeof response.answer !== 'number' || response.answer < question.options!.min || response.answer > question.options!.max) {
-                        res.status(400).json({ message: `Neplatné hodnotenie pre otázku s ID: ${response.question}` });
+                        res.status(400).json({ message: `Invalid rating for question ID: ${response.question}` });
                         return;
                     }
                     break;
                 case 'yes_no':
                     if (response.answer !== 'yes' && response.answer !== 'no') {
-                        res.status(400).json({ message: `Neplatná Áno/Nie odpoveď pre otázku s ID: ${response.question}` });
+                        res.status(400).json({ message: `Invalid yes/no answer for question ID: ${response.question}` });
                         return;
                     }
                     break;
                 case 'text':
                     if (typeof response.answer !== 'string') {
-                        res.status(400).json({ message: `Neplatná textová odpoveď pre otázku s ID: ${response.question}` });
+                        res.status(400).json({ message: `Invalid text answer for question ID: ${response.question}` });
                         return;
                     }
                     break;
                 default:
-                    res.status(400).json({ message: `Neplatný typ otázky pre otázku s ID: ${response.question}` });
+                    res.status(400).json({ message: `Unknown question type for question ID: ${response.question}` });
                     return;
             }
         }
@@ -160,7 +154,7 @@ export const validateReviewSubmission = async (req: Request, res: Response, next
         next();
     } catch (error) {
         console.error('Validation error:', error);
-        res.status(500).json({ message: 'Chyba pri validácii', error });
+        res.status(500).json({ message: 'Validation error', error });
     }
 };
 
