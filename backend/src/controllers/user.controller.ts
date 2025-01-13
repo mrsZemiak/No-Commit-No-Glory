@@ -18,7 +18,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         // Check if user already exists
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            res.status(400).json({ message: 'Email already registered' });
+            res.status(400).json({ message: 'Email je už zaregistrovaný' });
             return;
         }
 
@@ -214,7 +214,7 @@ export const upload = multer({
         if (extName && mimeType) {
             cb(null, true);
         } else {
-            cb(new Error('Only images are allowed'));
+            cb(new Error('Povolené sú iba obrázky'));
         }
     },
 });
@@ -223,7 +223,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
     try {
         const userId = req.user?.userId;
         if (!userId) {
-            res.status(401).json({ message: 'Unauthorized. Missing user information.' });
+            res.status(401).json({ message: 'Neoprávnené. Chýbajúce informácie o používateľovi' });
             return;
         }
 
@@ -267,7 +267,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
           "-password -refreshToken"
         );
         if (!updatedUser) {
-            res.status(404).json({ message: 'Failed to update profile' });
+            res.status(404).json({ message: 'Profil sa nepodarilo aktualizovať' });
             return;
         }
 

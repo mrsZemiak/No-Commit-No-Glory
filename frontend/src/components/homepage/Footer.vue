@@ -48,7 +48,7 @@ export default defineComponent({
 <style lang="scss">
 .footer {
   background-color: #d1e8e2;
-  padding: 20px 0;
+  padding: 20px 0 0 0;
   text-align: left;
 
   .footer-left,

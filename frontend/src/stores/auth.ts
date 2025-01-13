@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
 import axiosInstance from '@/config/axiosConfig';
 import type { User } from '@/types/user.ts'
+import { useRouter } from 'vue-router'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -9,6 +9,7 @@ export const useAuthStore = defineStore('auth', {
     token: null as string | null,
     role: null as string | null,
     isAuthenticated: false,
+    isTokenExpired: false,
   }),
 
   actions: {
@@ -38,12 +39,13 @@ export const useAuthStore = defineStore('auth', {
         this.token = response.data.token;
         this.isAuthenticated = true;
 
+
         //Store tokens in localStorage for persistence
         if (this.token) {
           localStorage.setItem('authToken', this.token);
           localStorage.setItem('userRole', this.role || '');
           localStorage.setItem('refreshToken', response.data.refreshToken); // Save refresh token
-          axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+          axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
         }
       } catch (error) {
         console.error('Login failed:', error);
@@ -80,17 +82,6 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async logout() {
-      this.user = null;
-      this.token = null;
-      this.isAuthenticated = false;
-
-      // Clear tokens from localStorage
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('refreshToken');
-      delete axios.defaults.headers.common['Authorization'];
-    },
-
     async refreshAccessToken() {
       const refreshToken = localStorage.getItem('refreshToken');
       if (!refreshToken) return;
@@ -99,12 +90,26 @@ export const useAuthStore = defineStore('auth', {
         const response = await axiosInstance.post('/refresh-token', { refreshToken });
         this.token = response.data.token;
         localStorage.setItem('authToken', this.token || ''); // Update authToken in localStorage
-        axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`; // Update Axios headers
+        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${this.token}`; // Update Axios headers
+        this.isTokenExpired = false; // Reset token expiration state
       } catch (error) {
         console.error('Failed to refresh token:', error);
-        await this.logout(); // Clear tokens and redirect to login if refresh fails
+        this.isTokenExpired = true; // Mark token as expired
       }
     },
+
+    async logout() {
+      this.user = null;
+      this.token = null;
+      this.isAuthenticated = false;
+      this.isTokenExpired = false;
+
+      // Clear tokens from localStorage
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      delete axiosInstance.defaults.headers.common['Authorization'];
+    },
+
 
     async verifyEmail(token: string) {
       try {
@@ -127,7 +132,7 @@ export const useAuthStore = defineStore('auth', {
         this.token = token;
         this.role = role;
         this.isAuthenticated = true;
-        axios.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
+        axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${this.token}`;
 
         try {
           //Fetch user profile

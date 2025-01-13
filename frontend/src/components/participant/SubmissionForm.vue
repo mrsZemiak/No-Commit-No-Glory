@@ -1,132 +1,127 @@
 <template>
-  <div class="submission-form">
-    <h2>Odovzdanie práce</h2>
-    <form @submit.prevent="handleSubmit">
-      <div class="form-group">
-        <label for="first_name">Meno</label>
-        <input
-          type="text"
-          id="first_name"
-          v-model="form.first_name"
-          placeholder="Vaše meno"
-          required
-        />
-      </div>
+  <v-container class="submission-form">
+    <v-card outlined>
+      <v-card-title>
+        <h2>Vložiť prácu</h2>
+      </v-card-title>
+      <v-divider></v-divider>
+      <v-card-text>
+        <v-form @submit.prevent="handleSubmit">
+          <v-row>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.first_name"
+                label="Meno"
+                outlined
+                required
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="form.last_name"
+                label="Priezvisko"
+                outlined
+                required
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-text-field
+                v-model="form.submissionName"
+                label="Názov práce"
+                outlined
+                required
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-select
+                v-model="form.conferencePick"
+                :items="conferences"
+                item-text="location"
+                item-value="id"
+                label="Výber konferencie"
+                outlined
+                required
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-select
+                v-model="form.categoryPick"
+                :items="categories"
+                item-text="name"
+                item-value="id"
+                label="Výber sekcie"
+                outlined
+                required
+              />
+            </v-col>
+            <v-col cols="12">
 
-      <div class="form-group">
-        <label for="last_name">Priezvisko</label>
-        <input
-          type="text"
-          id="last_name"
-          v-model="form.last_name"
-          placeholder="Vaše priezvisko"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="submissionName">Názov práce</label>
-        <input
-          type="text"
-          id="submissionName"
-          v-model="form.submissionName"
-          placeholder="Názov práce"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="conferencePick">Výber konferencie</label>
-        <select v-model="form.conferencePick" id="conferencePick" required>
-          <option disabled value="">Vyberte konferenciu</option>
-          <option v-for="conference in conferences" :key="conference.id" :value="conference.id">
-            {{ conference.location }}
-          </option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="categoryPick">Výber sekcie</label>
-        <select v-model="form.categoryPick" id="category" required>
-          <option disabled value="">Vyberte sekciu</option>
-          <option v-for="category in categories" :key="category.id" :value="category.id">
-            {{ category.name }}
-          </option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label>Autori</label>
-        <div v-for="(author, index) in form.otherAuthors" :key="index" class="author-row">
-          <input
-            type="text"
-            v-model="form.otherAuthors[index]"
-            placeholder="Vložte meno autora"
-          />
-          <button type="button" class="btn btn-delete" @click="removeAuthor(index)">Odstrániť</button>
-        </div>
-        <button type="button" class="btn btn-edit" @click="addAuthor">Pridať autora</button>
-      </div>
-
-      <div class="form-group">
-        <label for="keywords">Kľúčové slová</label>
-        <input
-          type="text"
-          id="keywords"
-          v-model="form.keywords"
-          placeholder="Vložte kľúčové slová oddelené čiarkou"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="abstract">Abstrakt</label>
-        <textarea
-          id="abstract"
-          v-model="form.abstract"
-          placeholder="Vložte svoj abstrakt"
-          rows="5"
-          required
-        ></textarea>
-      </div>
-
-      <div class="form-group">
-        <label for="projectFile">Projektový súbor</label>
-        <div class="file-upload">
-          <input
-            type="file"
-            id="projectFile"
-            @change="handleFileChange"
-            accept=".pdf,.docx"
-            required
-            class="file-input-submit"
-          />
-          <label for="projectFile" class="custom-file-label btn btn-edit">
-            Vložiť súbor
-          </label>
-          <p v-if="fileName" class="file-name">
-            Vložený súbor: {{ fileName }}
-          </p>
-        </div>
-        <small class="form-text text-muted">Akceptované formáty: PDF, Word (.docx)</small>
-      </div>
-
-      <button type="submit" class="btn btn-primary">Odovzdať</button>
-    </form>
-  </div>
+              <div v-for="(author, index) in form.otherAuthors" :key="index" class="d-flex align-center mb-2">
+                <v-text-field
+                  v-model="form.otherAuthors[index]"
+                  label="Meno autora"
+                  outlined
+                  dense
+                  class="flex-grow-1"
+                />
+                <v-btn color="error" @click="removeAuthor(index)">
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+              </div>
+              <v-btn color="primary" @click="addAuthor">Pridať autora</v-btn>
+            </v-col>
+            <v-col cols="12">
+              <v-text-field
+                v-model="form.keywords"
+                label="Kľúčové slová"
+                outlined
+                placeholder="Vložte kľúčové slová oddelené čiarkou"
+                required
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-textarea
+                v-model="form.abstract"
+                label="Abstrakt"
+                outlined
+                required
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-file-input
+                v-model="form.projectFile"
+                label="Projektový súbor"
+                outlined
+                accept=".pdf,.docx"
+                required
+                @change="handleFileChange"
+              />
+            </v-col>
+          </v-row>
+          <v-btn color="primary" type="submit">Odovzdať</v-btn>
+        </v-form>
+      </v-card-text>
+    </v-card>
+    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="snackbar.timeout">
+      {{ snackbar.message }}
+      <v-btn @click="snackbar.show = false">
+        <v-icon>mdi-close</v-icon>
+      </v-btn>
+    </v-snackbar>
+  </v-container>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import axios from 'axios';
+import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
+import axiosInstance from "@/config/axiosConfig";
 
 const route = useRoute();
 const workId = route.params.workId;
 
-const categories = ref([] as { id: string; name: string }[]);
-const fileName = ref<string>('');
-const conferences = ref([] as { id: string; location: string }[]);
+const categories = ref<{ id: string; name: string }[]>([]);
+const conferences = ref<{ id: string; location: string }[]>([]);
+const fileName = ref<string>("");
 
 const form = ref({
   first_name: "",
@@ -137,15 +132,25 @@ const form = ref({
   abstract: "",
   categoryPick: "",
   conferencePick: "",
-  projectFile: null as File | null
+  projectFile: null as File | null,
 });
+
+const snackbar = ref({
+  show: false,
+  message: "",
+  color: "error",
+  timeout: 5000,
+});
+
+const showSnackbar = ({ message, color = "error" }: { message: string; color?: string }) => {
+  snackbar.value = { show: true, message, color, timeout: 5000 };
+};
 
 onMounted(async () => {
   try {
-    // Fetch categories and conferences
     const [categoriesResponse, conferencesResponse] = await Promise.all([
-      axios.get("/api/participant/categories"),
-      axios.get("/api/participant/conferences"),
+      axiosInstance.get("/auth/participant/categories"),
+      axiosInstance.get("/auth/participant/conferences"),
     ]);
     categories.value = categoriesResponse.data.map((category: any) => ({
       id: category._id,
@@ -157,81 +162,75 @@ onMounted(async () => {
     }));
 
     if (workId) {
-      const response = await axios.get(`/api/participant/papers/${workId}`);
+      const response = await axiosInstance.get(`/auth/participant/papers/${workId}`);
       const data = response.data;
-      console.log(data);
       form.value.submissionName = data.title;
       form.value.abstract = data.abstract;
       form.value.keywords = data.keywords;
-      form.value.categoryPick = data.category ? data.category._id : '';
-      form.value.conferencePick = data.conference ? data.conference._id : '';
-      form.value.first_name = data.authors[0]?.firstName || '';
-      form.value.last_name = data.authors[0]?.lastName || '';
-      form.value.otherAuthors = data.authors.slice(1).map((author: any) => `${author.firstName} ${author.lastName}`);
+      form.value.categoryPick = data.category?._id || "";
+      form.value.conferencePick = data.conference?._id || "";
+      form.value.first_name = data.authors[0]?.firstName || "";
+      form.value.last_name = data.authors[0]?.lastName || "";
+      form.value.otherAuthors = data.authors.slice(1).map(
+        (author: any) => `${author.firstName} ${author.lastName}`
+      );
     }
   } catch (error) {
-    console.error("Error fetching categories, conferences, or work data:", error);
+    console.error("Error fetching data:", error);
+    showSnackbar({ message: "Nepodarilo sa načítať údaje.", color: "error" });
   }
 });
-function addAuthor() {
+
+const addAuthor = () => {
   form.value.otherAuthors.push("");
-}
+};
 
-function removeAuthor(index: number) {
+const removeAuthor = (index: number) => {
   form.value.otherAuthors.splice(index, 1);
-}
+};
 
-function handleFileChange(event: Event) {
-  const fileInput = event.target as HTMLInputElement;
-  const file = fileInput.files ? fileInput.files[0] : null;
-  form.value.projectFile = file;
-  fileName.value = file ? file.name : '';
-}
-
-async function handleSubmit() {
-  if (!form.value.first_name || !form.value.last_name || !form.value.submissionName || !form.value.abstract || !form.value.categoryPick || !form.value.conferencePick) {
-    alert("Prosím vyplňte všetky políčka.");
-    return;
+const handleFileChange = () => {
+  if (form.value.projectFile) {
+    fileName.value = form.value.projectFile.name;
   }
+};
 
+const handleSubmit = async () => {
   const payload = {
     title: form.value.submissionName,
-    file_link: "temporary_file_path",
     category: form.value.categoryPick,
     conference: form.value.conferencePick,
     abstract: form.value.abstract,
     keywords: form.value.keywords,
     authors: [
       { firstName: form.value.first_name, lastName: form.value.last_name },
-      ...form.value.otherAuthors.map(name => {
+      ...form.value.otherAuthors.map((name) => {
         const [firstName, lastName] = name.split(" ");
         return { firstName, lastName };
-      })
+      }),
     ],
-    //user: this.user;
   };
 
-  const workId = route.params.workId;
-  const url = workId
-    ? `/api/participants/papers/${workId}`
-    : "/api/participants/papers";
+  const url = workId ? `/participant/papers/${workId}` : "/participant/papers";
 
   try {
-    let response;
     if (workId) {
-      response = await axios.put(url, payload);
-      alert("Work updated successfully!");
+      await axiosInstance.patch(url, payload);
+      showSnackbar({ message: "Práca bola úspešne aktualizovaná.", color: "success" });
     } else {
-      response = await axios.post(url, payload);
-      alert("Work submitted successfully!");
+      await axiosInstance.post(url, payload);
+      showSnackbar({ message: "Práca bola úspešne odovzdaná.", color: "success" });
     }
-    console.log("Response:", response.data);
   } catch (error) {
-    alert("Failed to save the work. Please try again.");
     console.error("Submission error:", error);
+    showSnackbar({ message: "Nepodarilo sa uložiť prácu.", color: "error" });
   }
-}
+};
 </script>
 
 <style scoped>
+.submission-form {
+  max-width: 100%;
+  margin: auto;
+}
 </style>

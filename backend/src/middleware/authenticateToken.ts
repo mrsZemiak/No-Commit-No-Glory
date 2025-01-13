@@ -11,13 +11,13 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
 
     // Ensure the Authorization header exists and follows the Bearer scheme
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        res.status(401).json({ message: 'Unauthorized: No token provided or invalid scheme' });
+        res.status(401).json({ message: 'Neautorizované: Nebol poskytnutý token alebo je neplatná schéma' });
         return;
     }
 
     const token = authHeader && authHeader.split(' ')[1];
     if (!token) {
-        res.status(401).json({ message: 'Unauthorized: No token provided' });
+        res.status(401).json({ message: 'Neautorizované: Nebol poskytnutný token' });
         return;
     }
 
@@ -28,6 +28,6 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
         next();
     } catch (error) {
         console.error('Token verification failed:', error);
-        res.status(403).json({ message: 'Forbidden: Invalid or expired token' });
+        res.status(403).json({ message: 'Zakázané: Neplatný alebo expirovaný token' });
     }
 };

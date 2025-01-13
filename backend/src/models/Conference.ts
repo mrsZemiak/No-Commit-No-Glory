@@ -1,10 +1,10 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export enum ConferenceStatus {
-    Upcoming = 'upcoming',
-    Ongoing = 'ongoing',
-    Completed = 'completed',
-    Canceled = 'canceled'
+    Upcoming = 'Nadchádzajúca',
+    Ongoing = 'Aktuálna',
+    Completed = 'Ukončená',
+    Canceled = 'Zrušená'
 }
 
 export interface IConference extends Document {
@@ -16,9 +16,8 @@ export interface IConference extends Document {
     start_date: Date;
     end_date: Date;
     deadline_submission: Date;
-    deadline_review: Date;
+    deadline_review?: Date;
     created_at: Date;
-    user: mongoose.Schema.Types.ObjectId;
 }
 
 const ConferenceSchema: Schema = new Schema({
@@ -47,7 +46,6 @@ const ConferenceSchema: Schema = new Schema({
     deadline_submission: { type: Date, required: true },
     deadline_review: { type: Date, required: true },
     created_at: { type: Date, default: Date.now },
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
 }, { collection: 'conferences' });
 
 export default mongoose.model<IConference>('Conference', ConferenceSchema);

@@ -13,16 +13,71 @@
         <router-view />
       </v-container>
     </v-main>
+
+  <!-- Modal for Token Expiration -->
+  <v-dialog v-model="showModal" max-width="600">
+    <v-card>
+      <v-card-title class="headline">Session Expired</v-card-title>
+      <v-card-text>
+        Your session has expired. Would you like to stay logged in?
+      </v-card-text>
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn color="primary" @click="refreshToken">Stay Logged In</v-btn>
+        <v-btn color="error" @click="logout">Log Out</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script lang="ts">
-import {defineComponent} from 'vue'
+import { defineComponent, ref, watch } from 'vue'
 import SideBar from "@/components/common/SideBar.vue";
+import { useAuthStore } from '@/stores/auth.ts'
 
 export default defineComponent({
   name: "AuthenticatedLayout" ,
   components: { SideBar},
-})
+  setup() {
+    const showModal = ref(false);
+    const authStore = useAuthStore();
+
+    // Watch for token expiration
+    watch(
+      () => authStore.token, // Monitor token changes
+      async (token) => {
+        if (!token && authStore.isAuthenticated) {
+          // Token is invalid or expired
+          showModal.value = true;
+        }
+      }
+    );
+
+    // Handle token refresh
+    const refreshToken = async () => {
+      try {
+        await authStore.refreshAccessToken();
+        showModal.value = false;
+      } catch (error) {
+        console.error("Failed to refresh token:", error);
+        logout();
+      }
+    };
+
+    // Handle logout
+    const logout = () => {
+      authStore.logout();
+      showModal.value = false;
+      window.location.href = "/";
+    }
+
+    return {
+      showModal,
+      refreshToken,
+      logout,
+    };
+  }
+});
 </script>
 
 <style lang="scss">
@@ -34,7 +89,7 @@ export default defineComponent({
 .banner-container {
   position: relative;
   width: 100%;
-  height: 600px;
+  height: 500px;
   overflow: hidden;
 
   .banner-image {
@@ -42,9 +97,10 @@ export default defineComponent({
     top: 0;
     left: 0;
     width: 100%;
-    height: 700px;
+    height: 500px;
     object-fit: cover;
     z-index: 1;
+    opacity: 0.5;
   }
 
   .banner-overlay {
@@ -54,7 +110,7 @@ export default defineComponent({
     width: 100%;
     height: 100%;
     z-index: 2;
-    background: linear-gradient(to bottom, rgba(44, 53, 49, 0.7), rgba(0, 0, 0, 0.4));
+    background: linear-gradient(to bottom, rgba(16, 100, 102, 0.6), rgba(0, 0, 0, 0.5));
   }
 }
 
@@ -71,7 +127,7 @@ export default defineComponent({
 
 .main-container {
   position: relative;
-  top: -100px;
+  top: -150px;
 
   /* Profile card container styling */
   .profile {
@@ -80,7 +136,7 @@ export default defineComponent({
     align-items: center;
     z-index: 3;
     position: relative;
-    margin-top: -30px;
+    margin-top: 20px;
   }
 
   .profile-card {
@@ -92,7 +148,5 @@ export default defineComponent({
     max-width: 900px;
   }
 }
-
-
 
 </style>

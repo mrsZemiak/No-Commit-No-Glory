@@ -48,19 +48,6 @@ const routes = [
             component: () => import('@/components/admin/WorksTable.vue'),
             props: true
           },
-          // Modal Routes for Editing
-          {
-            path: 'categories/edit/:id',
-            name: 'EditCategory',
-            component: () => import('@/components/admin/ModalCategory.vue'),
-            props: true,
-          },
-          {
-            path: 'conferences/edit/:id',
-            name: 'EditConference',
-            component: () => import('@/components/admin/ModalConference.vue'),
-            props: true,
-          },
           {
             path: 'users/edit/:id',
             name: 'EditUser',

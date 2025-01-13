@@ -104,6 +104,7 @@ import { defineComponent } from "vue";
 import axios from "axios";
 import ModalQuestion from "./ModalQuestion.vue";
 import type { Question } from "@/types/question";
+import axiosInstance from "@/config/axiosConfig.ts";
 export default defineComponent({
   name: "QuestionTable",
   components: { ModalQuestion },
@@ -159,7 +160,7 @@ export default defineComponent({
   methods: {
     async fetchQuestions() {
       try {
-        const response = await axios.get("/api/admin/questions");
+        const response = await axiosInstance.get("/admin/questions");
         this.questions = response.data;
         this.totalQuestions = response.data.length;
       } catch (error) {
@@ -184,7 +185,7 @@ export default defineComponent({
     },
     async addNewQuestion(newQuestion: Question) {
       try {
-        const response = await axios.post("/api/admin/questions", newQuestion);
+        const response = await axiosInstance.post("/admin/questions", newQuestion);
         this.questions.push(response.data);
         this.totalQuestions++;
         await this.fetchQuestions();
@@ -195,7 +196,7 @@ export default defineComponent({
     },
     async updateQuestion(updatedQuestion: Question) {
       try {
-        await axios.patch(`/api/admin/questions/${updatedQuestion._id}`, updatedQuestion);
+        await axiosInstance.patch(`/admin/questions/${updatedQuestion._id}`, updatedQuestion);
         const index = this.questions.findIndex((q) => q._id === updatedQuestion._id);
         if (index !== -1) {
           this.questions[index] = updatedQuestion;

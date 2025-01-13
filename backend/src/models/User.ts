@@ -46,9 +46,9 @@ const UserSchema: Schema = new Schema(
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String, required: false },
     refreshToken: { type: String, required: false },
-    faculty: { type: String },
-    about: { type: String },
-    avatar: { type: String },
+    faculty: { type: String, default: "" },
+    about: { type: String, default: "" },
+    avatar: { type: String, default: null },
   },
   { collection: 'users' }
 );

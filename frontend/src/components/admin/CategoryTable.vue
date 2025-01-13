@@ -1,178 +1,181 @@
 <template>
-  <div class="table-card">
-    <div class="card-header">
-      <h2>Správa kategórií</h2>
-      <button class="btn btn-primary" @click="openAddModal">Pridať kategóriu</button>
-    </div>
-    <table class="table">
-      <thead>
-      <tr>
-        <th>Názov kategórie</th>
-        <th>Aktívna</th>
-        <th>Akcie</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="category in paginatedCategories" :key="category._id">
-        <td>{{ category.name }}</td>
-        <td>
-          <span :class="category.isActive ? 'badge badge-green' : 'badge badge-red'">
-            {{ category.isActive ? "Áno" : "Nie" }}
-          </span>
-        </td>
-        <td class="button-group">
-          <button class="icon-button" @click="openEditModal(category)"><i class="fa-solid fa-pen-to-square"></i></button>
-        </td>
-      </tr>
-      </tbody>
-    </table>
-
-    <footer class="pagination-footer">
-      <div class="pagination">
-        <button
-          class="btn btn-primary"
-          @click="currentPage > 1 && (currentPage--)"
-          :disabled="currentPage === 1"
-        >
-          <i class="fa-solid fa-chevron-left"></i>
-        </button>
-        <span class="pagination-current">Strana {{ currentPage }}</span>
-        <button
-          class="btn btn-primary"
-          @click="currentPage < totalPages && (currentPage++)"
-          :disabled="currentPage === totalPages"
-        >
-          <i class="fa-solid fa-chevron-right"></i>
-        </button>
+  <v-card>
+    <v-card-title>
+      <div class="d-flex justify-space-between align-center w-100">
+        <h3>Správa kategórií</h3>
+        <v-btn color="primary" @click="openDialog('add')">Pridať kategóriu</v-btn>
       </div>
-    </footer>
-  </div>
+    </v-card-title>
+    <v-data-table
+      :headers="headers"
+      :items="categories"
+      class="custom-table"
+    >
+      <template v-slot:body="{ items }">
+        <tr v-for="category in items" :key="category._id" class="custom-row">
+          <td>{{ category.name }}</td>
+          <td>
+            <v-chip
+              :color="category.isActive ? 'green' : 'grey'"
+              dark
+              small
+              class="custom-chip"
+            >
+              {{ category.isActive ? 'Aktívna' : 'Neaktívna' }}
+            </v-chip>
+          </td>
+          <td>
+            <v-btn @click="openDialog('edit', category)">
+              <v-icon size="24">mdi-pencil</v-icon>
+            </v-btn>
+          </td>
+        </tr>
+      </template>
+    </v-data-table>
 
-  <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
-    <div class="modal-container">
-      <ModalCategory
-        v-if="showModal"
-        :category="selectedCategory"
-        :mode="modalMode"
-        @add="handleAddCategory"
-        @update="handleUpdateCategory"
-        @close="closeModal"
-      />
-    </div>
-  </div>
+    <!-- Add/Edit Dialog -->
+    <v-dialog v-model="isDialogOpen" max-width="800px">
+      <v-card>
+        <v-card-title>
+          {{ dialogMode === 'add' ? 'Pridať kategóriu' : 'Upraviť kategóriu' }}
+        </v-card-title>
+        <v-card-text>
+          <v-form ref="formRef" v-model="valid">
+            <v-text-field
+              v-model="currentCategory.name"
+              label="Názov kategórie"
+              required
+              outlined
+            />
+            <v-select
+              v-model="currentCategory.isActive"
+              :items="[{ title: 'Aktívna', value: true }, { title: 'Neaktívna', value: false }]"
+              label="Stav"
+              outlined
+            />
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="secondary" @click="closeDialog">Zrušiť</v-btn>
+          <v-btn :disabled="!valid" color="primary" @click="saveCategory">
+            {{ dialogMode === 'add' ? 'Pridať' : 'Uložiť' }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-card>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import axios from 'axios';
-import ModalCategory from './ModalCategory.vue';
-import type { Category} from '@/types/category.ts';
+import { defineComponent, ref, reactive, onMounted } from "vue";
+import axiosInstance from "@/config/axiosConfig";
 
 export default defineComponent({
-  name: 'CategoryTable',
-  components: { ModalCategory },
-  data() {
-    return {
-      categories: [] as Category[],
-      currentPage: 1,
-      perPage: 10,
-      totalCategories: 0,
-      showModal: false,
-      selectedCategory: {} as Category,
-      modalMode: 'add' as 'add' | 'edit',
-      isLoading: false,
+  name: "CategoryTable",
+  setup(_, { emit }) {
+    const categories = ref<Array<{ _id: string; name: string; isActive: boolean }>>([]);
+    const isDialogOpen = ref(false);
+    const dialogMode = ref<"add" | "edit">("add");
+    const currentCategory = reactive({ _id: "", name: "", isActive: true });
+    const valid = ref(false);
+    const headers = ref([
+      { title: "Názov kategórie", key: "name" },
+      { title: "Stav", key: "isActive"},
+    ]);
+
+    const fetchCategories = async () => {
+      try {
+        const response = await axiosInstance.get("/auth/admin/categories");
+        // Extract only the `categories` array from the response
+        categories.value = response.data.categories;
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        showSnackbar({ message: "Nepodarilo sa načítať kategórie", color: "error" });
+      }
     };
-  },
-  computed: {
-    totalPages() {
-      return Math.ceil(this.totalCategories / this.perPage);
-    },
-    paginatedCategories() {
-      const startIndex = (this.currentPage - 1) * this.perPage;
-      return this.categories.slice(startIndex, startIndex + this.perPage);
-    },
-    remainingItems() {
-      const startIndex = (this.currentPage - 1) * this.perPage;
-      return this.categories.length - startIndex;
-    },
-  },
-  mounted() {
-    this.fetchCategories();
-  },
-  methods: {
-    async fetchCategories() {
-      if (this.isLoading) return;
-      this.isLoading = true;
-      try {
-        const response = await axios.get(`/api/admin/categories?limit=${this.perPage}&page=${this.currentPage}`
-        );
-        this.categories = response.data.categories;
-        this.totalCategories = response.data.total;
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-        alert('Failed to fetch categories. Please try again.');
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    openAddModal() {
-      this.modalMode = 'add';
-      this.selectedCategory = { _id: '', name: '', isActive: true };
-      this.showModal = true;
-    },
 
-    openEditModal(category: Category) {
-      this.modalMode = 'edit';
-      this.selectedCategory = { ...category };
-      this.showModal = true;
-    },
+    const openDialog = (mode: "add" | "edit", category = { _id: "", name: "", isActive: true }) => {
+      dialogMode.value = mode;
+      Object.assign(currentCategory, category);
+      isDialogOpen.value = true;
+    };
 
-    async handleAddCategory(newCategory: Category) {
-      if (this.isLoading) return;
-      this.isLoading = true;
-      try {
-        const response = await axios.post('/api/admin/categories', {
-          name: newCategory.name,
-          isActive: newCategory.isActive,
-        });
-        this.categories.push({ _id: response.data.id, name: newCategory.name, isActive: newCategory.isActive });
-        this.totalCategories += 1;
-        this.closeModal();
-      } catch (error) {
-        console.error('Error adding category:', error);
-        alert('Failed to add category. Please try again.');
-      } finally {
-        this.isLoading = false;
-      }
-    },
+    const closeDialog = () => {
+      isDialogOpen.value = false;
+      Object.assign(currentCategory, { _id: "", name: "", isActive: true });
+    };
 
-    async handleUpdateCategory(updatedCategory: Category) {
-      if (this.isLoading) return;
-      this.isLoading = true;
+    const saveCategory = async () => {
       try {
-        await axios.patch(`/api/admin/categories/${updatedCategory._id}`, {
-          name: updatedCategory.name,
-          isActive: updatedCategory.isActive,
-        });
-        const index = this.categories.findIndex((cat) => cat._id === updatedCategory._id);
-        if (index !== -1) {
-          this.categories[index] = updatedCategory;
+        if (dialogMode.value === "add") {
+          const response = await axiosInstance.post("/auth/admin/categories", currentCategory);
+          categories.value.push(response.data);
+          showSnackbar({ message: "Kategória bola pridaná", color: "success" });
+        } else {
+          await axiosInstance.patch(`/auth/admin/categories/${currentCategory._id}`, currentCategory);
+          const index = categories.value.findIndex((cat) => cat._id === currentCategory._id);
+          if (index !== -1) categories.value[index] = { ...currentCategory };
+          showSnackbar({ message: "Kategória bola upravená", color: "success" });
         }
-        this.closeModal();
+        closeDialog();
       } catch (error) {
-        console.error('Error updating category:', error);
-        alert('Failed to update category. Please try again.');
-      } finally {
-        this.isLoading = false;
+        console.error("Error saving category:", error);
+        showSnackbar({ message: "Nepodarilo sa uložiť kategóriu", color: "error" });
       }
-    },
-    closeModal() {
-      this.showModal = false;
-    },
+    };
+
+    const showSnackbar = ({ message, color }: { message: string; color: string }) => {
+      emit("snackbar", { message, color });
+    };
+
+    onMounted(fetchCategories);
+
+    return {
+      categories,
+      isDialogOpen,
+      dialogMode,
+      currentCategory,
+      valid,
+      headers,
+      fetchCategories,
+      openDialog,
+      closeDialog,
+      saveCategory,
+    };
   },
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
+.v-card {
+  padding: 25px;
 
+  .v-card-title {
+    margin: 10px;
+    font-size: 1.5rem;
+    color: #116466;
+    text-transform: uppercase;
+  }
+
+  .v-btn {
+    margin-left: 10px;
+  }
+
+  .custom-table thead th{
+    font-size: 1.3rem;
+    background-color: rgba(16, 100, 102, 0.2);
+    color: #2c3531;
+
+  }
+  .custom-table td {
+    font-size: 1.2rem;
+    font-weight: normal;
+    padding-top: 20px;
+
+    .custom-chip {
+      font-size: 1.1rem;
+      padding: 10px 8px;
+    }
+  }
+}
 </style>

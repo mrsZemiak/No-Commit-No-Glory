@@ -17,6 +17,80 @@ $white: #FFF;
 
 $border-radius-8: 8px;
 
+.v-dialog {
+  max-width: 1000px !important;
+
+  .v-card {
+    padding: 16px;
+
+    .v-btn {
+      font-size: 1.2rem;
+      padding: 12px 12px; /* Adjust button padding */
+    }
+
+    /* Align actions at the bottom */
+    .v-card-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .v-card-title {
+      font-size: 2rem;
+      font-weight: bold;
+      text-align: center;
+    }
+  }
+}
+
+.large-text-field input {
+  font-size: 20px;
+}
+
+.large-text-field label {
+  font-size: 20px;
+}
+
+.large-text-field select {
+  font-size: 20px;
+}
+
+.large-text-field .v-input__control {
+  font-size: 1.5rem;
+}
+
+.v-card {
+  padding: 25px;
+
+  .v-card-title {
+    margin: 10px;
+    font-size: 1.5rem;
+    color: #116466;
+    text-transform: uppercase;
+  }
+
+  .v-btn {
+    margin-left: 10px;
+  }
+
+  .custom-table thead th{
+    font-size: 1.3rem;
+    background-color: rgba(16, 100, 102, 0.2);
+    color: #2c3531;
+
+  }
+  .custom-table td {
+    font-size: 1.2rem;
+    font-weight: normal;
+    padding-top: 20px;
+
+    .custom-chip {
+      font-size: 1.1rem;
+      padding: 10px 8px;
+    }
+  }
+}
+
 // Layout
 .layout {
   display: flex;

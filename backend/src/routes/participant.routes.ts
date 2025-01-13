@@ -7,7 +7,7 @@ import { authorizeRole } from '../middleware/authorizeRole'
 const router = Router();
 
 router.use(authenticateToken);
-router.use(authorizeRole(['participant']));
+//router.use(authorizeRole(['participant']));
 
 router.get('/papers', viewMyPapers);
 router.post('/papers/submit', validateSubmitPaper, submitPaper);

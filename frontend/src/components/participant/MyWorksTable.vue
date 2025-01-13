@@ -170,6 +170,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import axios from 'axios'
+import axiosInstance from "@/config/axiosConfig.ts";
 
 export interface Author {
   firstName: string;
@@ -250,7 +251,7 @@ export default defineComponent({
         const token = "token123"; // Replace with the actual token from your database
         //const token = localStorage.getItem('authToken'); // Replace with your actual token retrieval logic
 
-        const response = await axios.get('/api/participant/papers', {
+        const response = await axiosInstance.get('/participant/papers', {
           headers: {
             Authorization: `Bearer ${token}`, // Include the token
           },

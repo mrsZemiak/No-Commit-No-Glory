@@ -41,14 +41,6 @@
           <v-col cols="12">
             <v-textarea v-model="form.about" label="O mne" outlined></v-textarea>
           </v-col>
-          <v-col cols="12">
-            <v-file-input
-              v-model="form.avatar"
-              label="Nahrajte avatar"
-              accept="image/*"
-              outlined
-            ></v-file-input>
-          </v-col>
           <v-col cols="12" md="6">
             <v-text-field
               v-model="form.currentPassword"
@@ -65,6 +57,23 @@
               outlined
             ></v-text-field>
           </v-col>
+          <v-col cols="12">
+            <v-file-input
+              v-model="form.avatar"
+              label="Nahrajte avatar"
+              accept="image/*"
+              outlined
+              @change="onAvatarChange"
+            ></v-file-input>
+          </v-col>
+          <v-col cols="12" class="text-center">
+            <img
+              :src="avatarPreview"
+              alt="Avatar Preview"
+              style="max-width: 150px; border-radius: 10%;"
+            />
+          </v-col>
+
         </v-row>
 
         <!-- Form Actions -->
@@ -80,77 +89,155 @@
 </template>
 
 <script lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from "@/stores/auth";
-import axios from "axios";
 import defaultAvatar from "@/assets/images/unknown_person.jpg";
+import { AxiosError } from 'axios'
+
+interface FormType {
+  first_name: string;
+  last_name: string;
+  university: string;
+  faculty: string;
+  about: string;
+  avatar: File | null;
+  currentPassword: string;
+  newPassword: string;
+  [key: string]: any; // Allow dynamic indexing
+}
 
 export default {
-  setup() {
-    const authStore = useAuthStore();
-    const profile = computed(() => authStore.user); // reactive user data from the store
-    const editMode = ref(false); // toggle form visibility
-    const valid = ref(true); // form validation state
-    const isLoading = ref(false);
+  setup: function() {
+    const authStore = useAuthStore()
+    const profile = computed(() => authStore.user) // reactive user data from the store
+    const editMode = ref(false) // toggle form visibility
+    const isLoading = ref(false)
+    const errorMessage = ref('')
+    const valid = ref(true)
+    const formRef = ref()
+    const validateForm = () => {
+      if (formRef.value) {
+        valid.value = formRef.value.validate()
+      }
+    }
 
     // Initialize form with store data
-    const form = ref({
-      first_name: "",
-      last_name: "",
-      university: "",
-      faculty: "",
-      about: "",
+    const form = ref<FormType>({
+      first_name: '',
+      last_name: '',
+      university: '',
+      faculty: '',
+      about: '',
       avatar: null,
-      currentPassword: "",
-      newPassword: "",
-    });
+      currentPassword: '',
+      newPassword: ''
+    })
+
+    // Populate form data with the user's profile
+    const populateForm = () => {
+      form.value = {
+        first_name: profile.value?.first_name || '',
+        last_name: profile.value?.last_name || '',
+        university: profile.value?.university || '',
+        faculty: profile.value?.faculty || '',
+        about: profile.value?.about || '',
+        avatar: null, // avatar upload will be handled separately
+        currentPassword: '',
+        newPassword: ''
+      }
+    }
 
     const toggleEditMode = () => {
-      if (editMode.value) {
-        // Reset form data if canceled
-        form.value = {
-          first_name: profile.value?.first_name || "",
-          last_name: profile.value?.last_name || "",
-          university: profile.value?.university || "",
-          faculty: profile.value?.faculty || "",
-          about: profile.value?.about || "",
-          avatar: null,
-          currentPassword: "",
-          newPassword: "",
-        };
+      if (!editMode.value) {
+        populateForm() // Populate the form when entering edit mode
       }
-      editMode.value = !editMode.value;
-    };
+      editMode.value = !editMode.value
+    }
+
+    let avatarObjectURL: string | null = null
+
+    watch(
+      () => form.value.avatar, // Watch the avatar property
+      (newAvatar, oldAvatar) => {
+        // Revoke the previous object URL if it exists
+        if (avatarObjectURL) {
+          URL.revokeObjectURL(avatarObjectURL)
+          avatarObjectURL = null // Reset the stored URL
+        }
+
+        // Create a new object URL for the new avatar
+        if (newAvatar instanceof File) {
+          avatarObjectURL = URL.createObjectURL(newAvatar)
+        }
+      }
+    )
+
+    // Computed property for avatar preview
+    const avatarPreview = computed(() => {
+      if (form.value.avatar instanceof File) {
+        return avatarObjectURL || URL.createObjectURL(form.value.avatar)
+      }
+      return profile.value?.avatar || '' // Default profile avatar
+    })
+
+    const onAvatarChange = (file: File | null) => {
+      form.value.avatar = file
+    }
 
     const saveProfile = async () => {
-      isLoading.value = true;
+      isLoading.value = true
+      errorMessage.value = '' // Clear any previous errors
       try {
-        await authStore.updateProfile(form.value);
-        toggleEditMode();
-        console.log("Profile updated successfully");
+        const updatedForm = new FormData()
+        for (const key in form.value) {
+          if (form.value[key]) {
+            updatedForm.append(key, form.value[key])
+          }
+        }
+
+        // Call the store action to update the profile
+        await authStore.updateProfile(updatedForm)
+
+        toggleEditMode()
+        console.log('Profile updated successfully')
       } catch (error) {
-        console.error("Error saving profile:", error);
+        if (error instanceof AxiosError) {
+          errorMessage.value = error.response?.data?.message || 'Failed to update profile.'
+        } else {
+          errorMessage.value = 'An unknown error occurred.'
+        }
       } finally {
-        isLoading.value = false;
+        isLoading.value = false
       }
-    };
+    }
 
     onMounted(async () => {
       if (authStore.isAuthenticated) {
-        await authStore.fetchUserProfile(); // Fetch user profile only if authenticated
+        try {
+          await authStore.fetchUserProfile() // Fetch user profile only if authenticated
+          populateForm() // Populate the form with fetched data
+        } catch (error) {
+          console.error('Error fetching profile:', error)
+          errorMessage.value = 'Failed to load profile data.'
+        }
       }
-    });
+    })
 
     return {
       profile,
       defaultAvatar,
       editMode,
-      valid,
+      isLoading,
+      errorMessage,
       form,
+      valid,
+      avatarPreview,
+      onAvatarChange,
+      validateForm,
       toggleEditMode,
-      saveProfile,
-    };
-  },
+      saveProfile
+    }
+  }
 };
 </script>
 
@@ -175,7 +262,7 @@ export default {
 }
 
 .v-avatar img {
-  border-radius: 50%;
+  border-radius: 10%;
   object-fit: cover;
   padding-bottom: 20px;
 }

@@ -82,18 +82,7 @@
         dense
         item-value="_id"
       >
-        <template v-slot:top>
-          <v-toolbar flat>
-            <v-spacer></v-spacer>
-            <v-pagination
-              v-model="currentPage"
-              :length="totalPages"
-              :total-visible="7"
-              color="primary"
-              dense
-            />
-          </v-toolbar>
-        </template>
+
         <template v-slot:body="{ items }">
           <tr v-for="user in items" :key="user._id">
             <td>{{ user.first_name }}</td>
@@ -193,13 +182,13 @@ export default defineComponent({
 
     // Table headers
     const tableHeaders = [
-      { text: "Meno", value: "first_name" },
-      { text: "Priezvisko", value: "last_name" },
-      { text: "Email", value: "email" },
-      { text: "Univerzita", value: "university" },
-      { text: "Stav", value: "status" },
-      { text: "Role", value: "role.name" },
-      { text: "Akcie", value: "actions", sortable: false },
+      { title: "Meno", value: "first_name" },
+      { title: "Priezvisko", value: "last_name" },
+      { title: "Email", value: "email" },
+      { title: "Univerzita", value: "university" },
+      { title: "Stav", value: "status" },
+      { title: "Role", value: "role.name" },
+      { title: "Akcie", value: "actions", sortable: false },
     ];
 
     // Options for filtering
@@ -351,4 +340,36 @@ export default defineComponent({
 });
 </script>
 
-<style></style>
+<style lang="scss">
+.v-card {
+  padding: 25px;
+
+  .v-card-title {
+    margin: 10px;
+    font-size: 1.5rem;
+    color: #116466;
+    text-transform: uppercase;
+  }
+
+  .v-btn {
+    margin-left: 10px;
+  }
+
+  .custom-table thead th{
+    font-size: 1.3rem;
+    background-color: rgba(16, 100, 102, 0.4);
+    border-radius: 20px;
+
+  }
+  .custom-table td {
+    font-size: 1.2rem;
+    font-weight: normal;
+    padding-top: 20px;
+
+    .custom-chip {
+      font-size: 1.1rem;
+      padding: 10px 8px;
+    }
+  }
+}
+</style>

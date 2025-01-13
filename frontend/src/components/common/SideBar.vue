@@ -45,7 +45,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth'; //Use auth store for role-based rendering
+import { useAuthStore } from '@/stores/auth';
 
 interface Link {
   name: string;
@@ -85,11 +85,10 @@ const roleSpecificLinks = computed(() => {
   return [];
 });
 
-
-// Navigation
 function navigateTo(path: string): void {
   if (path === "/auth/logout") {
     authStore.logout();
+    router.push("/");
   } else {
     router.push(path);
   }
@@ -98,7 +97,7 @@ function navigateTo(path: string): void {
 
 <style lang="scss" scoped>
 .sidebar {
-  width: 300px;
+  width: 350px;
   top: 0;
   background-color: #f8f9fa;
   border-radius: 10px;

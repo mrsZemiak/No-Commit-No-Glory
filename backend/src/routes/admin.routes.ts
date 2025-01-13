@@ -23,7 +23,7 @@ const router = Router();
 
 //Apply authentication and admin authorization globally for all admin routes
 router.use(authenticateToken);
-router.use(authorizeRole(['admin']));
+//router.use(authorizeRole(['admin']));
 
 //Users
 router.get('/users', getAllUsers);

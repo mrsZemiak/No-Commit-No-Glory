@@ -38,6 +38,6 @@ export const getHomepageData = async (_req: Request, res: Response): Promise<voi
     });
   } catch (error) {
     console.error('Error fetching homepage data:', error);
-    res.status(500).json({ message: 'Failed to fetch homepage data', error });
+    res.status(500).json({ message: 'Nepodarilo sa načítať údaje domovskej stránky', error });
   }
 };

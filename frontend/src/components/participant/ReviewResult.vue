@@ -20,6 +20,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import axios from 'axios';
+import axiosInstance from "@/config/axiosConfig.ts";
 
 export default defineComponent({
   name: 'ReviewResult',
@@ -46,8 +47,8 @@ export default defineComponent({
       try {
         // Fetch questions and review data for the specific work
         const [questionsResponse, reviewResponse] = await Promise.all([
-          axios.get('http://localhost:5000/api/questions'),
-          axios.get(`http://localhost:5000/api/review/${this.id}`),
+          axiosInstance.get('/questions'),
+          axiosInstance.get(`/review/${this.id}`),
         ]);
 
         this.questions = questionsResponse.data;

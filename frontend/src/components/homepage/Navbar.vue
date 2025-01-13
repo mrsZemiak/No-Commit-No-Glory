@@ -13,7 +13,7 @@
     <v-spacer></v-spacer>
 
     <!-- Login Button -->
-    <v-btn outlined class="login-button me-6" @click="loginDialog = true">
+    <v-btn outlined class="login-button" @click="loginDialog = true">
       Prihlásenie
       <v-icon left>mdi-login</v-icon>
     </v-btn>
@@ -25,7 +25,7 @@
       variant="text"
       class="github-icon"
     >
-      <v-icon size="48" color="#2C3531">mdi-github</v-icon>
+      <v-icon size="54" color="#2C3531">mdi-github</v-icon>
     </v-btn>
 
     <!-- Login/Registration Modal -->
@@ -43,7 +43,6 @@
                 v-model="loginEmail"
                 label="Email"
                 type="email"
-                autocomplete="email"
                 :error-messages="getError('email')"
                 required
                 class="large-text-field"
@@ -52,7 +51,6 @@
                 v-model="loginPassword"
                 :type="showPassword ? 'text' : 'password'"
                 label="Heslo"
-                autocomplete="password"
                 :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                 @click:append="togglePasswordVisibility"
                 :error-messages="getError('password')"
@@ -70,7 +68,6 @@
               <v-text-field
                 v-model="registerFirstName"
                 label="Meno"
-                autocomplete="given-name"
                 :error-messages="getError('first_name')"
                 required
                 class="large-text-field"
@@ -78,7 +75,6 @@
               <v-text-field
                 v-model="registerLastName"
                 label="Priezvisko"
-                autocomplete="family-name"
                 :error-messages="getError('last_name')"
                 required
                 class="large-text-field"
@@ -87,7 +83,6 @@
                 v-model="registerEmail"
                 label="Email"
                 type="email"
-                autocomplete="email"
                 required
                 class="large-text-field"
               ></v-text-field>
@@ -95,7 +90,6 @@
                 v-model="registerPassword"
                 :type="showPassword ? 'text' : 'password'"
                 label="Heslo"
-                autocomplete="new-password"
                 :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                 @click:append="togglePasswordVisibility"
                 :error-messages="passwordError"
@@ -107,7 +101,6 @@
                 v-model="confirmPassword"
                 :type="showConfirmPassword ? 'text' : 'password'"
                 label="Zopakujte heslo"
-                name="new-password"
                 :error-messages="passwordError"
                 required
                 class="large-text-field"
@@ -360,15 +353,18 @@ export default defineComponent({
 <style lang="scss">
 .v-app-bar {
   box-shadow: none;
-  height: 80px;
-  padding-top: 8px;
+  height: 100px;
+  padding-top: 15px;
+  align-content: center;
+  border: none;
 
   .v-app-bar-title {
-    padding-top: 10px;
-
+    padding-left: 10px;
     img {
-      max-height: 60px;
-      height: auto;
+      height: 80px;
+      max-width: 100%;
+      object-fit: contain;
+      display: block
     }
 
     img:hover {
@@ -379,13 +375,14 @@ export default defineComponent({
   .login-button {
     display:flex;
     align-items: center;
-    gap:8px;
+    gap:10px;
     font-weight: bold;
+    font-size: 1.2rem;
     color: #fff !important;
     border: none;
     border-radius: 8px;
     background-color: #BC463A ;
-    padding: 20px 20px;
+    padding: 30px 20px;
     box-shadow: 0 0 4px rgba( 0, 0, 0, 0.2);
 
     &:hover {
@@ -399,7 +396,7 @@ export default defineComponent({
     }
 
     .v-icon {
-      font-size: 20px;
+      font-size: 30px;
       line-height: 1;
       display: inline-flex;
       align-items: center;
@@ -449,7 +446,7 @@ export default defineComponent({
 }
 
 .large-text-field .v-input__control {
-  font-size: 20px;
+  font-size: 1.5rem;
 }
 
 .margin-top-btn {

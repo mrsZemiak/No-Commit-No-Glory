@@ -28,11 +28,16 @@ axiosInstance.interceptors.response.use(
   async (error) => {
     const authStore = useAuthStore();
 
-    // If token is expired, try refreshing
+    // Check if error is due to token expiration
+    if (error.response?.status === 401 && error.response?.data?.message === 'Token expired') {
+      authStore.isTokenExpired = true; // Set token expired state
+      return Promise.reject(error); // Reject the error so the modal can be shown
+    }
+
+    // Try refresh expired token
     if (error.response?.status === 401) {
       try {
         await authStore.refreshAccessToken();
-        // Retry the failed request with the new token
         error.config.headers['Authorization'] = `Bearer ${authStore.token}`;
         return axiosInstance.request(error.config);
       } catch (refreshError) {
