@@ -9,6 +9,8 @@
       :headers="headers"
       :items="categories"
       class="custom-table"
+      :pageText="'{0}-{1} z {2}'"
+      items-per-page-text="Kategórie na stránku"
     >
       <template v-slot:body="{ items }">
         <tr v-for="category in items" :key="category._id" class="custom-row">

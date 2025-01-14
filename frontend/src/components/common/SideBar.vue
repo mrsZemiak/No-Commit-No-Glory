@@ -120,7 +120,7 @@ function navigateTo(path: string): void {
   }
 
   .v-list-item-title {
-    font-size: 1.5rem;
+    font-size: 1.2rem;
     font-family: 'Lato', sans-serif;
     color: #2c3531;
   }

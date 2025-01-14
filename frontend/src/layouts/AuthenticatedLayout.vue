@@ -179,21 +179,34 @@ export default defineComponent({
   }
 
   .custom-table thead th{
+<<<<<<< HEAD
     font-size: 1.3rem;
+=======
+    font-size: 1.2rem;
+>>>>>>> f139a5c97084fde29b8869dafd17baaf11a55e97
     font-weight: bold !important;
     background-color: rgba(16, 100, 102, 0.2);
     color: #2c3531;
+    padding-left: 20px !important;
 
   }
   .custom-table td {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: normal;
 
     .custom-chip {
       font-size: 1.1rem;
       padding: 10px 8px;
     }
-  }
+    }
 }
 
+<<<<<<< HEAD
+=======
+div .v-btn {
+  font-size:1rem !important;
+}
+
+
+>>>>>>> f139a5c97084fde29b8869dafd17baaf11a55e97
 </style>

@@ -44,9 +44,14 @@
     <v-data-table
       :headers="tableHeaders"
       :items="paginatedQuestions"
+<<<<<<< HEAD
       :items-per-page="perPage"
       :page.sync="currentPage"
       :total-items="filteredQuestions.length"
+=======
+      :items-per-page="perPage":pageText="'{0}-{1} z {2}'"
+      items-per-page-text="Otázky na stránku"
+>>>>>>> f139a5c97084fde29b8869dafd17baaf11a55e97
       item-value="_id"
       dense
       class="custom-table"
