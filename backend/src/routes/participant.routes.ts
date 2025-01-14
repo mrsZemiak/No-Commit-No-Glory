@@ -1,17 +1,31 @@
 import { Router } from 'express';
-import {editPaper, getPaperById, submitPaper, viewMyPapers} from '../controllers/participant.controller'
-import { validateSubmitPaper } from '../middleware/validation'
+import {
+  editPaper,
+  getCategories, getConferences,
+  getPaperById,
+  submitPaper,
+  viewMyPapers
+} from '../controllers/participant.controller'
+import { validateRequest, validateSubmitPaper } from '../middleware/validation'
 import { authenticateToken } from '../middleware/authenticateToken'
-import { authorizeRole } from '../middleware/authorizeRole'
+import paperUpload from '../middleware/fileUpload'
 
 const router = Router();
 
 router.use(authenticateToken);
-//router.use(authorizeRole(['participant']));
 
 router.get('/papers', viewMyPapers);
-router.post('/papers/submit', validateSubmitPaper, submitPaper);
-router.put('/papers/:paperId', editPaper)
+router.post(
+  '/upload-paper',
+  paperUpload.single('paper'),
+  validateSubmitPaper,
+  validateRequest,
+  submitPaper
+);
+router.patch('/papers/:paperId', editPaper)
 router.get('/papers/:paperId', getPaperById)
+router.get("/categories", getCategories)
+router.get("/conferences", getConferences)
+
 
 export default router;

@@ -196,29 +196,38 @@ const handleFileChange = () => {
 };
 
 const handleSubmit = async () => {
-  const payload = {
-    title: form.value.submissionName,
-    category: form.value.categoryPick,
-    conference: form.value.conferencePick,
-    abstract: form.value.abstract,
-    keywords: form.value.keywords,
-    authors: [
+  const formData = new FormData();
+  formData.append("title", form.value.submissionName);
+  formData.append("category", form.value.categoryPick);
+  formData.append("conference", form.value.conferencePick);
+  formData.append("abstract", form.value.abstract);
+  formData.append("keywords", form.value.keywords);
+  formData.append(
+    "authors",
+    JSON.stringify([
       { firstName: form.value.first_name, lastName: form.value.last_name },
       ...form.value.otherAuthors.map((name) => {
         const [firstName, lastName] = name.split(" ");
         return { firstName, lastName };
       }),
-    ],
-  };
+    ])
+  );
+  if (form.value.projectFile) {
+    formData.append("file", form.value.projectFile);
+  }
 
   const url = workId ? `/participant/papers/${workId}` : "/participant/papers";
 
   try {
     if (workId) {
-      await axiosInstance.patch(url, payload);
+      await axiosInstance.patch(url, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       showSnackbar({ message: "Práca bola úspešne aktualizovaná.", color: "success" });
     } else {
-      await axiosInstance.post(url, payload);
+      await axiosInstance.post(url, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       showSnackbar({ message: "Práca bola úspešne odovzdaná.", color: "success" });
     }
   } catch (error) {

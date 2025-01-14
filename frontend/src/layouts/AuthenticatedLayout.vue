@@ -147,6 +147,7 @@ export default defineComponent({
     max-width: 900px;
   }
 }
+
 .v-card {
   padding: 25px;
 
@@ -157,12 +158,29 @@ export default defineComponent({
     text-transform: uppercase;
   }
 
+  .v-card-subtitle {
+    padding-inline: 30px;
+  }
+
   .v-btn {
-    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-right: 5px;
+    font-size:1.2rem;
+  }
+
+  .add_new {
+    margin-bottom: 20px !important;
+    margin-left: 30px;
+  }
+
+  .custom-table {
+    padding-inline: 30px;
   }
 
   .custom-table thead th{
     font-size: 1.3rem;
+    font-weight: bold !important;
     background-color: rgba(16, 100, 102, 0.2);
     color: #2c3531;
 
@@ -170,7 +188,6 @@ export default defineComponent({
   .custom-table td {
     font-size: 1.2rem;
     font-weight: normal;
-    padding-top: 20px;
 
     .custom-chip {
       font-size: 1.1rem;
@@ -178,10 +195,5 @@ export default defineComponent({
     }
   }
 }
-
-div .v-btn {
-  font-size:1.2rem;
-}
-
 
 </style>

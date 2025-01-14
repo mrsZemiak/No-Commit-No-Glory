@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Confernce from "./models/Conference";
+import Role from './models/Role'
 
 const updateDatabase = async () => {
   try {
@@ -11,11 +12,11 @@ const updateDatabase = async () => {
     console.log("Connected to the database.");
 
     // Update all existing documents to include new fields
-    const result = await Confernce.updateMany(
+    const result = await Role.updateMany(
       {}, // Match all documents
       {
         $set: {
-          date: "", // Default value for 'faculty'
+          name: "",
         },
       }
     );
@@ -33,7 +34,7 @@ const updateDatabase = async () => {
 // Run the script
 (async () => {
   try {
-    await updateDatabase(); // Ensure the Promise is handled
+    await updateDatabase();
   } catch (error) {
     console.error("Error running the database update script:", error);
   }

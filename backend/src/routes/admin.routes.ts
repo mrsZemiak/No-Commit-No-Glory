@@ -13,28 +13,25 @@ import {
     downloadPapersByConference,
     changeSubmissionDeadline,
     getAllQuestions,
-    createQuestion, updateQuestion
+    createQuestion, updateQuestion, deleteCategory
 } from '../controllers/admin.controller'
-//import { authorizeRole } from '../middleware/authorizeRole';
 import { authenticateToken } from '../middleware/authenticateToken';
 import { validateEditUserDetails, validateRequest } from '../middleware/validation';
-import { updateConferenceStatusMiddleware } from '../middleware/updateStatus'
 
 const router = Router();
 
 //Apply authentication and admin authorization globally for all admin routes
 router.use(authenticateToken);
-//router.use(updateConferenceStatusMiddleware);
-//router.use(authorizeRole(['admin']));
 
 //Users
 router.get('/users', getAllUsers);
-router.patch('/user/edit', validateEditUserDetails, validateRequest, editUserDetails);
+router.patch('/users/:userId', validateEditUserDetails, validateRequest, editUserDetails);
 
 //Categories
 router.get('/categories', getAllCategories);
 router.post('/categories', createCategory);
 router.patch('/categories/:categoryId', updateCategory);
+router.delete('/categories/:categoryId', deleteCategory);
 
 // Conferences
 router.get('/conferences', getAllConferences);

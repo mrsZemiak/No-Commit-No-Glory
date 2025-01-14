@@ -5,7 +5,6 @@
         <h3>Správa Otázok</h3>
       </div>
     </v-card-title>
-
     <v-card-subtitle>
       <v-row>
         <v-col cols="12" md="3">
@@ -46,35 +45,37 @@
       :headers="tableHeaders"
       :items="paginatedQuestions"
       :items-per-page="perPage"
+      :page.sync="currentPage"
+      :total-items="filteredQuestions.length"
       item-value="_id"
       dense
-      class="elevation-1"
+      class="custom-table"
     >
       <template v-slot:body="{ items }">
-        <tr v-for="question in items" :key="question._id">
+        <tr v-for="question in items" :key="question._id" class="custom-row">
           <td>{{ question.text }}</td>
           <td>
-            <v-chip color="primary" dark small>
+            <v-chip color="primary" dark small class="custom-chip">
               {{ questionLabels[question.type] || "Neznámy typ" }}
             </v-chip>
           </td>
           <td>
-            <v-chip color="brown" dark small>
+            <v-chip color="brown" dark small class="custom-chip">
               {{ question.category || "N/A" }}
             </v-chip>
           </td>
-          <td>
-            <v-btn @click="openDialog('edit', question)">
-              <v-icon>mdi-pencil</v-icon>
+          <td style="display: flex; justify-content: center; align-items: center;">
+            <v-btn color="#E7B500" class="btn_icons" @click="openDialog('edit', question)">
+              <v-icon size="24">mdi-pencil</v-icon>
             </v-btn>
           </td>
         </tr>
       </template>
     </v-data-table>
 
-    <v-btn color="primary" @click="openDialog('add')">Pridať Otázku</v-btn>
+    <v-btn color="primary" class="add_new" @click="openDialog('add')">Pridať Otázku</v-btn>
 
-    <v-dialog v-model="dialogVisible" max-width="600px">
+    <v-dialog v-model="dialogVisible" max-width="800px">
       <v-card>
         <v-card-title>{{ dialogMode === 'add' ? 'Pridať Otázku' : 'Upraviť Otázku' }}</v-card-title>
         <v-card-text>
@@ -239,4 +240,5 @@ onMounted(fetchQuestions);
 </script>
 
 <style lang="scss">
+
 </style>

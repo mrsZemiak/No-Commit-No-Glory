@@ -66,14 +66,6 @@
               @change="onAvatarChange"
             ></v-file-input>
           </v-col>
-          <v-col cols="12" class="text-center">
-            <img
-              :src="avatarPreview"
-              alt="Avatar Preview"
-              style="max-width: 150px; border-radius: 10%;"
-            />
-          </v-col>
-
         </v-row>
 
         <!-- Form Actions -->
@@ -172,14 +164,6 @@ export default {
       }
     )
 
-    // Computed property for avatar preview
-    const avatarPreview = computed(() => {
-      if (form.value.avatar instanceof File) {
-        return avatarObjectURL || URL.createObjectURL(form.value.avatar)
-      }
-      return profile.value?.avatar || '' // Default profile avatar
-    })
-
     const onAvatarChange = (file: File | null) => {
       form.value.avatar = file
     }
@@ -231,7 +215,6 @@ export default {
       errorMessage,
       form,
       valid,
-      avatarPreview,
       onAvatarChange,
       validateForm,
       toggleEditMode,
@@ -275,6 +258,7 @@ export default {
 .v-text-field,
 .v-file-input {
   margin-bottom: 16px;
+  font-size: 1.2rem;
 }
 
 </style>

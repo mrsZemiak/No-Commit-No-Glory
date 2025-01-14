@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import * as jwt from 'jsonwebtoken';
 import * as argon2 from 'argon2';
 import { config } from '../config'
-import User from '../models/User'
+import User, { UserStatus } from '../models/User'
 import { AuthRequest } from '../middleware/authenticateToken'
 
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
@@ -32,6 +32,12 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         //Check if the user is verified
         if (!user.isVerified) {
             res.status(403).json({ message: 'Prosím overte svoj email pred prihlásením' });
+            return;
+        }
+
+        if(user.status === UserStatus.Pending || user.status === UserStatus.Inactive || user.status === UserStatus.Suspended) {
+            res.status(403).json({
+                message: 'Nemôžete sa prihlásiť, váš účet nie je aktívny'});
             return;
         }
 

@@ -181,7 +181,7 @@ export default defineComponent({
     const registerUniversity = ref('');
     const registerRole = ref('');
     const universities = ref(['Univerzita Konštantína Filozofa', 'Univerzita Mateja Bela', 'Univerzita sv. Cyrila a Metoda']);
-    const roles = ref(['Účastník', 'Recenzent', 'Admin']);
+    const roles = ref(['Účastník', 'Recenzent', 'Administrator']);
 
     const router = useRouter();
     const authStore = useAuthStore();

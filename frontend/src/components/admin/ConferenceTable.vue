@@ -46,10 +46,8 @@
           />
         </v-col>
         <v-col cols="8" md="2">
-          <v-btn color="primary" small @click="resetFilters">Zrušiť filtrovanie</v-btn>
+          <v-btn color="primary" small @click="resetFilters">Zrušiť filtr</v-btn>
         </v-col>
-      </v-row>
-      <v-row>
       </v-row>
     </v-card-subtitle>
 
@@ -83,15 +81,15 @@
           <td>{{ formatTimestamp(conference.start_date) }}</td>
           <td>{{ formatTimestamp(conference.end_date) }}</td>
           <td>{{ formatTimestamp(conference.deadline_submission) }}</td>
-          <td>
+          <td style="display: flex; justify-content: center; align-items: center;">
             <v-btn color="primary" @click="viewConferenceDetails(conference)">
               <v-icon size="24">mdi-eye</v-icon>
             </v-btn>
-            <v-btn color="#FFF4E2" @click="openDialog('edit', conference)">
+            <v-btn color="#E7B500" class="btn_icons" @click="openDialog('edit', conference)">
               <v-icon size="24">mdi-pencil</v-icon>
             </v-btn>
             <v-btn color="tertiary" @click="viewWorksForConference(conference)">
-              <v-icon size="24">mdi-file</v-icon>
+              <v-icon size="24" color="black">mdi-file</v-icon>
             </v-btn>
           </td>
         </tr>
@@ -239,6 +237,7 @@ export default defineComponent({
 
     // Table Headers
     const tableHeaders = ref([
+      { title: "Stav", value: "status" },
       { title: "Rok", value: "year", sortable: true },
       { title: "Konferencia", value: "date", sortable: true },
       { title: "Univerzita", value: "university" },
@@ -246,7 +245,6 @@ export default defineComponent({
       { title: "Začiatok", value: "start_date", sortable: true },
       { title: "Koniec", value: "end_date", sortable: true },
       { title: "Odovzdanie prác", value: "deadline_submission" },
-      { title: "Stav", value: "status" },
       { title: "", value: "actions", sortable: false },
     ]);
     // Status options for filtering
@@ -318,18 +316,6 @@ export default defineComponent({
     const openDialog = (mode: 'add' | 'edit' | 'view', conference: ConferenceAdmin | null = null) => {
       dialogMode.value = mode; // Set the mode
       dialogVisible.value = true; // Show the dialog
-
-      const translatedStatus = computed(() => {
-        return dialogForm.value.status === 'Nadchádzajúca'
-          ? 'upcoming'
-          : dialogForm.value.status === 'Aktuálna'
-            ? 'ongoing'
-            : dialogForm.value.status === 'Ukončená'
-              ? 'completed'
-              : dialogForm.value.status === 'Zrušená'
-                ? 'canceled'
-                : '';
-      });
 
       if (mode === 'add') {
         // Initialize form with default values
@@ -469,9 +455,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-
-.add_new {
-  margin-bottom: 20px;
-}
 
 </style>

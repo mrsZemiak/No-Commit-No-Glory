@@ -45,10 +45,9 @@ export const updateProfileValidationRules = [
 
 //Validation rules for admin to edit user status and role
 export const validateEditUserDetails = [
-    body('userId').notEmpty().withMessage('User ID is required'),
-    body('status').optional().isIn(['new', 'active', 'suspended', 'inactive']).withMessage('Invalid status value'),
+    body('status').optional().isIn(['Aktívny', 'Neaktívny', 'Pozastavený', 'Čakajúci']).withMessage('Invalid status value'),
     body('role').optional().custom(async (value) => {
-        const roleExists = await Role.findById(value);
+        const roleExists = await Role.findById(value.name);
         if (!roleExists) {
             throw new Error('Invalid role value');
         }
@@ -60,44 +59,44 @@ export const validateEditUserDetails = [
 export const validateSubmitPaper = [
     body('title')
       .notEmpty()
-      .withMessage('Title is required.')
+      .withMessage('Vyžaduje sa názov')
       .isLength({ max: 200 })
       .withMessage('Title must be at most 200 characters.'),
     body('abstract')
-      .notEmpty()
-      .withMessage('Abstract is required.')
-      .isLength({ max: 150 })
-      .withMessage('Abstract must be at most 1000 characters.'),
+      .notEmpty().withMessage('Vyžaduje sa abstrakt')
+      .custom((value) => {
+          const wordCount = value.trim().split(/\s+/).length; // Count words in the abstract
+          if (wordCount > 150) {
+              throw new Error('Abstrakt nesmie presiahnuť 150 slov');
+          }
+          return true;
+      }),
     body('keywords')
       .isArray({ min: 1 })
-      .withMessage('At least one keyword is required.')
+      .withMessage('Vyžaduje sa aspoň jedno kľúčové slovo')
       .custom((keywords: string[]) => keywords.every(k => true))
-      .withMessage('Keywords must be an array of strings.'),
+      .withMessage('Kľúčové slová musia byť pole reťazcov'),
     body('file_link')
       .notEmpty()
-      .withMessage('File link is required.')
+      .withMessage('Vyžaduje sa odkaz na súbor')
       .isURL()
       .withMessage('File link must be a valid URL.'),
     body('category')
       .notEmpty()
-      .withMessage('Category is required.')
-      .isMongoId()
-      .withMessage('Category must be a valid MongoDB ID.'),
+      .withMessage('Kategória je povinná'),
     body('conference')
       .notEmpty()
-      .withMessage('Conference is required.')
-      .isMongoId()
-      .withMessage('Conference must be a valid MongoDB ID.'),
+      .withMessage('Vyžaduje sa konferencia'),
     body('authors')
       .isArray({ min: 1 })
-      .withMessage('At least one author is required.')
+      .withMessage('Vyžaduje sa aspoň jeden autor')
       .custom(authors =>
         authors.every(
           (author: { firstName: string; lastName: string }) =>
             true
         )
       )
-      .withMessage('Each author must have a valid first name and last name.'),
+      .withMessage('Každý autor musí mať platné meno a priezvisko'),
 ];
 
 export const validateReviewSubmission = async (req: Request, res: Response, next: Function): Promise<void> => {
@@ -106,14 +105,14 @@ export const validateReviewSubmission = async (req: Request, res: Response, next
 
         //Ensure all required fields are provided
         if (!paper || !reviewer || !responses || !recommendation) {
-            res.status(400).json({ message: 'Missing required fields' });
+            res.status(400).json({ message: 'Chýbajú povinné polia' });
             return;
         }
 
         //Validate recommendation value
-        const validRecommendations = ['publish', 'publish_with_changes', 'reject'];
+        const validRecommendations = ['publikovať', 'publikovať_so_zmenami', 'odmietnuť'];
         if (!validRecommendations.includes(recommendation)) {
-            res.status(400).json({ message: 'Invalid recommendation value' });
+            res.status(400).json({ message: 'Neplatná hodnota odporúčania' });
             return;
         }
 

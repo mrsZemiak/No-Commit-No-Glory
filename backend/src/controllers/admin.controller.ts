@@ -23,7 +23,8 @@ export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void
 //Manage user roles, status, email
 export const editUserDetails = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const { userId, status, role, email } = req.body;
+        const { status, role, email } = req.body;
+        const userId = req.params.userId;
 
         const updates: Partial<{ status: string; role: string; email: string }> = {};
         if (status) updates.status = status;
@@ -46,19 +47,6 @@ export const editUserDetails = async (req: AuthRequest, res: Response): Promise<
     }
 };
 
-//
-/*
-export const getAllCategories = async (_req: Request, res: Response): Promise<void> => {
-    try {
-        const categories = await Category.find().sort({ name: 1 }); //sort alphabetically
-        res.status(200).json(categories);
-    } catch (error) {
-        console.error('Error fetching categories:', error);
-        res.status(500).json({ message: 'Nepodarilo sa načítať kategórie', error });
-    }
-};
- */
-
 export const getAllCategories = async (req: AuthRequest, res: Response) => {
     try {
         // Parse query parameters
@@ -71,7 +59,7 @@ export const getAllCategories = async (req: AuthRequest, res: Response) => {
         // Fetch categories with pagination
         const categories = await Category.find()
           .skip((currentPage - 1) * perPage) // Skip categories for previous pages
-          .limit(perPage); // Limit the number of results
+          .limit(perPage);
 
         // Get total count of categories
         const total = await Category.countDocuments();
@@ -128,8 +116,26 @@ export const updateCategory = async (req: AuthRequest, res: Response): Promise<v
     }
 };
 
+export const deleteCategory = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { categoryId } = req.params; // Use "categoryId" to match the route
+
+        const deletedCategory = await Category.findByIdAndDelete(categoryId); // Use "categoryId"
+        if (!deletedCategory) {
+            res.status(404).json({ message: 'Kategória nebola nájdená' });
+            return;
+        }
+
+        res.status(200).json({ message: 'Kategória bola úspešne vymazaná', category: deletedCategory });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Nepodarilo sa vymazať kategóriu', error });
+    }
+};
+
+
 //Get all existing conferences
-export const getAllConferences = async (_req: Request, res: Response): Promise<void> => {
+export const getAllConferences = async (_req: AuthRequest, res: Response): Promise<void> => {
     try {
         const conferences = await Conference.find();
         res.status(200).json(conferences);
@@ -144,17 +150,18 @@ export const createConference = async (req: AuthRequest, res: Response): Promise
     try {
         const {
             year,
+            date,
             location,
             university,
             start_date,
             end_date,
             deadline_submission,
             deadline_review,
-            user,
         } = req.body;
 
         const newConference = new Conference({
             year,
+            date,
             location,
             university,
             status: ConferenceStatus.Upcoming,
@@ -166,6 +173,11 @@ export const createConference = async (req: AuthRequest, res: Response): Promise
         });
 
         await newConference.save();
+
+        // Create directory for the conference
+        const uploadPath = `uploads/docs/${newConference._id}`;
+        await fs.mkdir(uploadPath, { recursive: true });
+
         res.status(201).json({ message: 'Konferencia bola úspešne vytvorená', conference: newConference });
     } catch (error) {
         console.error(error);
@@ -214,7 +226,16 @@ export const deleteConference = async (req: Request, res: Response): Promise<voi
 
 export const getAllQuestions = async (req: Request, res: Response): Promise<void> => {
     try {
-        const questions = await Question.find();
+        const { limit = 10, page = 1 } = req.query;
+        // Ensure limit and page are numbers
+        const perPage = Math.max(Number(limit), 1); // Ensure limit is at least 1
+        const currentPage = Math.max(Number(page), 1); // Ensure page is at least 1
+
+        // Fetch categories with pagination
+        const questions = await Question.find()
+          .skip((currentPage - 1) * perPage) // Skip categories for previous pages
+          .limit(perPage);
+
         res.status(200).json(questions);
     } catch (error) {
         console.error('Error retrieving questions:', error);
@@ -271,7 +292,7 @@ export const updateQuestion = async (req: Request, res: Response): Promise<void>
         res.status(500).json({ message: 'Nepodarilo sa aktualizovať otázku', error });
     }
 };
-
+/*
 //Get all papers
 export const viewAllPapers = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -281,6 +302,7 @@ export const viewAllPapers = async (req: Request, res: Response): Promise<void> 
         res.status(500).json({ message: 'Nepodarilo sa načítať práce', error });
     }
 };
+*/
 
 // View all papers grouped by conference
 export const getPapersGroupedByConference = async (_req: Request, res: Response): Promise<void> => {

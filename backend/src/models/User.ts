@@ -2,10 +2,10 @@ import mongoose, { Schema, Document } from 'mongoose';
 import { IRole } from './Role';
 
 export enum UserStatus {
-  Pending = 'pending',
-  Active = 'active',
-  Suspended = 'suspended',
-  Inactive = 'inactive'
+  Pending = 'Čakajúci',
+  Active = 'Aktívny',
+  Suspended = 'Pozastavený',
+  Inactive = 'Neaktívny'
 }
 
 export interface IUser extends Document {
@@ -35,13 +35,9 @@ const UserSchema: Schema = new Schema(
     status: {
       type: String,
       enum: Object.values(UserStatus),
-      default: UserStatus.Pending,
+      default: UserStatus.Inactive,
     },
-    role: {
-      type: String,
-      required: true,
-      set: (value: string) => value.toLowerCase(),
-    },
+    role: { type: String, required: true, },
     created_at: { type: Date, default: Date.now },
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String, required: false },

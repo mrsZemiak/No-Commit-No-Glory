@@ -1,6 +1,7 @@
 import app from './app';
 import cron from 'node-cron';
-import { updateConferenceStatus } from './middleware/updateStatus'
+import { updateConferenceStatus } from './middleware/updateConferenceStatus'
+import { updatePaperStatus } from './middleware/updatePaperStatus'
 
 app.listen(5000, () => {
     console.log(`Backend is running on http://localhost:5000`);
@@ -8,11 +9,13 @@ app.listen(5000, () => {
 
 // Schedule the cron job
 cron.schedule('0 0 * * *', async () => {
-    console.log('Running scheduled conference status update');
+    console.log('Running daily job to update statuses');
     try {
         await updateConferenceStatus();
-        console.log('Conference statuses updated successfully');
+        await updatePaperStatus();
+        console.log('All statuses updated successfully');
     } catch (error) {
-        console.error('Error updating conference statuses:', error);
+        console.error('Error running daily job to update statuses:', error);
     }
 });
+

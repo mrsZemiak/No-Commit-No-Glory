@@ -1,31 +1,29 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export enum PaperStatus {
-    Draft = 'draft',
-    Submitted = 'submitted',
-    UnderReview = 'under_review',
-    Accepted = 'accepted',
-    AcceptedWithChanges = 'accepted_with_changes',
-    Rejected = 'rejected',
+    Draft = 'Draft',
+    Submitted = 'Odovzdaná',
+    UnderReview = 'Posudzovanie',
+    Accepted = 'Prijatá',
+    AcceptedWithChanges = 'Prijatá_so_zmenami',
+    Rejected = 'Odmietnutá',
 }
 
 export interface IPaper extends Document {
     title: string;
     status: PaperStatus;
     submission_date: Date;
-    file_link: string;
-    final_submission: boolean;
     user: mongoose.Schema.Types.ObjectId;
     category: mongoose.Schema.Types.ObjectId;
     conference: mongoose.Schema.Types.ObjectId;
     abstract: string;
     keywords: string[];
     authors: { firstName: string; lastName: string }[];
+    file_link: string;
+    final_version: boolean;
+    deadline_date?: Date;
     reviewer?: mongoose.Schema.Types.ObjectId;
-    awarded: boolean;
-    deadline_date: Date;
-    created_at: Date;
-    updated_at: Date;
+    awarded?: boolean;
 }
 
 const PaperSchema: Schema = new Schema({
@@ -37,8 +35,6 @@ const PaperSchema: Schema = new Schema({
         default: PaperStatus.Draft,
     },
     submission_date: { type: Date, required: true },
-    file_link: { type: String, required: true },
-    final_submission: { type: Boolean, default: false },
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
     conference: { type: mongoose.Schema.Types.ObjectId, ref: 'Conference', required: true },
@@ -48,9 +44,10 @@ const PaperSchema: Schema = new Schema({
         firstName: { type: String, required: true },
         lastName: { type: String, required: true }
     }],
+    file_link: { type: String, required: true },
+    final_version: { type: Boolean, default: false },
+    deadline_date: { type: Date, required: false },
     reviewer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false }, // Assigned by admin
-    created_at: { type: Date, default: Date.now },
-    updated_at: { type: Date, default: Date.now },
     awarded: { type: Boolean, default: false }
 });
 

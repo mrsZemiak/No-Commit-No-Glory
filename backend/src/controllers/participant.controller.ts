@@ -1,46 +1,71 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import Paper, { PaperStatus } from '../models/Paper'
 import { AuthRequest } from '../middleware/authenticateToken'
+import Category from '../models/Category'
+import Conference from '../models/Conference'
 
 export const submitPaper = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const userId = req.user?.userId; // Extract user ID from AuthRequest
+        const userId = req.user?.userId;
         if (!userId) {
             res.status(401).json({ message: 'Neautorizované. Používateľ nie je prihlásený.' });
             return;
         }
 
-        const { title, abstract, keywords, file_link, category, conference, authors, final_submission } = req.body;
+        const { title, abstract, keywords, category, conference, authors, final_version} = req.body;
 
-        // Check for required fields
-        if (!title || !abstract || !keywords || !file_link || !category || !conference) {
-            res.status(400).json({ message: 'Chýbajú povinné polia' });
+        // Check if conference exists and is ongoing
+        const selectedConference = await Conference.findById(conference);
+        if (!selectedConference || selectedConference.status !== "Aktuálna") {
+            res.status(400).json({ message: "Konferencia neexistuje alebo nie je aktuálna." });
             return;
         }
 
-        //Set status based on final_submission flag
-        const status = final_submission ? PaperStatus.Submitted : PaperStatus.Draft;
+        const currentDate = new Date();
 
-        //Create the paper document
+        // Check if submission deadline is valid
+        if (selectedConference.deadline_submission < currentDate) {
+            res.status(400).json({ message: "Deadline na odoslanie prác pre túto konferenciu už vypršal." });
+            return;
+        }
+
+        // Ensure a file was uploaded
+        if (!req.file) {
+            res.status(400).json({ message: 'Chýba súbor na odoslanie.' });
+            return;
+        }
+
+        // Set file link based on uploaded file path
+        const file_link = req.file.path;
+
+        // Set status based on final_submission flag
+        const status = final_version ? PaperStatus.Submitted : PaperStatus.Draft;
+
+        // Prevent creating new papers if the deadline has passed
+        if (status === PaperStatus.Submitted && !final_version) {
+            res.status(400).json({ message: "Nie je možné vytvoriť novú prácu po skončení termínu odovzdania." });
+            return;
+        }
+
+        // Create the paper document
         const paper = new Paper({
             title,
             abstract,
             keywords,
-            file_link,
             category,
             conference,
             authors,
+            file_link,
             submission_date: new Date(),
             status,
-            user: userId, // Use the userId from req.user
-            final_submission: !!final_submission,
+            user: userId,
+            final_version: !!final_version,
         });
 
-        // Save the paper to the database
         const savedPaper = await paper.save();
 
         res.status(201).json({
-            message: final_submission ? 'Práca bola úspešne odoslaná' : 'Práca bola uložená ako koncept',
+            message: final_version ? 'Práca bola úspešne odoslaná' : 'Práca bola uložená ako koncept',
             paper: savedPaper,
         });
     } catch (error) {
@@ -74,7 +99,7 @@ export const getPaperById = async (req: AuthRequest, res: Response): Promise<voi
 
         const paper = await Paper.findById(paperId)
           .populate('category', 'name')
-          .populate('conference', 'year location university status');
+          .populate('conference', 'year location date');
 
         res.status(200).json(paper);
     } catch (error) {
@@ -99,7 +124,6 @@ export const editPaper = async (req: AuthRequest, res: Response): Promise<void> 
         // Prevent editing status, user, or final_submission directly
         delete updates.status;
         delete updates.user;
-        delete updates.final_submission;
 
         // Update the paper
         Object.assign(paper, updates);
@@ -112,5 +136,36 @@ export const editPaper = async (req: AuthRequest, res: Response): Promise<void> 
     } catch (error) {
         console.error('Error editing paper:', error);
         res.status(500).json({ message: 'Prácu sa nepodarilo aktualizovať', error });
+    }
+};
+
+// Get Conferences (only with status "Aktuálna")
+export const getConferences = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const currentDate = new Date();
+
+        // Fetch conferences with status "Aktuálna" (active)
+        const conferences = await Conference.find({
+            status: "Aktuálna",
+            date: { $gte: currentDate },
+        }).select("year date location");
+
+        res.status(200).json(conferences);
+    } catch (error) {
+        console.error("Error fetching conferences:", error);
+        res.status(500).json({ message: "Nepodarilo sa načítať konferencie", error });
+    }
+};
+
+// Get Categories (only active)
+export const getCategories = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        // Fetch categories with isActive flag
+        const categories = await Category.find({ isActive: true }).select("name");
+
+        res.status(200).json(categories);
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        res.status(500).json({ message: "Nepodarilo sa načítať sekcie", error });
     }
 };

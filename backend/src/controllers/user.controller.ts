@@ -5,7 +5,7 @@ import nodemailer from 'nodemailer';
 import multer from 'multer';
 import { config } from '../config';
 import { AuthRequest } from '../middleware/authenticateToken';
-import { updateConferenceStatus } from '../middleware/updateStatus';
+import { updateConferenceStatus } from '../middleware/updateConferenceStatus';
 import User, { UserStatus } from '../models/User'
 import Conference from '../models/Conference'
 import Category from '../models/Category'
@@ -25,13 +25,10 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         // Hash password
         const hashedPassword = await argon2.hash(password);
 
-        const normalizedRole = role.toLowerCase();
-
-        // Check if the role exists in the database
-        const validRoles = ['admin', 'participant', 'reviewer'];
-        if (!validRoles.includes(normalizedRole)) {
-            res.status(400).json({ message: `Role "${role}" does not exist` });
-            return;
+        // Determine user status based on role
+        let status: UserStatus = UserStatus.Inactive; // Default status for non-admin roles
+        if (role.toLowerCase() === 'admin') {
+            status = UserStatus.Pending;
         }
 
         // Add user to database
@@ -41,8 +38,9 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
             email,
             password: hashedPassword,
             university,
-            role:normalizedRole,
+            role,
             isVerified: false,
+            status,
         });
 
         // Generate JWT for email verification using userId
@@ -124,8 +122,13 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
         }
 
         // Update user state to verified and status to active
-        user.isVerified = true;
-        user.status = UserStatus.Pending;
+        if(user.role !== "admin") {
+            user.isVerified = true;
+            user.status = UserStatus.Active;
+        } else {
+            user.isVerified = true;
+            user.status = UserStatus.Pending;
+        }
         user.verificationToken = null; //Clear token
         await user.save();
 
@@ -184,21 +187,21 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
         // Find the user by ID
         const user = await User.findById(userId).select("-password -refreshToken");
         if (!user) {
-            res.status(404).json({ message: 'User not found' });
+            res.status(404).json({ message: 'Používateľ sa nenašiel' });
             return;
         }
 
         res.status(200).json({ user }); // Wrap the user in a "user" field
     } catch (error) {
-        console.error('Error retrieving profile:', error);
-        res.status(500).json({ message: 'Error retrieving profile', error });
+        console.error('Chyba pri načítavaní profilu:', error);
+        res.status(500).json({ message: 'Chyba pri načítavaní profilu:', error });
     }
 };
 
 //Set up Multer for avatar uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/avatars/');
+        cb(null, './uploads/avatars/');
     },
     filename: (req, file, cb) => {
         cb(null, `${Date.now()}-${file.originalname}`);

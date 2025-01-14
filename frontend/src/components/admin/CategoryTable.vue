@@ -12,7 +12,6 @@
     >
       <template v-slot:body="{ items }">
         <tr v-for="category in items" :key="category._id" class="custom-row">
-          <td>{{ category.name }}</td>
           <td>
             <v-chip
               :color="category.isActive ? 'green' : 'grey'"
@@ -23,15 +22,21 @@
               {{ category.isActive ? 'Aktívna' : 'Neaktívna' }}
             </v-chip>
           </td>
-          <td>
-            <v-btn @click="openDialog('edit', category)">
+          <td>{{ category.name }}</td>
+          <td class="d-flex justify-end align-center w-100">
+            <v-btn color="#E7B500" @click="openDialog('edit', category)">
               <v-icon size="24">mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn color="#BC463A "@click="confirmDelete(category)">
+              <v-icon size="24" color="white">mdi-delete</v-icon>
             </v-btn>
           </td>
         </tr>
       </template>
     </v-data-table>
-    <v-btn color="primary" @click="openDialog('add')">Pridať kategóriu</v-btn>
+
+    <v-btn color="primary" class="add_new" @click="openDialog('add')">Pridať kategóriu</v-btn>
+
     <!-- Add/Edit Dialog -->
     <v-dialog v-model="isDialogOpen" max-width="800px">
       <v-card>
@@ -62,6 +67,20 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <!-- Delete Confirmation Dialog -->
+    <v-dialog v-model="isDeleteDialogOpen" max-width="500px">
+      <v-card>
+        <v-card-title>Potvrdenie odstránenia</v-card-title>
+        <v-card-text>
+          <p>Ste si istí, že chcete odstrániť kategóriu <strong>{{ currentCategory.name }}</strong>?</p>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="secondary" @click="closeDeleteDialog">Zrušiť</v-btn>
+          <v-btn color="red" @click="deleteCategory">Odstrániť</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
@@ -74,19 +93,19 @@ export default defineComponent({
   setup(_, { emit }) {
     const categories = ref<Array<{ _id: string; name: string; isActive: boolean }>>([]);
     const isDialogOpen = ref(false);
+    const isDeleteDialogOpen = ref(false);
     const dialogMode = ref<"add" | "edit">("add");
     const currentCategory = reactive({ _id: "", name: "", isActive: true });
     const valid = ref(false);
     const headers = ref([
-      { title: "Názov kategórie", key: "name" },
       { title: "Stav", key: "isActive"},
+      { title: "Názov kategórie", key: "name" },
       { title: "", value: "actions", sortable: false },
     ]);
 
     const fetchCategories = async () => {
       try {
         const response = await axiosInstance.get("/auth/admin/categories");
-        // Extract only the `categories` array from the response
         categories.value = response.data.categories;
       } catch (error) {
         console.error("Error fetching categories:", error);
@@ -124,6 +143,28 @@ export default defineComponent({
       }
     };
 
+    const confirmDelete = (category: { _id: string; name: string; isActive: boolean }) => {
+      Object.assign(currentCategory, category);
+      isDeleteDialogOpen.value = true;
+    };
+
+    const closeDeleteDialog = () => {
+      isDeleteDialogOpen.value = false;
+    };
+
+    const deleteCategory = async () => {
+      try {
+        await axiosInstance.delete(`/auth/admin/categories/${currentCategory._id}`);
+        categories.value = categories.value.filter((cat) => cat._id !== currentCategory._id);
+        showSnackbar({ message: "Kategória bola odstránená", color: "success" });
+      } catch (error) {
+        console.error("Error deleting category:", error);
+        showSnackbar({ message: "Nepodarilo sa odstrániť kategóriu", color: "error" });
+      } finally {
+        closeDeleteDialog();
+      }
+    };
+
     const showSnackbar = ({ message, color }: { message: string; color: string }) => {
       emit("snackbar", { message, color });
     };
@@ -133,6 +174,7 @@ export default defineComponent({
     return {
       categories,
       isDialogOpen,
+      isDeleteDialogOpen,
       dialogMode,
       currentCategory,
       valid,
@@ -141,45 +183,14 @@ export default defineComponent({
       openDialog,
       closeDialog,
       saveCategory,
+      confirmDelete,
+      closeDeleteDialog,
+      deleteCategory,
     };
   },
 });
 </script>
 
 <style lang="scss">
-.v-card {
-  padding: 25px;
 
-  .v-card-title {
-    margin: 10px;
-    font-size: 1.5rem;
-    color: #116466;
-    text-transform: uppercase;
-  }
-
-  .v-btn {
-    margin-left: 10px;
-  }
-
-  .custom-table thead th{
-    font-size: 1.3rem;
-    background-color: rgba(16, 100, 102, 0.2);
-    color: #2c3531;
-
-  }
-  .custom-table td {
-    font-size: 1.2rem;
-    font-weight: normal;
-    padding-top: 20px;
-
-    .custom-chip {
-      font-size: 1.1rem;
-      padding: 10px 8px;
-    }
-  }
-}
-
-div .v-btn {
-  font-size:1.2rem;
-}
 </style>

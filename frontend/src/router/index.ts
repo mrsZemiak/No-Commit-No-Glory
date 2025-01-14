@@ -48,18 +48,6 @@ const routes = [
             component: () => import('@/components/admin/WorksTable.vue'),
             props: true
           },
-          {
-            path: 'users/edit/:id',
-            name: 'EditUser',
-            component: () => import('@/components/admin/ModalEditUser.vue'),
-            props: true,
-          },
-          {
-            path: 'questions/edit/:id',
-            name: 'EditQuestion',
-            component: () => import('@/components/admin/ModalQuestion.vue'),
-            props: true,
-          },
         ],
       },
 
