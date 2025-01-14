@@ -49,8 +49,10 @@
     <!-- Data Table -->
     <v-data-table
       :headers="tableHeaders"
-      :items="paginatedWorks"
+      :items="filteredWorks"
       :items-per-page="perPage"
+      :pageText="'{0}-{1} z {2}'"
+      items-per-page-text="Práce na stránku"
       item-value="_id" dense>
 
       <template v-slot:body="{ items }">
@@ -218,10 +220,6 @@ export default defineComponent({
       });
     });
 
-    const paginatedWorks = computed(() => {
-      const start = (currentPage.value - 1) * perPage.value;
-      return filteredWorks.value.slice(start, start + perPage.value);
-    });
 
     // Reset filters
     const resetFilters = () => {
@@ -248,7 +246,7 @@ export default defineComponent({
       tableHeaders,
       statusColors,
       reviewStatusOptions,
-      paginatedWorks,
+      filteredWorks,
       formatTimestamp,
       resetFilters,
       openDialog,

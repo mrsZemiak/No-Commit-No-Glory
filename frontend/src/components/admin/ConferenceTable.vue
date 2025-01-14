@@ -54,7 +54,7 @@
     <!-- Data Table -->
     <v-data-table
       :headers="tableHeaders"
-      :items="paginatedConferences"
+      :items="filteredConferences"
       :items-per-page="perPage"
       :pageText="'{0}-{1} z {2}'"
       items-per-page-text="Konferencie na stránku"
@@ -258,10 +258,6 @@ export default defineComponent({
       { title: "Začiatok", value: "start_date", sortable: true },
       { title: "Koniec", value: "end_date", sortable: true },
       { title: "Odovzdanie prác", value: "deadline_submission" },
-<<<<<<< HEAD
-=======
-
->>>>>>> f139a5c97084fde29b8869dafd17baaf11a55e97
       { title: "", value: "actions", sortable: false },
     ]);
     // Status options for filtering
@@ -294,14 +290,6 @@ export default defineComponent({
 
     const totalPages = computed(() => {
       return Math.ceil(filteredConferences.value.length / perPage.value);
-    });
-
-    const paginatedConferences = computed(() => {
-      const startIndex = (currentPage.value - 1) * perPage.value;
-      return filteredConferences.value.slice(
-        startIndex,
-        startIndex + perPage.value
-      );
     });
 
     // Methods
@@ -454,7 +442,7 @@ export default defineComponent({
       tableHeaders,
       statusOptions,
       totalPages,
-      paginatedConferences,
+      filteredConferences,
       openDialog,
       showSnackbar,
       fetchConferences,

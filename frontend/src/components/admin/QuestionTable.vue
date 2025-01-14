@@ -19,21 +19,27 @@
           <v-select
             v-model="filters.type"
             :items="typeOptions"
+            item-title="text"
+            item-value="value"
             label="Typ otázky"
             multiple
             outlined
             dense
           />
+
         </v-col>
         <v-col cols="12" md="3">
           <v-select
             v-model="filters.category"
             :items="categoryOptions"
+            item-title="text"
+            item-value="value"
             label="Kategória"
             multiple
             outlined
             dense
           />
+
         </v-col>
         <v-col cols="12" md="3">
           <v-btn color="primary" small @click="resetFilters">Zrušiť filtrovanie</v-btn>
@@ -43,15 +49,12 @@
 
     <v-data-table
       :headers="tableHeaders"
-      :items="paginatedQuestions"
-<<<<<<< HEAD
+      :items="filteredQuestions"
       :items-per-page="perPage"
       :page.sync="currentPage"
       :total-items="filteredQuestions.length"
-=======
-      :items-per-page="perPage":pageText="'{0}-{1} z {2}'"
+      pageText="'{0}-{1} z {2}'"
       items-per-page-text="Otázky na stránku"
->>>>>>> f139a5c97084fde29b8869dafd17baaf11a55e97
       item-value="_id"
       dense
       class="custom-table"
@@ -157,6 +160,7 @@ const categoryOptions = [
   { text: 'Obsah práce', value: 'Obsah práce' },
   { text: 'Štruktúra práce', value: 'Štruktúra práce' },
 ];
+
 const questionLabels = {
   rating: 'Hodnotenie',
   text: 'Text',
@@ -192,11 +196,6 @@ const filteredQuestions = computed(() => {
       : true;
     return matchesText && matchesType && matchesCategory;
   });
-});
-
-const paginatedQuestions = computed(() => {
-  const startIndex = (currentPage.value - 1) * perPage;
-  return filteredQuestions.value.slice(startIndex, startIndex + perPage);
 });
 
 const openDialog = (mode: 'add' | 'edit', question: Question | null = null) => {

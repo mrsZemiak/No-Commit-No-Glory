@@ -68,10 +68,12 @@
       <!-- Table -->
       <v-data-table
         :headers="tableHeaders"
-        :items="paginatedUsers"
+        :items="filteredUsers"
         :items-per-page="perPage"
         :page.sync="currentPage"
         :total-items="filteredUsers.length"
+        :pageText="'{0}-{1} z {2}'"
+        items-per-page-text="Používatelia na stránku"
         class="custom-table"
         dense
         item-value="_id"

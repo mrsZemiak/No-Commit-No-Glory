@@ -179,11 +179,7 @@ export default defineComponent({
   }
 
   .custom-table thead th{
-<<<<<<< HEAD
-    font-size: 1.3rem;
-=======
     font-size: 1.2rem;
->>>>>>> f139a5c97084fde29b8869dafd17baaf11a55e97
     font-weight: bold !important;
     background-color: rgba(16, 100, 102, 0.2);
     color: #2c3531;
@@ -201,12 +197,8 @@ export default defineComponent({
     }
 }
 
-<<<<<<< HEAD
-=======
 div .v-btn {
   font-size:1rem !important;
 }
 
-
->>>>>>> f139a5c97084fde29b8869dafd17baaf11a55e97
 </style>
