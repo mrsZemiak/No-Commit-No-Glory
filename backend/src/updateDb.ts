@@ -5,7 +5,7 @@ import Role from './models/Role'
 const updateDatabase = async () => {
   try {
     // Connect to your MongoDB database
-    await mongoose.connect("mongodb+srv://sciAdmin:sciAdminPwd123@scisubmit.stdc0.mongodb.net/scisubmit?retryWrites=true&w=majority", {
+    await mongoose.connect("", {
       dbName: "scisubmit",
     });
 
