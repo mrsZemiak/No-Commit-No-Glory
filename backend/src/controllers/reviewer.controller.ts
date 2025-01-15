@@ -6,59 +6,65 @@ import { sendEmail } from '../utils/emailService'
 import User from '../models/User'
 import Question from '../models/Question'
 
-// Get assigned papers for a reviewer
+//Assigned papers
 export const getAssignedPapers = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const reviewerId = req.params.reviewerId;
-        const papers = await Paper.find({ reviewer: reviewerId });
-
-        if (!papers.length) {
-            res.status(404).json({ message: "No papers assigned to this reviewer." });
+        const reviewerId = req.user?.userId;
+        if (!reviewerId) {
+            res.status(401).json({ message: "Neautorizované. Recenzent nie je prihlásený." });
             return;
         }
 
-        res.status(200).json({ papers });
+        const papers = await Paper.find({ reviewer: reviewerId })
+          .select("title category keywords abstract file_link");
+
+        if (!papers.length) {
+            res.status(404).json({ message: "Žiadne práce pridelené tomuto recenzentovi." });
+            return;
+        }
+
+        res.status(200).json(papers);
     } catch (error) {
         console.error("Error fetching assigned papers:", error);
-        res.status(500).json({ error: "Failed to fetch assigned papers." });
+        res.status(500).json({ error: "Nepodarilo sa načítať pridelené práce." });
     }
 };
 
-export const getQuestions = async (req: AuthRequest, res: Response): Promise<void> => {
+//Get all questions
+export const getQuestions = async (_req: AuthRequest, res: Response): Promise<void> => {
     try {
-        // Fetch all questions, selecting only the necessary fields
         const questions = await Question.find().select("text type options");
 
-        if (!questions || questions.length === 0) {
-            res.status(404).json({ message: "No questions found." });
+        if (!questions.length) {
+            res.status(404).json({ message: "Neboli nájdené žiadne otázky." });
             return;
         }
 
         res.status(200).json(questions);
     } catch (error) {
         console.error("Error fetching questions for reviewer:", error);
-        res.status(500).json({ message: "Failed to fetch questions.", error });
+        res.status(500).json({ message: "Nepodarilo sa načítať otázky.", error });
     }
 };
 
+//Create and submit review
 export const submitReview = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { paperId, reviewerId, responses, recommendation, comments } = req.body;
 
-        // Validate required fields
-        if (!paperId || !reviewerId || !responses || !recommendation) {
-            res.status(400).json({ message: "Missing required fields." });
+        if (!paperId || !responses || !recommendation) {
+            res.status(400).json({ message: "Chýbajú povinné polia." });
             return;
         }
 
         // Check if a review already exists
         const existingReview = await Review.findOne({ paper: paperId, reviewer: reviewerId });
         if (existingReview) {
-            res.status(400).json({ message: "Review already exists. Use the update endpoint instead." });
+            res.status(400).json({ message: "Recenzia už existuje. Použite endpoint na aktualizáciu." });
             return;
         }
 
-        // Create a new review
+        // Save the review
         const newReview = new Review({
             paper: paperId,
             reviewer: reviewerId,
@@ -68,14 +74,18 @@ export const submitReview = async (req: AuthRequest, res: Response): Promise<voi
         });
         await newReview.save();
 
-        // Update paper status based on the recommendation
+        // Update paper status
         const paperStatus = getPaperStatusFromRecommendation(recommendation);
         await Paper.findByIdAndUpdate(paperId, { status: paperStatus });
 
-        res.status(201).json({ message: "Review successfully created.", review: newReview });
+        // Return the review with populated questions
+        const populatedReview = await Review.findById(newReview._id)
+          .populate("responses.question", "text"); // Populate question text
+
+        res.status(201).json({ message: "Recenzia bola úspešne vytvorená.", review: populatedReview });
     } catch (error) {
-        console.error("Error creating review:", error);
-        res.status(500).json({ message: "Failed to create review.", error });
+        console.error("Error submitting review:", error);
+        res.status(500).json({ message: "Nepodarilo sa vytvoriť recenziu.", error });
     }
 };
 
@@ -92,23 +102,27 @@ const getPaperStatusFromRecommendation = (recommendation: string): PaperStatus =
     }
 };
 
-//Get a single review based on IDs
+//Get review by ID
 export const getReviewById = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { paperId, reviewerId } = req.params;
 
-        const review = await Review.findOne({ paper: paperId, reviewer: reviewerId });
+        const review = await Review.findOne({ paper: paperId, reviewer: reviewerId })
+          .populate("responses.question", "text ");
 
-        if (review) {
-            res.status(200).json({ message: 'Recenzia bola nájdená', review });
-        } else {
-            res.status(404).json({ message: 'Recenzia nebola nájdená' });
+        if (!review) {
+            res.status(404).json({ message: "Recenzia nebola nájdená." });
+            return;
         }
+
+        res.status(200).json(review);
     } catch (error) {
-        res.status(500).json({ message: 'Nepodarilo sa načítať recenzie', error });
+        console.error("Error fetching review by ID:", error);
+        res.status(500).json({ message: "Nepodarilo sa načítať recenziu.", error });
     }
 };
 
+//Review update
 export const updateReview = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { reviewId } = req.params;
@@ -154,27 +168,26 @@ export const notifyReviewer = async (req: AuthRequest, res: Response): Promise<v
         const paper = await Paper.findById(paperId);
 
         if (!reviewer || !paper) {
-            res.status(404).json({ message: "Reviewer or paper not found." });
+            res.status(404).json({ message: "Recenzent alebo práca nebola nájdená." });
             return;
         }
 
         const emailContent = `
             <p>Dobrý deň, ${reviewer.first_name},</p>
-            <p>Bol vám pridelený nový príspevok s názvom "<strong>${paper.title}</strong>" na posúdenie.</p>
-            <p>Ak chcete získať prístup k novinám, prihláste sa do svojho účtu.</p>
-            <p>S pozdravom, <br />váš tím SciSubmit</p>
+            <p>Bola vám pridelená práca "<strong>${paper.title}</strong>" na recenziu.</p>
+            <p>Prihláste sa do svojho účtu, aby ste získali prístup k podrobnostiam.</p>
         `;
 
         await sendEmail({
             to: reviewer.email,
-            subject: "Nová práca pridelená na kontrolu",
+            subject: "Nová práca na recenziu",
             html: emailContent,
         });
 
-        res.status(200).json({ message: "Notification sent to reviewer." });
+        res.status(200).json({ message: "Recenzent bol úspešne upozornený." });
     } catch (error) {
         console.error("Error notifying reviewer:", error);
-        res.status(500).json({ error: "Failed to notify reviewer." });
+        res.status(500).json({ error: "Nepodarilo sa upozorniť recenzenta." });
     }
 };
 
@@ -182,24 +195,22 @@ export const notifyReviewer = async (req: AuthRequest, res: Response): Promise<v
 export const downloadPaper = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const paperId = req.params.paperId;
-
-        // Find the paper by ID
         const paper = await Paper.findById(paperId);
+
         if (!paper || !paper.file_link) {
-            res.status(404).json({ message: "Paper not found or file not available." });
+            res.status(404).json({ message: "Práca nebola nájdená alebo nemá priložený súbor." });
             return;
         }
 
-        // Send the file for download
         res.download(paper.file_link, (err) => {
             if (err) {
-                console.error("Error sending file:", err);
-                res.status(500).json({ error: "Failed to download the paper." });
+                console.error("Error downloading file:", err);
+                res.status(500).json({ error: "Nepodarilo sa stiahnuť prácu." });
             }
         });
     } catch (error) {
         console.error("Error downloading paper:", error);
-        res.status(500).json({ error: "Failed to download paper." });
+        res.status(500).json({ error: "Nepodarilo sa stiahnuť prácu." });
     }
 };
 
@@ -208,34 +219,28 @@ export const contactAdmin = async (req: AuthRequest, res: Response): Promise<voi
     try {
         const { subject, message } = req.body;
 
-        // Validate input
         if (!subject || !message) {
-            res.status(400).json({ message: "Subject and message are required." });
+            res.status(400).json({ message: "Predmet a správa sú povinné." });
             return;
         }
 
-        // Fetch admin emails from the database
         const admins = await User.find({ role: "admin" }).select("email");
-        if (admins.length === 0) {
-            res.status(404).json({ message: "No admins found." });
+        if (!admins.length) {
+            res.status(404).json({ message: "Neboli nájdení žiadni administrátori." });
             return;
         }
 
-        const adminEmails = admins.map((admin) => admin.email);
-
-        // Send email to all admins
-        for (const email of adminEmails) {
+        for (const admin of admins) {
             await sendEmail({
-                to: email,
+                to: admin.email,
                 subject: `Dotaz recenzenta: ${subject}`,
-                text: message,
                 html: `<p>${message}</p>`,
             });
         }
 
-        res.status(200).json({ message: "Message sent to all admins successfully." });
+        res.status(200).json({ message: "Správa bola úspešne odoslaná všetkým administrátorom." });
     } catch (error) {
-        console.error("Error contacting admin:", error);
-        res.status(500).json({ error: "Failed to contact admins." });
+        console.error("Error contacting admins:", error);
+        res.status(500).json({ error: "Nepodarilo sa kontaktovať administrátorov." });
     }
 };

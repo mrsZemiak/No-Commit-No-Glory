@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import {
-    registerUser,
-    verifyEmail,
+  registerUser,
+  verifyEmail,
 } from '../controllers/user.controller';
 import { loginUser } from '../controllers/auth.controller';
 import {
-    registerValidationRules,
-    verifyEmailValidationRules,
-    validateRequest, loginValidationRules
+  registerValidationRules,
+  verifyEmailValidationRules,
+  validateRequest, loginValidationRules
 } from '../middleware/validation'
 import { getHomepageData } from '../controllers/homepage.controller'
 

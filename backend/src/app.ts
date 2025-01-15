@@ -8,7 +8,6 @@ import reviewerRoutes from "./routes/reviewer.routes";
 import participantRoutes from "./routes/participant.routes";
 import adminRoutes from './routes/admin.routes'
 import { updateConferenceStatusMiddleware } from './middleware/updateConferenceStatus'
-import { updatePaperStatusMiddleware } from './middleware/updatePaperStatus'
 
 dotenv.config();
 
@@ -26,8 +25,6 @@ const corsOptions = {
 };
 // Apply CORS globally
 app.use(cors(corsOptions));
-app.use(updateConferenceStatusMiddleware);
-app.use(updatePaperStatusMiddleware);
 
 // Handle CORS preflight requests globally
 app.options('*', cors(corsOptions));

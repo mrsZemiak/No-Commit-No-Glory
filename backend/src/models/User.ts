@@ -23,7 +23,6 @@ export interface IUser extends Document {
   faculty?: string;
   about?: string;
   avatar?: string;
-  last_login?: Date;
 }
 
 const UserSchema: Schema = new Schema(
@@ -46,7 +45,6 @@ const UserSchema: Schema = new Schema(
     faculty: { type: String, default: "" },
     about: { type: String, default: "" },
     avatar: { type: String, default: null },
-    last_login: { type: Date, default: null},
   },
   { collection: 'users' }
 );

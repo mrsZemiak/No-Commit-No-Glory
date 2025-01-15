@@ -1,25 +1,24 @@
 import { Router } from 'express';
 import {
-    getAllUsers,
-    editUserDetails,
-    getAllCategories,
-    createCategory,
-    updateCategory,
-    getAllConferences,
-    createConference,
-    updateConference,
-    getPapersGroupedByConference,
-    assignReviewer,
-    downloadPapersByConference,
-    changeSubmissionDeadline,
-    getAllQuestions,
-    createQuestion,
-    updateQuestion,
-    deleteCategory,
-    getConferenceById,
-    getQuestionById,
-    getAdminReports,
-    getAdminNotifications
+  getAllUsers,
+  editUserDetails,
+  getAllCategories,
+  createCategory,
+  updateCategory,
+  getAllConferences,
+  createConference,
+  updateConference,
+  getPapersGroupedByConference,
+  assignReviewer,
+  downloadPapersByConference,
+  changeSubmissionDeadline,
+  getAllQuestions,
+  createQuestion,
+  updateQuestion,
+  deleteCategory,
+  getConferenceById,
+  getQuestionById,
+  getAdminReports,
 } from '../controllers/admin.controller'
 import { authenticateToken } from '../middleware/authenticateToken';
 
@@ -57,5 +56,4 @@ router.patch('/papers/:paperId/reviewer', assignReviewer); //Assign reviewer to 
 router.patch('/papers/:paperId/deadline', changeSubmissionDeadline); // Change submission deadline for a specific paper
 
 router.get("/reports", getAdminReports);
-router.get("/notifications", getAdminNotifications);
 export default router;
