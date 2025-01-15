@@ -1,4 +1,4 @@
-import {body, param, check, validationResult} from 'express-validator';
+import {body, check, validationResult} from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
 import Role from '../models/Role'
 import Question from '../models/Question'
@@ -76,7 +76,7 @@ export const validateSubmitPaper = [
       .withMessage('Vyžaduje sa aspoň jedno kľúčové slovo')
       .custom((keywords: string[]) => keywords.every(k => true))
       .withMessage('Kľúčové slová musia byť pole reťazcov'),
-    body('file_link')
+    body('fileName')
       .notEmpty()
       .withMessage('Vyžaduje sa odkaz na súbor')
       .isURL()
@@ -92,70 +92,100 @@ export const validateSubmitPaper = [
       .withMessage('Vyžaduje sa aspoň jeden autor')
       .custom(authors =>
         authors.every(
-          (author: { firstName: string; lastName: string }) =>
+          (author: { first_name: string; last_name: string }) =>
             true
         )
       )
       .withMessage('Každý autor musí mať platné meno a priezvisko'),
 ];
 
-export const validateReviewSubmission = async (req: Request, res: Response, next: Function): Promise<void> => {
-    try {
-        const { paper, reviewer, responses, recommendation, comments } = req.body;
+// Validation rules for review submission
+export const validateReviewSubmission = [
+    // Validate required fields
+    body("responses")
+      .notEmpty()
+      .withMessage("Responses are required.")
+      .isArray()
+      .withMessage("Responses must be an array of { question, answer } objects.")
+      .custom(async (responses) => {
+          for (const response of responses) {
+              if (!response.question || !response.answer) {
+                  throw new Error("Each response must include a question ID and an answer.");
+              }
 
-        //Ensure all required fields are provided
-        if (!paper || !reviewer || !responses || !recommendation) {
-            res.status(400).json({ message: 'Chýbajú povinné polia' });
-            return;
-        }
+              // Validate question ID
+              const question = await Question.findById(response.question);
+              if (!question) {
+                  throw new Error(`Invalid question ID: ${response.question}`);
+              }
 
-        //Validate recommendation value
-        const validRecommendations = ['publikovať', 'publikovať_so_zmenami', 'odmietnuť'];
-        if (!validRecommendations.includes(recommendation)) {
-            res.status(400).json({ message: 'Neplatná hodnota odporúčania' });
-            return;
-        }
+              // Validate the answer based on the question type
+              switch (question.type) {
+                  case "Hodnotenie": // Rating
+                      if (
+                        typeof response.answer !== "number" ||
+                        response.answer < question.options!.min ||
+                        response.answer > question.options!.max
+                      ) {
+                          throw new Error(`Invalid rating for question ID: ${response.question}`);
+                      }
+                      break;
+                  case "Áno/Nie": // Yes/No
+                      if (response.answer !== "Áno" && response.answer !== "Nie") {
+                          throw new Error(`Invalid yes/no answer for question ID: ${response.question}`);
+                      }
+                      break;
+                  case "Text": // Text
+                      if (typeof response.answer !== "string") {
+                          throw new Error(`Invalid text answer for question ID: ${response.question}`);
+                      }
+                      break;
+                  default:
+                      throw new Error(`Unknown question type for question ID: ${response.question}`);
+              }
+          }
+          return true;
+      }),
+    body("recommendation")
+      .notEmpty()
+      .withMessage("Recommendation is required.")
+      .isIn(["Publikovať", "Publikovať_so_zmenami", "Odmietnuť"])
+      .withMessage("Invalid recommendation value."),
+    body("comments")
+      .optional()
+      .isString()
+      .withMessage("Comments must be a string."),
+];
 
-        //Validate responses
-        for (const response of responses) {
-            const question = await Question.findById(response.question);
-            if (!question) {
-                res.status(400).json({ message: `Invalid question ID: ${response.question}` });
-                return;
-            }
+// Validation rules for updating a review
+export const validateReviewUpdate = [
+    body("responses")
+      .optional()
+      .isArray()
+      .withMessage("Responses must be an array of { question, answer } objects.")
+      .custom(async (responses) => {
+          for (const response of responses) {
+              if (!response.question || !response.answer) {
+                  throw new Error("Each response must include a question ID and an answer.");
+              }
 
-            switch (question.type) {
-                case 'rating':
-                    if (typeof response.answer !== 'number' || response.answer < question.options!.min || response.answer > question.options!.max) {
-                        res.status(400).json({ message: `Invalid rating for question ID: ${response.question}` });
-                        return;
-                    }
-                    break;
-                case 'yes_no':
-                    if (response.answer !== 'yes' && response.answer !== 'no') {
-                        res.status(400).json({ message: `Invalid yes/no answer for question ID: ${response.question}` });
-                        return;
-                    }
-                    break;
-                case 'text':
-                    if (typeof response.answer !== 'string') {
-                        res.status(400).json({ message: `Invalid text answer for question ID: ${response.question}` });
-                        return;
-                    }
-                    break;
-                default:
-                    res.status(400).json({ message: `Unknown question type for question ID: ${response.question}` });
-                    return;
-            }
-        }
-
-        //If all validations pass, move to the next middleware/controller
-        next();
-    } catch (error) {
-        console.error('Validation error:', error);
-        res.status(500).json({ message: 'Validation error', error });
-    }
-};
+              // Validate question ID
+              const questionExists = await Question.findById(response.question);
+              if (!questionExists) {
+                  throw new Error(`Invalid question ID: ${response.question}`);
+              }
+          }
+          return true;
+      }),
+    body("comments")
+      .optional()
+      .isString()
+      .withMessage("Comments must be a string."),
+    body("recommendation")
+      .optional()
+      .isIn(["Publikovať", "Publikovať_so_zmenami", "Odmietnuť"])
+      .withMessage("Recommendation must be one of: 'Publikovať', 'Publikovať_so_zmenami', 'Odmietnuť'."),
+];
 
 //Middleware to check validation results
 export const validateRequest = (req: Request, res: Response, next: NextFunction): void => {

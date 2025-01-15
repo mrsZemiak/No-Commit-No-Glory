@@ -18,7 +18,7 @@ export interface IPaper extends Document {
     conference: mongoose.Schema.Types.ObjectId;
     abstract: string;
     keywords: string[];
-    authors: { firstName: string; lastName: string }[];
+    authors: { first_name: string; last_name: string }[];
     file_link: string;
     final_version: boolean;
     deadline_date?: Date;
@@ -41,8 +41,8 @@ const PaperSchema: Schema = new Schema({
     abstract: { type: String, required: true },
     keywords: { type: [String], required: true },
     authors: [{
-        firstName: { type: String, required: true },
-        lastName: { type: String, required: true }
+        first_name: { type: String, required: true },
+        last_name: { type: String, required: true }
     }],
     file_link: { type: String, required: true },
     final_version: { type: Boolean, default: false },

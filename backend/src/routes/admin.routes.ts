@@ -13,10 +13,15 @@ import {
     downloadPapersByConference,
     changeSubmissionDeadline,
     getAllQuestions,
-    createQuestion, updateQuestion, deleteCategory
+    createQuestion,
+    updateQuestion,
+    deleteCategory,
+    getConferenceById,
+    getQuestionById,
+    getAdminReports,
+    getAdminNotifications
 } from '../controllers/admin.controller'
 import { authenticateToken } from '../middleware/authenticateToken';
-import { validateEditUserDetails, validateRequest } from '../middleware/validation';
 
 const router = Router();
 
@@ -25,23 +30,25 @@ router.use(authenticateToken);
 
 //Users
 router.get('/users', getAllUsers);
-router.patch('/users/:userId', validateEditUserDetails, validateRequest, editUserDetails);
+router.patch('/users/:id',  editUserDetails); //validateEditUserDetails, validateRequest,
 
 //Categories
 router.get('/categories', getAllCategories);
 router.post('/categories', createCategory);
-router.patch('/categories/:categoryId', updateCategory);
-router.delete('/categories/:categoryId', deleteCategory);
+router.patch('/categories/:id', updateCategory);
+router.delete('/categories/:id', deleteCategory);
 
 // Conferences
 router.get('/conferences', getAllConferences);
+router.get('/conferences/:id', getConferenceById);
 router.post('/conferences', createConference);
-router.patch('/conferences/:conferenceId', updateConference);
+router.patch('/conferences/:id', updateConference);
 
 // Questions for reviews
 router.get('/questions', getAllQuestions);
+router.get('/questions/:id', getQuestionById);
 router.post('/questions', createQuestion);
-router.patch('/questions/:questionId', updateQuestion)
+router.patch('/questions/:id', updateQuestion)
 
 //Papers by conference
 router.get('/papers', getPapersGroupedByConference);
@@ -49,4 +56,6 @@ router.get('/papers/download', downloadPapersByConference);
 router.patch('/papers/:paperId/reviewer', assignReviewer); //Assign reviewer to paper
 router.patch('/papers/:paperId/deadline', changeSubmissionDeadline); // Change submission deadline for a specific paper
 
+router.get("/reports", getAdminReports);
+router.get("/notifications", getAdminNotifications);
 export default router;

@@ -5,11 +5,9 @@ import nodemailer from 'nodemailer';
 import multer from 'multer';
 import { config } from '../config';
 import { AuthRequest } from '../middleware/authenticateToken';
-import { updateConferenceStatus } from '../middleware/updateConferenceStatus';
 import User, { UserStatus } from '../models/User'
-import Conference from '../models/Conference'
-import Category from '../models/Category'
 import path from 'node:path'
+import { generateVerificationEmail, sendEmail } from '../utils/emailService'
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -50,15 +48,17 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         await newUser.save();
 
         // Send verification email
+        /*
         const transporter = nodemailer.createTransport({
             host: config.emailHost,
             port: config.emailPort,
             secure: false, //true if port is 465, other are non-secure
             auth: { user: config.emailUser, pass: config.emailPass },
         } as nodemailer.TransportOptions);
+         */
 
         const verificationUrl = `${config.baseUrl}/api/verify-email?token=${verificationToken}`;
-        await transporter.sendMail({
+        /*await transporter.sendMail({
             from: `"SciSubmit" <${config.emailUser}>`,
             to: email,
             subject: 'Verify Your Email',
@@ -90,6 +90,19 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
                     cid: 'scisubmit-logo' // Same as referenced in the HTML
                 }
             ]
+        });
+         */
+        await sendEmail({
+            to: email,
+            subject: "Verify Your Email",
+            html: generateVerificationEmail(verificationUrl),
+            attachments: [
+                {
+                    filename: "logo.png",
+                    path: path.join(__dirname, "../assets/logo.png"),
+                    cid: "scisubmit-logo",
+                },
+            ],
         });
 
         res.status(201).json({
@@ -281,30 +294,5 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
     } catch (error) {
         console.error('Error updating profile:', error);
         res.status(500).json({ message: 'Error updating profile', error });
-    }
-};
-
-// Fetch all categories (accessible for dropdown selection)
-export const getAllCategories = async (_req: Request, res: Response): Promise<void> => {
-    try {
-        const categories = await Category.find();
-        res.status(200).json(categories);
-    } catch (error) {
-        console.error('Error fetching categories:', error);
-        res.status(500).json({ message: 'Failed to fetch categories', error });
-    }
-};
-
-// Fetch all conferences (accessible for dropdown selection)
-export const getAllConferences = async (_req: Request, res: Response): Promise<void> => {
-    try {
-        // Update statuses before fetching conferences
-        await updateConferenceStatus();
-
-        const conferences = await Conference.find().populate('categories');
-        res.status(200).json(conferences);
-    } catch (error) {
-        console.error('Error fetching conferences:', error);
-        res.status(500).json({ message: 'Failed to fetch conferences', error });
     }
 };

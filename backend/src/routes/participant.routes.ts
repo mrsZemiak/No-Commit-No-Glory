@@ -2,7 +2,7 @@ import { Router } from 'express';
 import {
   editPaper,
   getCategories, getConferences,
-  getPaperById,
+  getPaperById, notifyParticipant,
   submitPaper,
   viewMyPapers
 } from '../controllers/participant.controller'
@@ -26,6 +26,7 @@ router.patch('/papers/:paperId', editPaper)
 router.get('/papers/:paperId', getPaperById)
 router.get("/categories", getCategories)
 router.get("/conferences", getConferences)
+router.post("/notify-participant", notifyParticipant);
 
 
 export default router;

@@ -35,6 +35,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+
         if(user.status === UserStatus.Pending || user.status === UserStatus.Inactive || user.status === UserStatus.Suspended) {
             res.status(403).json({
                 message: 'Nemôžete sa prihlásiť, váš účet nie je aktívny'});
@@ -54,7 +55,8 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
           config.jwtSecret,
           { expiresIn: '7d' } // Longer expiration for refresh token
         );
-        //Save the refresh token in database
+
+        user.last_login = new Date();
         await user.save();
 
         res.status(200).json({ token, role: user.role, message: 'Prihlásenie bolo úspešne' });

@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config';
 
 export interface AuthRequest extends Request {
-    user?: { userId: string; role: string };
+    user?: { userId: string; role: string; last_login?: Date; };
 }
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction): void => {

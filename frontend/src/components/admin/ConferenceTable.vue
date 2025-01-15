@@ -227,8 +227,19 @@ import type { ConferenceAdmin } from "@/types/conference"; // Importing Conferen
 export default defineComponent({
   name: "ConferenceTable",
   setup() {
-    // State variables
-    const conferences = ref<ConferenceAdmin[]>([]); // All conferences
+    const conferences = ref<ConferenceAdmin[]>([]);
+    const tableHeaders = ref([
+      { title: "Stav", value: "status" },
+      { title: "Rok", value: "year", sortable: true },
+      { title: "Konferencia", value: "date", sortable: true },
+      { title: "Univerzita", value: "university" },
+      { title: "Miesto", value: "location" },
+      { title: "Začiatok", value: "start_date", sortable: true },
+      { title: "Koniec", value: "end_date", sortable: true },
+      { title: "Odovzdanie prác", value: "deadline_submission" },
+      { title: "", value: "actions", sortable: false },
+    ]);
+
     const filters = ref({
       year: "",
       university: "",
@@ -248,18 +259,6 @@ export default defineComponent({
     const perPage = ref(10); // Items per page
     const router = useRouter(); // Vue Router
 
-    // Table Headers
-    const tableHeaders = ref([
-      { title: "Stav", value: "status" },
-      { title: "Rok", value: "year", sortable: true },
-      { title: "Konferencia", value: "date", sortable: true },
-      { title: "Univerzita", value: "university" },
-      { title: "Miesto", value: "location" },
-      { title: "Začiatok", value: "start_date", sortable: true },
-      { title: "Koniec", value: "end_date", sortable: true },
-      { title: "Odovzdanie prác", value: "deadline_submission" },
-      { title: "", value: "actions", sortable: false },
-    ]);
     // Status options for filtering
     const statusOptions = ['Nadchádzajúca', 'Aktuálna', 'Ukončená', 'Zrušená'];
 
@@ -293,7 +292,6 @@ export default defineComponent({
     });
 
     // Methods
-
     // Snackbar display helper
     const showSnackbar = (message: string, color: string) => {
       snackbar.value = { show: true, message, color, timeout: 5000 };
@@ -305,7 +303,7 @@ export default defineComponent({
         const response = await axiosInstance.get("/auth/admin/conferences");
         conferences.value = response.data.map((conference: any) => ({
           ...conference,
-          date: new Date(conference.date), // Convert to Date object
+          date: new Date(conference.date),
           start_date: new Date(conference.start_date),
           end_date: new Date(conference.end_date),
           deadline_submission: new Date(conference.deadline_submission),

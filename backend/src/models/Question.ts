@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IQuestion extends Document {
     text: string;
-    type: 'rating' | 'yes_no' | 'text';
+    type: 'Hodnotenie' | 'Áno/Nie' | 'Text';
     options?: {
         min: { type: Number, default: 1 },
         max: { type: Number, default: 6 },
@@ -13,7 +13,7 @@ export interface IQuestion extends Document {
 
 const QuestionSchema: Schema = new Schema({
     text: { type: String, required: true },
-    type: { type: String, enum: ['rating', 'yes_no', 'text'], required: true },
+    type: { type: String, enum: ['Hodnotenie', 'Áno/Nie', 'Text'], required: true },
     options: {
         min: { type: Number },
         max: { type: Number },

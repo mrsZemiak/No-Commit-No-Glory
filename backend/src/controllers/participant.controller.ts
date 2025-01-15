@@ -3,6 +3,8 @@ import Paper, { PaperStatus } from '../models/Paper'
 import { AuthRequest } from '../middleware/authenticateToken'
 import Category from '../models/Category'
 import Conference from '../models/Conference'
+import { sendEmail } from '../utils/emailService'
+import User from '../models/User'
 
 export const submitPaper = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
@@ -167,5 +169,48 @@ export const getCategories = async (req: AuthRequest, res: Response): Promise<vo
     } catch (error) {
         console.error("Error fetching categories:", error);
         res.status(500).json({ message: "Nepodarilo sa načítať sekcie", error });
+    }
+};
+
+// Notify participant about status or review
+export const notifyParticipant = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const { userId, paperId, newStatus } = req.body;
+
+        const participant = await User.findById(userId);
+        const paper = await Paper.findById(paperId);
+
+        if (!participant || !paper) {
+            res.status(404).json({ message: "Účastník alebo práca sa nenašli." });
+            return;
+        }
+
+        let emailContent = `
+            <p>Dobrý deň, ${participant.first_name},</p>
+            <p>Stav vášho príspevku s názvom "<strong>${paper.title}</strong>" bol aktualizovaný na "<strong>${newStatus}</strong>".</p>
+        `;
+
+        if (newStatus === PaperStatus.AcceptedWithChanges) {
+            emailContent += `
+                <p>Prihláste sa do svojho účtu, aby ste videli požadované zmeny a odošlite svoj aktualizovaný dokument.</p>
+            `;
+        } else if (newStatus === PaperStatus.Rejected) {
+            emailContent += `
+                <p>S ľútosťou vám oznamujeme, že váš príspevok nebol prijatý.</p>
+            `;
+        }
+
+        emailContent += `<p>S pozdravom, <br />váš tím SciSubmit</p>`;
+
+        await sendEmail({
+            to: participant.email,
+            subject: `Aktualizácia stavu práce: ${newStatus}`,
+            html: emailContent,
+        });
+
+        res.status(200).json({ message: "Oznámenie odoslané účastníkovi." });
+    } catch (error) {
+        console.error("Error notifying participant:", error);
+        res.status(500).json({ error: "Nepodarilo sa upozorniť účastníka." });
     }
 };

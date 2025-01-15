@@ -8,6 +8,7 @@ import Paper from '../models/Paper'
 import path from 'node:path'
 import { promises as fs } from 'fs';
 import Question from '../models/Question'
+import Review from '../models/Review'
 
 
 //Get all users
@@ -49,28 +50,10 @@ export const editUserDetails = async (req: AuthRequest, res: Response): Promise<
 
 export const getAllCategories = async (req: AuthRequest, res: Response) => {
     try {
-        // Parse query parameters
-        const { limit = 10, page = 1 } = req.query;
+        // Fetch all categories
+        const categories = await Category.find();
 
-        // Ensure limit and page are numbers
-        const perPage = Math.max(Number(limit), 1); // Ensure limit is at least 1
-        const currentPage = Math.max(Number(page), 1); // Ensure page is at least 1
-
-        // Fetch categories with pagination
-        const categories = await Category.find()
-          .skip((currentPage - 1) * perPage) // Skip categories for previous pages
-          .limit(perPage);
-
-        // Get total count of categories
-        const total = await Category.countDocuments();
-
-        // Respond with paginated data
-        res.status(200).json({
-            categories,
-            total, // Total number of categories
-            currentPage,
-            totalPages: Math.ceil(total / perPage), // Calculate total pages
-        });
+        res.status(200).json({ categories });
     } catch (error) {
         console.error('Error fetching categories:', error);
         res.status(500).json({ error: 'Nepodarilo sa načítať kategórie' });
@@ -185,8 +168,23 @@ export const createConference = async (req: AuthRequest, res: Response): Promise
     }
 };
 
+export const getConferenceById = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+        const conference = await Conference.findById(id);
+        if (!conference) {
+            res.status(404).json({ message: "Conference not found." });
+            return;
+        }
+        res.status(200).json(conference);
+    } catch (error) {
+        console.error("Error fetching conference:", error);
+        res.status(500).json({ error: "Failed to fetch conference." });
+    }
+};
+
 //Update existing conference
-export const updateConference = async (req: Request, res: Response): Promise<void> => {
+export const updateConference = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { conferenceId } = req.params;
         const updates = req.body;
@@ -224,18 +222,9 @@ export const deleteConference = async (req: Request, res: Response): Promise<voi
 };
  */
 
-export const getAllQuestions = async (req: Request, res: Response): Promise<void> => {
+export const getAllQuestions = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
-        const { limit = 10, page = 1 } = req.query;
-        // Ensure limit and page are numbers
-        const perPage = Math.max(Number(limit), 1); // Ensure limit is at least 1
-        const currentPage = Math.max(Number(page), 1); // Ensure page is at least 1
-
-        // Fetch categories with pagination
         const questions = await Question.find()
-          .skip((currentPage - 1) * perPage) // Skip categories for previous pages
-          .limit(perPage);
-
         res.status(200).json(questions);
     } catch (error) {
         console.error('Error retrieving questions:', error);
@@ -243,7 +232,24 @@ export const getAllQuestions = async (req: Request, res: Response): Promise<void
     }
 };
 
-export const createQuestion = async (req: Request, res: Response): Promise<void> => {
+export const getQuestionById = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params;
+
+        const question = await Question.findById(id);
+        if (!question) {
+            res.status(404).json({ message: "Question not found." });
+            return;
+        }
+
+        res.status(200).json(question);
+    } catch (error) {
+        console.error("Error fetching question by ID:", error);
+        res.status(500).json({ message: "Failed to fetch question.", error });
+    }
+};
+
+export const createQuestion = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { text, type, options, category } = req.body;
 
@@ -267,22 +273,19 @@ export const createQuestion = async (req: Request, res: Response): Promise<void>
     }
 };
 
-export const updateQuestion = async (req: Request, res: Response): Promise<void> => {
+export const updateQuestion = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { questionId } = req.params;
         const updates = req.body;
-
         //Find and update the question
         const updatedQuestion = await Question.findByIdAndUpdate(questionId, updates, {
-            new: true, // Return the updated document
-            runValidators: true, // Ensure validations are run
+            new: true,
+            runValidators: true,
         });
-
         if (!updatedQuestion) {
             res.status(404).json({ message: 'Nepodarilo sa nájsť otázku' });
             return;
         }
-
         res.status(200).json({
             message: 'Otázka bola úspešne aktualizovaná',
             question: updatedQuestion,
@@ -292,20 +295,9 @@ export const updateQuestion = async (req: Request, res: Response): Promise<void>
         res.status(500).json({ message: 'Nepodarilo sa aktualizovať otázku', error });
     }
 };
-/*
-//Get all papers
-export const viewAllPapers = async (req: Request, res: Response): Promise<void> => {
-    try {
-        const papers = await Paper.find().populate('category', 'name').populate('conference', 'year location university status').populate('user', 'first_name last_name');
-        res.status(200).json(papers);
-    } catch (error) {
-        res.status(500).json({ message: 'Nepodarilo sa načítať práce', error });
-    }
-};
-*/
 
 // View all papers grouped by conference
-export const getPapersGroupedByConference = async (_req: Request, res: Response): Promise<void> => {
+export const getPapersGroupedByConference = async (_req: AuthRequest, res: Response): Promise<void> => {
     try {
         // Fetch all conferences
         const conferences = await Conference.find().sort({ year: -1 });
@@ -318,7 +310,6 @@ export const getPapersGroupedByConference = async (_req: Request, res: Response)
                 .select('title status submission_date user category'); // Include only relevant fields
 
               return {
-                  _id: conference._id,
                   year: conference.year,
                   date: conference.date,
                   location: conference.location,
@@ -335,7 +326,7 @@ export const getPapersGroupedByConference = async (_req: Request, res: Response)
 };
 
 // Change submission deadline of particular paper
-export const changeSubmissionDeadline = async (req: Request, res: Response): Promise<void> => {
+export const changeSubmissionDeadline = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { paperId } = req.params;
         const { newDeadline } = req.body;
@@ -344,13 +335,11 @@ export const changeSubmissionDeadline = async (req: Request, res: Response): Pro
             res.status(400).json({ message: 'Je potrebný nový termín.' });
             return;
         }
-
         const updatedPaper = await Paper.findByIdAndUpdate(
           paperId,
-          { submission_date: new Date(newDeadline) },
+          { deadline_date: new Date(newDeadline) },
           { new: true }
         );
-
         if (!updatedPaper) {
             res.status(404).json({ message: 'Nepodarilo sa nájsť prácu' });
             return;
@@ -364,7 +353,7 @@ export const changeSubmissionDeadline = async (req: Request, res: Response): Pro
 };
 
 // Assign a reviewer to a paper
-export const assignReviewer = async (req: Request, res: Response): Promise<void> => {
+export const assignReviewer = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { paperId } = req.params;
         const { reviewerId } = req.body;
@@ -381,7 +370,7 @@ export const assignReviewer = async (req: Request, res: Response): Promise<void>
           paperId,
           { reviewer: reviewerId },
           { new: true }
-        );
+        ).populate('reviewer', 'first_name last_name email');
 
         if (!updatedPaper) {
             res.status(404).json({ message: 'Nepodarilo sa nájsť prácu.' });
@@ -398,7 +387,7 @@ export const assignReviewer = async (req: Request, res: Response): Promise<void>
     }
 };
 
-export const downloadPapersByConference = async (req: Request, res: Response): Promise<void> => {
+export const downloadPapersByConference = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const { conferenceId } = req.query;
 
@@ -448,3 +437,92 @@ export const downloadPapersByConference = async (req: Request, res: Response): P
         res.status(500).json({ message: 'Nepodarilo sa stiahnuť práce.', error });
     }
 };
+
+// Admin Reports Controller
+export const getAdminReports = async (_req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        // Total Papers Count
+        const totalPapers = await Paper.countDocuments();
+
+        // Papers Grouped by Status
+        const papersByStatus = await Paper.aggregate([
+            { $group: { _id: "$status", count: { $sum: 1 } } }
+        ]);
+
+        // Papers by Category
+        const papersByCategory = await Paper.aggregate([
+            { $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "categoryInfo" } },
+            { $unwind: "$categoryInfo" },
+            { $group: { _id: "$categoryInfo.name", count: { $sum: 1 } } }
+        ]);
+
+        // Active Reviewers Count
+        const activeReviewers = await User.countDocuments({ role: "reviewer", status: "active" });
+
+        // Papers Under Review
+        const papersUnderReview = await Paper.countDocuments({ status: "under_review" });
+
+        // Conferences with their Paper Counts
+        const conferencesWithPaperCounts = await Conference.aggregate([
+            { $lookup: { from: "papers", localField: "_id", foreignField: "conference", as: "papers" } },
+            { $project: { _id: 1, name: 1, year: 1, paperCount: { $size: "$papers" } } }
+        ]);
+
+        // Send aggregated report data
+        res.status(200).json({
+            totalPapers,
+            papersByStatus,
+            papersByCategory,
+            activeReviewers,
+            papersUnderReview,
+            conferencesWithPaperCounts
+        });
+    } catch (error) {
+        console.error("Error fetching admin reports:", error);
+        res.status(500).json({ message: "Failed to fetch admin reports.", error });
+    }
+};
+
+// Fetch new reviews
+export const getAdminNotifications = async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+        const lastCheck = req.user?.last_login;
+
+        // Count new papers
+        const newPapers = await Paper.countDocuments({
+            created_at: { $gte: lastCheck },
+            status: "submitted",
+        });
+
+        // Count new users
+        const newUsers = await User.countDocuments({ created_at: { $gte: lastCheck } });
+
+        // Count new reviews
+        const newReviews = await Review.countDocuments({
+            created_at: { $gte: lastCheck },
+        });
+
+        res.status(200).json({
+            newPapers,
+            newUsers,
+            newReviews,
+        });
+    } catch (error) {
+        console.error("Error fetching admin notifications:", error);
+        res.status(500).json({ message: "Failed to fetch admin notifications.", error });
+    }
+};
+
+/*
+export const markNotificationsAsRead = async (req: AuthRequest, res: Response) => {
+    try {
+        const admin = req.user; // Fetch admin user
+        admin.last_notification_check = new Date();
+        await admin.save();
+        res.status(200).json({ message: "Notifications marked as read" });
+    } catch (error) {
+        console.error("Error marking notifications as read:", error);
+        res.status(500).json({ message: "Failed to mark notifications as read" });
+    }
+};
+ */
