@@ -135,9 +135,9 @@ export const updateCategory = async (req: AuthRequest, res: Response): Promise<v
 //Delete category
 export const deleteCategory = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { categoryId } = req.params; // Use "categoryId" to match the route
+    const { categoryId } = req.params;
 
-    const deletedCategory = await Category.findByIdAndDelete(categoryId); // Use "categoryId"
+    const deletedCategory = await Category.findByIdAndDelete(categoryId);
     if (!deletedCategory) {
       res.status(404).json({ message: 'Kategória nebola nájdená' });
       return;

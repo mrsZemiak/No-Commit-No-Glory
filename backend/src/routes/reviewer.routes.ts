@@ -13,13 +13,13 @@ const router = Router();
 
 router.use(authenticateToken);
 
-router.get('/assigned-papers', getAssignedPapers);
+router.get('/papers', getAssignedPapers);
 router.get('/questions', getQuestions);
-router.get('/review/:id', getReviewById);
+router.get('/reviews/:reviewId', getReviewById);
 router.post('/submit-review', validateReviewSubmission, validateRequest, submitReview);
-router.patch("/update-review/:reviewId", validateReviewUpdate, validateRequest, updateReview);
+router.patch("/reviews/:reviewId", validateReviewUpdate, validateRequest, updateReview);
 router.post("/contact-admin", contactAdmin);
 router.post("/notify-reviewer", notifyReviewer);
-router.get('/download/:paperId', downloadPaper);
+router.get('/papers/:paperId/download', downloadPaper);
 
 export default router;

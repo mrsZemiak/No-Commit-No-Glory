@@ -29,13 +29,13 @@ router.use(authenticateToken);
 
 //Users
 router.get('/users', getAllUsers);
-router.patch('/users/:id',  editUserDetails); //validateEditUserDetails, validateRequest,
+router.patch('/users/:userId',  editUserDetails); //validateEditUserDetails, validateRequest,
 
 //Categories
 router.get('/categories', getAllCategories);
 router.post('/categories', createCategory);
-router.patch('/categories/:id', updateCategory);
-router.delete('/categories/:id', deleteCategory);
+router.patch('/categories/:categoryId', updateCategory);
+router.delete('/categories/:categoryId', deleteCategory);
 
 // Conferences
 router.get('/conferences', getAllConferences);
@@ -45,9 +45,9 @@ router.patch('/conferences/:id', updateConference);
 
 // Questions for reviews
 router.get('/questions', getAllQuestions);
-router.get('/questions/:id', getQuestionById);
+router.get('/questions/:questionId', getQuestionById);
 router.post('/questions', createQuestion);
-router.patch('/questions/:id', updateQuestion)
+router.patch('/questions/:questionId', updateQuestion)
 
 //Papers by conference
 router.get('/papers', getPapersGroupedByConference);

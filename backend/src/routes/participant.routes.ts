@@ -22,8 +22,8 @@ router.post(
   validateRequest,
   submitPaper
 );
-router.patch('/papers/:paperId', editPaper)
 router.get('/papers/:paperId', getPaperById)
+router.patch('/papers/:paperId', editPaper)
 router.get("/categories", getCategories)
 router.get("/conferences", getConferences)
 router.post("/notify-participant", notifyParticipant);

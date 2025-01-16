@@ -23,6 +23,7 @@ export interface IPaper extends Document {
   isFinal: boolean;
   deadline_date?: Date;
   reviewer?: mongoose.Schema.Types.ObjectId;
+  review?: mongoose.Types.ObjectId;
   awarded?: boolean;
 }
 
@@ -47,7 +48,8 @@ const PaperSchema: Schema = new Schema({
   file_link: { type: String, required: true },
   isFinal: { type: Boolean, default: false },
   deadline_date: { type: Date, required: false },
-  reviewer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false }, // Assigned by admin
+  reviewer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
+  review: { type: Schema.Types.ObjectId, ref: "Review" },
   awarded: { type: Boolean, default: false }
 });
 
