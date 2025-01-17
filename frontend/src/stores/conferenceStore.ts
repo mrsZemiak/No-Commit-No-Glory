@@ -2,8 +2,8 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import axiosInstance from '@/config/axiosConfig.ts'
 
-export const useConferencesStore = defineStore("conferences", () => {
-  // Reactive state
+export const useConferenceStore = defineStore("conferences", () => {
+  //Reactive state
   const adminConferences = ref<Array<any>>([]);
   const participantConferences = ref<Array<any>>([]);
   const loading = ref(false);
@@ -15,7 +15,7 @@ export const useConferencesStore = defineStore("conferences", () => {
     selectedStatus: [] as string[],
   });
 
-  // Computed properties
+  //Computed properties
   const filteredConferences = computed(() => {
     return adminConferences.value.filter((conference) => {
       const matchesUniversity = filters.value.university
@@ -39,14 +39,22 @@ export const useConferencesStore = defineStore("conferences", () => {
     });
   });
 
-  // Actions
+  //Actions
+  const resetFilters = () => {
+    filters.value = {
+      university: "",
+      year: "",
+      location: "",
+      selectedStatus: [],
+    };
+  };
+
   const fetchAdminConferences = async () => {
     loading.value = true;
     error.value = null;
     try {
       const response = await axiosInstance.get("/auth/admin/conferences");
       adminConferences.value = response.data;
-      syncLocalStorage();
     } catch (err) {
       error.value = "Failed to fetch conferences.";
       console.error(err);
@@ -70,10 +78,10 @@ export const useConferencesStore = defineStore("conferences", () => {
   const addConference = async (conference: any) => {
     try {
       const response = await axiosInstance.post("/auth/admin/conferences", conference);
-      adminConferences.value.push(response.data);
-      syncLocalStorage();
+      adminConferences.value = [...adminConferences.value, response.data];
     } catch (err) {
       console.error("Failed to add conference:", err);
+      throw err;
     }
   };
 
@@ -86,7 +94,6 @@ export const useConferencesStore = defineStore("conferences", () => {
           ...adminConferences.value[index],
           ...updates,
         };
-        syncLocalStorage();
       }
     } catch (err) {
       console.error("Failed to update conference:", err);
@@ -108,36 +115,6 @@ export const useConferencesStore = defineStore("conferences", () => {
     }
   };
 
-  // LocalStorage synchronization
-  const syncLocalStorage = () => {
-    localStorage.setItem("adminConferences", JSON.stringify(adminConferences.value));
-  };
-
-  const loadFromLocalStorage = () => {
-    const savedConferences = localStorage.getItem("adminConferences");
-    if (savedConferences) {
-      adminConferences.value = JSON.parse(savedConferences);
-    }
-  };
-
-  // Cross-tab synchronization
-  const syncAcrossTabs = () => {
-    const handleStorageEvent = (event: StorageEvent) => {
-      if (event.key === "adminConferences") {
-        adminConferences.value = JSON.parse(event.newValue || "[]");
-      }
-    };
-
-    window.addEventListener("storage", handleStorageEvent);
-    return () => {
-      window.removeEventListener("storage", handleStorageEvent);
-    };
-  };
-
-  // Initialize store with data from localStorage and cross-tab sync
-  loadFromLocalStorage();
-  syncAcrossTabs();
-
   return {
     adminConferences,
     participantConferences,
@@ -145,11 +122,11 @@ export const useConferencesStore = defineStore("conferences", () => {
     error,
     filters,
     filteredConferences,
+    resetFilters,
     fetchAdminConferences,
     fetchConferenceById,
     addConference,
     updateConference,
     fetchParticipantConferences,
-    syncLocalStorage,
   };
 });

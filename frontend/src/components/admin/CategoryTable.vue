@@ -1,3 +1,97 @@
+<script lang="ts">
+import { defineComponent, ref, reactive, onMounted } from 'vue';
+import { useCategoryStore } from "@/stores/categoryStore";
+
+export default defineComponent({
+  name: "CategoryTable",
+  setup() {
+    // Initialize the category store
+    const categoryStore = useCategoryStore();
+
+    // Dialogs and form state
+    const isDialogOpen = ref(false);
+    const isDeleteDialogOpen = ref(false);
+    const dialogMode = ref<"add" | "edit">("add");
+    const currentCategory = reactive({ _id: "", name: "", isActive: true });
+    const valid = ref(false);
+
+    // Headers for the data table
+    const headers = [
+      { title: "Stav", key: "isActive" },
+      { title: "Názov kategórie", key: "name" },
+      { title: "", value: "actions", sortable: false },
+    ];
+
+    // Dialog handling
+    const openDialog = (mode: "add" | "edit", category = { _id: "", name: "", isActive: true }) => {
+      dialogMode.value = mode;
+      Object.assign(currentCategory, category);
+      isDialogOpen.value = true;
+    };
+
+    const closeDialog = () => {
+      isDialogOpen.value = false;
+      Object.assign(currentCategory, { _id: "", name: "", isActive: true });
+    };
+
+    const saveCategory = async () => {
+      try {
+        if (dialogMode.value === "add") {
+          await categoryStore.addCategory({ name: currentCategory.name, isActive: currentCategory.isActive });
+        } else {
+          await categoryStore.updateCategory(currentCategory._id, { name: currentCategory.name, isActive: currentCategory.isActive });
+        }
+        closeDialog();
+      } catch (error) {
+        console.error("Error saving category:", error);
+      }
+    };
+
+    // Delete confirmation handling
+    const confirmDelete = (category: { _id: string; name: string; isActive: boolean }) => {
+      Object.assign(currentCategory, category);
+      isDeleteDialogOpen.value = true;
+    };
+
+    const closeDeleteDialog = () => {
+      isDeleteDialogOpen.value = false;
+    };
+
+    const deleteCategory = async () => {
+      try {
+        await categoryStore.deleteCategory(currentCategory._id);
+      } catch (error) {
+        console.error("Error deleting category:", error);
+      } finally {
+        closeDeleteDialog();
+      }
+    };
+
+    onMounted(() => {
+      categoryStore.fetchAllCategories().then(() => {
+        console.log("Fetched Categories:", categoryStore.categories);
+      });
+    });
+
+    return {
+      categoryStore,
+      isDialogOpen,
+      isDeleteDialogOpen,
+      dialogMode,
+      currentCategory,
+      valid,
+      headers,
+      openDialog,
+      closeDialog,
+      saveCategory,
+      confirmDelete,
+      closeDeleteDialog,
+      deleteCategory,
+    };
+  },
+});
+</script>
+
 <template>
   <v-card>
     <v-card-title>
@@ -7,7 +101,7 @@
     </v-card-title>
     <v-data-table
       :headers="headers"
-      :items="categories"
+      :items="categoryStore.categories"
       class="custom-table"
       :pageText="'{0}-{1} z {2}'"
       items-per-page-text="Kategórie na stránku"
@@ -29,7 +123,7 @@
             <v-btn color="#E7B500" @click="openDialog('edit', category)">
               <v-icon size="24">mdi-pencil</v-icon>
             </v-btn>
-            <v-btn color="#BC463A "@click="confirmDelete(category)">
+            <v-btn color="#BC463A" @click="confirmDelete(category)">
               <v-icon size="24" color="white">mdi-delete</v-icon>
             </v-btn>
           </td>
@@ -86,113 +180,5 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, reactive, onMounted } from "vue";
-import axiosInstance from "@/config/axiosConfig";
-
-export default defineComponent({
-  name: "CategoryTable",
-  setup(_, { emit }) {
-    const categories = ref<Array<{ _id: string; name: string; isActive: boolean }>>([]);
-    const isDialogOpen = ref(false);
-    const isDeleteDialogOpen = ref(false);
-    const dialogMode = ref<"add" | "edit">("add");
-    const currentCategory = reactive({ _id: "", name: "", isActive: true });
-    const valid = ref(false);
-    const headers = ref([
-      { title: "Stav", key: "isActive"},
-      { title: "Názov kategórie", key: "name" },
-      { title: "", value: "actions", sortable: false },
-    ]);
-
-    const fetchCategories = async () => {
-      try {
-        const response = await axiosInstance.get("/auth/admin/categories");
-        categories.value = response.data.categories;
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-        showSnackbar({ message: "Nepodarilo sa načítať kategórie", color: "error" });
-      }
-    };
-
-    const openDialog = (mode: "add" | "edit", category = { _id: "", name: "", isActive: true }) => {
-      dialogMode.value = mode;
-      Object.assign(currentCategory, category);
-      isDialogOpen.value = true;
-    };
-
-    const closeDialog = () => {
-      isDialogOpen.value = false;
-      Object.assign(currentCategory, { _id: "", name: "", isActive: true });
-    };
-
-    const saveCategory = async () => {
-      try {
-        if (dialogMode.value === "add") {
-          const response = await axiosInstance.post("/auth/admin/categories", currentCategory);
-          categories.value.push(response.data);
-          showSnackbar({ message: "Kategória bola pridaná", color: "success" });
-        } else {
-          await axiosInstance.patch(`/auth/admin/categories/${currentCategory._id}`, currentCategory);
-          const index = categories.value.findIndex((cat) => cat._id === currentCategory._id);
-          if (index !== -1) categories.value[index] = { ...currentCategory };
-          showSnackbar({ message: "Kategória bola upravená", color: "success" });
-        }
-        closeDialog();
-      } catch (error) {
-        console.error("Error saving category:", error);
-        showSnackbar({ message: "Nepodarilo sa uložiť kategóriu", color: "error" });
-      }
-    };
-
-    const confirmDelete = (category: { _id: string; name: string; isActive: boolean }) => {
-      Object.assign(currentCategory, category);
-      isDeleteDialogOpen.value = true;
-    };
-
-    const closeDeleteDialog = () => {
-      isDeleteDialogOpen.value = false;
-    };
-
-    const deleteCategory = async () => {
-      try {
-        await axiosInstance.delete(`/auth/admin/categories/${currentCategory._id}`);
-        categories.value = categories.value.filter((cat) => cat._id !== currentCategory._id);
-        showSnackbar({ message: "Kategória bola odstránená", color: "success" });
-      } catch (error) {
-        console.error("Error deleting category:", error);
-        showSnackbar({ message: "Nepodarilo sa odstrániť kategóriu", color: "error" });
-      } finally {
-        closeDeleteDialog();
-      }
-    };
-
-    const showSnackbar = ({ message, color }: { message: string; color: string }) => {
-      emit("snackbar", { message, color });
-    };
-
-    onMounted(fetchCategories);
-
-    return {
-      categories,
-      isDialogOpen,
-      isDeleteDialogOpen,
-      dialogMode,
-      currentCategory,
-      valid,
-      headers,
-      fetchCategories,
-      openDialog,
-      closeDialog,
-      saveCategory,
-      confirmDelete,
-      closeDeleteDialog,
-      deleteCategory,
-    };
-  },
-});
-</script>
-
 <style lang="scss">
-
 </style>

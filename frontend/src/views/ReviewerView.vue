@@ -7,6 +7,6 @@ import ReviewTable from "@/components/reviewer/ReviewTable.vue";
   <ReviewTable></ReviewTable>
 </template>
 
-<style scoped>
+<style >
 
 </style>

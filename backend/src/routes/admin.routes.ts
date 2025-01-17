@@ -39,9 +39,9 @@ router.delete('/categories/:categoryId', deleteCategory);
 
 // Conferences
 router.get('/conferences', getAllConferences);
-router.get('/conferences/:id', getConferenceById);
+router.get('/conferences/:conferenceId', getConferenceById);
 router.post('/conferences', createConference);
-router.patch('/conferences/:id', updateConference);
+router.patch('/conferences/:conferenceId', updateConference);
 
 // Questions for reviews
 router.get('/questions', getAllQuestions);

@@ -4,8 +4,8 @@ import axiosInstance from "@/config/axiosConfig";
 
 export const useCategoryStore = defineStore("categories", () => {
   // Reactive state
-  const adminCategories = ref<Array<any>>([]);
-  const participantCategories = ref<Array<any>>([]);
+  const categories = ref<Array<{ _id: string; name: string; isActive: boolean }>>([]);
+  const participantCategories = ref<Array<{ _id: string; name: string; isActive: boolean }>>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
 
@@ -15,7 +15,8 @@ export const useCategoryStore = defineStore("categories", () => {
     error.value = null;
     try {
       const response = await axiosInstance.get("/auth/admin/categories");
-      adminCategories.value = response.data;
+      console.log(response.data); // Debugging response structure
+      categories.value = response.data.categories || [];
     } catch (err) {
       error.value = "Failed to fetch categories.";
       console.error(err);
@@ -37,7 +38,7 @@ export const useCategoryStore = defineStore("categories", () => {
   const addCategory = async (category: any) => {
     try {
       const response = await axiosInstance.post("/auth/admin/categories", category);
-      adminCategories.value.push(response.data);
+      categories.value.push(response.data.category);
     } catch (err) {
       console.error("Failed to add category:", err);
       throw err;
@@ -46,10 +47,10 @@ export const useCategoryStore = defineStore("categories", () => {
 
   const updateCategory = async (id: string, updates: any) => {
     try {
-      await axiosInstance.patch(`/auth/admin/categories/${id}`, updates);
-      const index = adminCategories.value.findIndex((c) => c._id === id);
+      const response = await axiosInstance.patch(`/auth/admin/categories/${id}`, updates);
+      const index = categories.value.findIndex((c) => c._id === id);
       if (index !== -1) {
-        adminCategories.value[index] = { ...adminCategories.value[index], ...updates };
+        categories.value[index] = { ...categories.value[index], ...response.data.category };
       }
     } catch (err) {
       console.error("Failed to update category:", err);
@@ -60,7 +61,7 @@ export const useCategoryStore = defineStore("categories", () => {
   const deleteCategory = async (id: string) => {
     try {
       await axiosInstance.delete(`/auth/admin/categories/${id}`);
-      adminCategories.value = adminCategories.value.filter((c) => c._id !== id);
+      categories.value = categories.value.filter((cat) => cat._id !== id);
     } catch (err) {
       console.error("Failed to delete category:", err);
       throw err;
@@ -83,12 +84,12 @@ export const useCategoryStore = defineStore("categories", () => {
 
   //Computed properties
   const activeParticipantCategories = computed(() => {
-    return participantCategories.value.filter((category) => category.status === "active");
+    return participantCategories.value.filter((category) => category.isActive);
   });
 
   return {
     //State
-    adminCategories,
+    categories,
     participantCategories,
     loading,
     error,

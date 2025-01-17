@@ -8,6 +8,17 @@ import '@mdi/font/css/materialdesignicons.min.css';
 const vuetify = createVuetify({
   components,
   directives,
+  locale: {
+    locale: 'sk',
+    fallback: 'en',
+    messages: {
+      sk: {
+        datePicker: {
+          itemsSelected: 'Vybrané položky: {0}',
+        },
+      }
+    }
+  },
   theme: {
     themes: {
       light: {

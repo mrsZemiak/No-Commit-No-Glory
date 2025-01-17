@@ -40,12 +40,12 @@ const routes = [
           { path: 'conferences', name: 'ConferenceTable', component: () => import('@/components/admin/ConferenceTable.vue')},
           { path: 'categories', name: 'CategoryTable', component: () => import('@/components/admin/CategoryTable.vue')},
           { path: 'users', name: 'UserTable', component: () => import('@/components/admin/UserTable.vue')},
-          { path: 'papers-list', name: 'PapersList', component: () => import('@/components/admin/WorksTable.vue')},
+          { path: 'papers-list', name: 'PapersList', component: () => import('@/components/admin/ConferencePapers.vue')},
           { path: 'questions', name: 'QuestionsTable', component: () => import('@/components/admin/QuestionTable.vue')},
           {
-            path: 'conference-papers/:conferenceId',
+            path: 'conferences/:conferenceId/works',
             name: 'ConferencePapers',
-            component: () => import('@/components/admin/WorksTable.vue'),
+            component: () => import('@/components/admin/ConferencePapers.vue'),
             props: true
           },
         ],

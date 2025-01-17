@@ -18,12 +18,12 @@ $white: #FFF;
 $border-radius-8: 8px;
 
 //Vuetify scss
-
 .banner-container {
   position: relative;
   width: 100%;
   height: 500px;
   overflow: hidden;
+  align-self: center;
 
   .banner-image {
     position: absolute;
@@ -73,20 +73,20 @@ $border-radius-8: 8px;
 }
 
 .large-text-field input {
-  font-size: 20px;
+  font-size: 1.3rem;
 }
 
 .large-text-field label {
-  font-size: 20px;
+  font-size: 1.3rem;
+  color: $primary;
 }
 
 .large-text-field select {
-  font-size: 20px;
-  font-family: 'Lato', sans-serif;
+  font-size: 1.3rem;
 }
 
 .large-text-field .v-input__control {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
 }
 
 .large-text-field.v-input--disabled {

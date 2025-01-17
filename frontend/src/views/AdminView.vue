@@ -7,6 +7,6 @@ import ConferenceTable from "@/components/admin/ConferenceTable.vue";
   <ConferenceTable></ConferenceTable>
 </template>
 
-<style scoped>
+<style lang="scss">
 
 </style>
