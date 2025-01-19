@@ -5,9 +5,9 @@ import multer from 'multer';
 import { config } from '../config';
 import { AuthRequest } from '../middleware/authenticateToken';
 import User, { UserStatus } from '../models/User'
-import path from 'node:path'
 import { generateVerificationEmail, sendEmail } from '../utils/emailService'
-import fs from "fs/promises";
+import fs from 'fs';
+import path from 'path';
 
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -40,6 +40,8 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
     // Generate JWT for email verification
     const verificationToken = jwt.sign({ userId: newUser._id }, config.jwtSecret, { expiresIn: "1h" });
+
+    newUser.verificationToken = verificationToken;
 
     await newUser.save();
 
@@ -145,8 +147,42 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
   }
 };
 
+
+//Set up Multer for avatar uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.resolve(__dirname, './../uploads/avatars'); // Resolve relative to the current file
+    console.log('Resolved Upload Directory:', uploadPath);
+
+    //Create the directory if it doesn't exist
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+
+    cb(null, uploadPath); // Pass the resolved path to Multer
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`); // Generate a unique filename
+  },
+});
+
+export const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = /jpeg|jpg|png/;
+    const isAllowed = allowedTypes.test(file.mimetype) && allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    if (isAllowed) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only JPEG, JPG, and PNG files are allowed.'));
+    }
+  },
+});
+
 //Profile update
 export const updateUserProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+  console.log('Request body:', req.body); // Logs the body of the request
+  console.log('Uploaded file:', req.file); // Logs the file information if uploaded
   try {
     const userId = req.user?.userId;
 
@@ -154,6 +190,11 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
     const user = await User.findById(userId);
     if (!user) {
       res.status(404).json({ message: "User not found." });
+      return;
+    }
+
+    if (!req.file) {
+      res.status(400).json({ message: 'Avatar file is missing.' });
       return;
     }
 
@@ -172,67 +213,37 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
       delete updates.newPassword;
     }
 
-    // Handle avatar upload
+    //Handle avatar upload
     if (req.file) {
-      const uploadDir = path.resolve("./uploads/avatars");
-
-      // Ensure the upload directory exists
-      await fs.mkdir(uploadDir, { recursive: true });
-
-      // Delete the old avatar if it exists
-      if (user.avatar) {
-        const oldAvatarPath = path.resolve(user.avatar);
-        try {
-          await fs.unlink(oldAvatarPath);
-        } catch (error) {
-          console.warn(`Failed to delete old avatar at ${oldAvatarPath}:`, error);
-        }
-      }
-
-      // Set the new avatar path
       updates.avatar = `/uploads/avatars/${req.file.filename}`;
+
+      //Optionally delete the old avatar if it exists
+      if (user.avatar) {
+        try {
+          fs.unlink(path.resolve(user.avatar), (err) => {
+            console.log("Old avatar deleted successfully.");
+          });
+        } catch (error) {
+          console.warn("Failed to delete old avatar:", error);
+        }
+      } else {
+        console.log("No old avatar to delete.");
+      }
     }
 
-    // Prevent certain fields from being updated
+    //Prevent certain fields from being updated
     delete updates.email;
     delete updates.role;
 
-    // Update the user
-    const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true }).select("-password -refreshToken");
-
+    //Update the user
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true }).select('-password -refreshToken');
     res.status(200).json({
-      message: "Profile updated successfully.",
+      message: 'Profile updated successfully.',
       user: updatedUser,
     });
-
   } catch (error) {
-    console.error("Error updating profile:", error);
-    res.status(500).json({ message: "Failed to update profile.", error });
+    console.error('Error updating profile:', error);
+    res.status(500).json({ message: 'Failed to update profile.', error });
   }
 };
-
-//Set up Multer for avatar uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = "./uploads/avatars/";
-    cb(null, uploadPath);
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
-
-export const upload = multer({
-  storage,
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png/;
-    const isAllowed = allowedTypes.test(file.mimetype) && allowedTypes.test(path.extname(file.originalname).toLowerCase());
-
-    if (isAllowed) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only JPEG, JPG, and PNG files are allowed."));
-    }
-  },
-});
 

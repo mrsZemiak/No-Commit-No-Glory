@@ -2,8 +2,8 @@ import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
-import 'vuetify/dist/vuetify.min.css';
-import '@mdi/font/css/materialdesignicons.min.css';
+import 'vuetify/dist/vuetify.min.css'
+import '@mdi/font/css/materialdesignicons.min.css'
 
 const vuetify = createVuetify({
   components,
@@ -16,8 +16,8 @@ const vuetify = createVuetify({
         datePicker: {
           itemsSelected: 'Vybrané položky: {0}',
         },
-      }
-    }
+      },
+    },
   },
   theme: {
     themes: {
@@ -37,6 +37,6 @@ const vuetify = createVuetify({
       },
     },
   },
-});
+})
 
-export default vuetify;
+export default vuetify

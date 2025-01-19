@@ -3,11 +3,7 @@ import {
   getUserProfile,
   updateUserProfile, upload
 } from '../controllers/user.controller'
-import { logoutUser, refreshToken } from '../controllers/auth.controller'
-import {
-  updateProfileValidationRules,
-  validateRequest,
-} from '../middleware/validation';
+import { logoutUser } from '../controllers/auth.controller'
 import { authenticateToken } from '../middleware/authenticateToken';
 
 const router = Router();
@@ -15,9 +11,13 @@ const router = Router();
 router.use(authenticateToken);
 
 // Authenticated routes
-router.post('/refresh-token', refreshToken);
 router.get('/profile', getUserProfile);
-router.patch('/profile', updateProfileValidationRules, upload.single('avatar'), validateRequest, updateUserProfile);
-router.post('/logout', logoutUser);
+router.patch('/profile', upload.single('avatar'), async (req, res) => {
+  try {
+    await updateUserProfile(req, res);
+  } catch (error) {
+    res.status(400).json({ message: error });
+  }
+});router.post('/logout', logoutUser);
 
 export default router;

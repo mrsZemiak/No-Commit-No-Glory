@@ -1,82 +1,106 @@
 <script lang="ts">
 import { defineComponent, ref, reactive, onMounted, computed } from 'vue'
-import { useConferenceStore } from "@/stores/conferenceStore";
-import { useRouter } from "vue-router";
+import { useConferenceStore } from '@/stores/conferenceStore'
+import { useRouter } from 'vue-router'
 import { format } from 'date-fns'
-import { sk } from 'date-fns/locale/sk'
+import { sk } from 'date-fns/locale'
+import type { ConferenceAdmin } from '@/types/conference.ts'
 
 export default defineComponent({
-  name: "ConferenceTable",
+  name: 'ConferenceTable',
   setup() {
     // Initialize the conference store and router
-    const conferenceStore = useConferenceStore();
-    const router = useRouter();
+    const conferenceStore = useConferenceStore()
+    const router = useRouter()
 
     // Dialog and form state
-    const isDialogOpen = ref(false);
-    const isDeleteDialogOpen = ref(false);
-    const dialogMode = ref<"add"| "edit"| "view">("add");
+    const isDialogOpen = ref(false)
+    const isDeleteDialogOpen = ref(false)
+    const dialogMode = ref<'add' | 'edit' | 'view'>('add')
     const currentConference = reactive({
-      _id: "",
-      status: "",
-      year: "",
-      location: "",
-      university: "",
-      date: "",
-      start_date: "",
-      end_date: "",
-      deadline_submission: "",
-    });
+      _id: '',
+      status: '',
+      year: new Date().getFullYear(),
+      location: '',
+      university: '',
+      date: new Date(),
+      start_date: new Date(),
+      end_date: new Date(),
+      deadline_submission: new Date(),
+    })
 
-    const statusOptions = ["Nadchádzajúca", "Aktuálna", "Ukončená", "Zrušená"];
+    const statusOptions = ['Nadchádzajúca', 'Aktuálna', 'Ukončená', 'Zrušená']
 
     // Table headers
     const tableHeaders = [
-      { title: "", value: "view", sortable: false },
-      { title: "Stav", key: "status" },
-      { title: "Rok", key: "year" },
-      { title: "Univerzita", key: "university" },
-      { title: "Miesto", key: "location" },
-      { title: "Začiatok", key: "start_date" },
-      { title: "Koniec", key: "end_date" },
-      { title: "Odovzdanie prác", key: "deadline_submission" },
-      { title: "", value: "edit", sortable: false },
-      { title: "", value: "papers", sortable: false },
-    ];
+      { title: '', value: 'view', sortable: false },
+      { title: 'Stav', key: 'status' },
+      { title: 'Rok', key: 'year' },
+      { title: 'Univerzita', key: 'university' },
+      { title: 'Miesto', key: 'location' },
+      { title: 'Začiatok', key: 'start_date' },
+      { title: 'Koniec', key: 'end_date' },
+      { title: 'Odovzdanie prác', key: 'deadline_submission' },
+      { title: '', value: 'actions', sortable: false },
+    ]
 
-    // Dialog handling
-    const openDialog = (mode: "add" | "edit" | "view", conference = {}) => {
+    const openDialog = (mode: 'add' | 'edit' | 'view', conference: Partial<ConferenceAdmin> = {}) => {
       dialogMode.value = mode;
-      Object.assign(currentConference, conference);
+
+      // Convert date fields to Date objects if they are strings
+      Object.assign(currentConference, {
+        ...conference,
+        date: conference.date ? new Date(conference.date) : new Date(),
+        start_date: conference.start_date ? new Date(conference.start_date) : new Date(),
+        end_date: conference.end_date ? new Date(conference.end_date) : new Date(),
+        deadline_submission: conference.deadline_submission
+          ? new Date(conference.deadline_submission)
+          : new Date(),
+      });
+
       isDialogOpen.value = true;
     };
 
     const closeDialog = () => {
       isDialogOpen.value = false;
-      Object.assign(currentConference, {
-        _id: "",
-        status: "",
-        year: "",
-        location: "",
-        university: "",
-        date: "",
-        start_date: "",
-        end_date: "",
-        deadline_submission: "",
-      });
+
+      if (dialogMode.value === 'add') {
+        Object.assign(currentConference, {
+          _id: '',
+          status: '',
+          year: '',
+          location: '',
+          university: '',
+          date: '',
+          start_date: '',
+          end_date: '',
+          deadline_submission: '',
+        });
+      }
     };
 
-    // Save conference (add or update)
     const saveConference = async () => {
       try {
-        if (dialogMode.value === "add") {
+        if (!currentConference.status || !currentConference.year) {
+          console.error('Validation failed: Missing required fields.');
+          return;
+        }
+
+        if (dialogMode.value === 'add') {
           await conferenceStore.addConference(currentConference);
-        } else if (dialogMode.value === "edit") {
-          await conferenceStore.updateConference(currentConference._id, currentConference);
+        } else if (dialogMode.value === 'edit') {
+          if ('_id' in currentConference && currentConference._id) {
+            await conferenceStore.updateConference(
+              currentConference._id,
+              currentConference
+            );
+          } else {
+            console.error('Conference ID is missing for update.');
+          }
         }
         closeDialog();
       } catch (error) {
-        console.error("Error saving conference:", error);
+        console.error('Error saving conference:', error);
       }
     };
     /*
@@ -104,59 +128,66 @@ export default defineComponent({
     // View works for a specific conference
 
     const viewWorksForConference = (conference: any) => {
-      router.push({ name: "WorksTable", params: { conferenceId: conference._id } });
-    };
+      router.push({
+        name: 'ConferencePapers',
+        //params: { conferenceId: conference._id },
+      })
+    }
 
     const formatTimestamp = (date: Date | string | null): string => {
-      if (!date) return "N/A";
-      const parsedDate = typeof date === "string" ? new Date(date) : date;
-      if (isNaN(parsedDate.getTime())) return "N/A"; // Check for invalid dates
-      return format(parsedDate, "dd.MM.yyyy", { locale: sk });
-    };
+      if (!date) return 'N/A'
+      const parsedDate = typeof date === 'string' ? new Date(date) : date
+      if (isNaN(parsedDate.getTime())) return 'N/A' // Check for invalid dates
+      return format(parsedDate, 'dd.MM.yyyy', { locale: sk })
+    }
 
     const menu = reactive({
       date: false,
       deadline_submission: false,
       start_date: false,
       end_date: false,
-    });
+    })
 
     const formattedDialogForm = computed({
       get() {
         return {
           ...currentConference,
           date: currentConference.date
-            ? format(new Date(currentConference.date), "dd.MM.yyyy", { locale: sk })
-            : "",
+            ? format(currentConference.date, 'dd.MM.yyyy', { locale: sk })
+            : '',
           deadline_submission: currentConference.deadline_submission
-            ? format(new Date(currentConference.deadline_submission), "dd.MM.yyyy", { locale: sk })
-            : "",
+            ? format(currentConference.deadline_submission, 'dd.MM.yyyy', {
+              locale: sk,
+            })
+            : '',
           start_date: currentConference.start_date
-            ? format(new Date(currentConference.start_date), "dd.MM.yyyy", { locale: sk })
-            : "",
+            ? format(currentConference.start_date, 'dd.MM.yyyy', { locale: sk })
+            : '',
           end_date: currentConference.end_date
-            ? format(new Date(currentConference.end_date), "dd.MM.yyyy", { locale: sk })
-            : "",
+            ? format(currentConference.end_date, 'dd.MM.yyyy', { locale: sk })
+            : '',
         };
       },
       set(newForm) {
         Object.assign(currentConference, {
           ...newForm,
-          date: newForm.date ? new Date(newForm.date) : null,
+          date: newForm.date ? new Date(newForm.date) : new Date(),
           deadline_submission: newForm.deadline_submission
             ? new Date(newForm.deadline_submission)
-            : null,
-          start_date: newForm.start_date ? new Date(newForm.start_date) : null,
-          end_date: newForm.end_date ? new Date(newForm.end_date) : null,
+            : new Date(),
+          start_date: newForm.start_date
+            ? new Date(newForm.start_date)
+            : new Date(),
+          end_date: newForm.end_date ? new Date(newForm.end_date) : new Date(),
         });
       },
     });
 
     onMounted(() => {
       conferenceStore.fetchAdminConferences().then(() => {
-        console.log("Fetched Conferences:", conferenceStore.adminConferences);
-      });
-    });
+        console.log('Fetched Conferences:', conferenceStore.adminConferences)
+      })
+    })
 
     return {
       conferenceStore,
@@ -176,9 +207,9 @@ export default defineComponent({
       //deleteConference,
       viewWorksForConference,
       formatTimestamp,
-    };
+    }
   },
-});
+})
 </script>
 
 <template>
@@ -228,7 +259,9 @@ export default defineComponent({
           />
         </v-col>
         <v-col cols="8" md="2">
-          <v-btn color="primary" small @click="conferenceStore.resetFilters">Zrušiť filtr</v-btn>
+          <v-btn color="primary" small @click="conferenceStore.resetFilters"
+            >Zrušiť filter</v-btn
+          >
         </v-col>
       </v-row>
     </v-card-subtitle>
@@ -236,7 +269,7 @@ export default defineComponent({
     <!-- Data Table -->
     <v-data-table
       :headers="tableHeaders"
-      :items="conferenceStore.adminConferences"
+      :items="conferenceStore.filteredConferences"
       :items-per-page="10"
       :pageText="'{0}-{1} z {2}'"
       items-per-page-text="Konferencie na stránku"
@@ -245,22 +278,32 @@ export default defineComponent({
       class="custom-table"
     >
       <template v-slot:body="{ items }">
-        <tr v-for="conference in items" :key="conference._id" class="custom-row">
+        <tr
+          v-for="conference in items"
+          :key="conference._id"
+          class="custom-row"
+        >
           <td>
             <v-icon
               size="24"
               color="primary"
               @click="openDialog('view', conference)"
-              style="cursor: pointer;"
+              style="cursor: pointer"
             >
               mdi-eye
             </v-icon>
           </td>
           <td>
             <v-chip
-              :color="conference.status === 'Aktuálna' ? 'green' :
-              conference.status === 'Nadchádzajúca' ? '#E7B500' :
-              conference.status === 'Ukončená' ? 'red' : 'grey'"
+              :color="
+                conference.status === 'Aktuálna'
+                  ? 'green'
+                  : conference.status === 'Nadchádzajúca'
+                    ? '#E7B500'
+                    : conference.status === 'Ukončená'
+                      ? 'red'
+                      : 'grey'
+              "
               outlined
               small
               class="custom-chip"
@@ -275,36 +318,30 @@ export default defineComponent({
           <td>{{ formatTimestamp(conference.end_date) }}</td>
           <td>{{ formatTimestamp(conference.deadline_submission) }}</td>
           <td class="d-flex justify-center align-center">
-            <v-icon
-              size="24"
-              color="#2C3531"
-              @click="openDialog('edit', conference)"
-              style="cursor: pointer;"
-            >
-              mdi-pencil
-            </v-icon>
-          </td>
-          <td>
-            <v-icon
-            size="24"
-            color="#B7846C"
-            @click="viewWorksForConference(currentConference._id)"
-            style="cursor: pointer;"
-          >
-            mdi-file
-          </v-icon>
+            <v-btn color="#E7B500" title="Edit" @click="openDialog('edit', conference)">
+              <v-icon size="24">mdi-pencil</v-icon>
+            </v-btn>
+
           </td>
         </tr>
       </template>
     </v-data-table>
 
-    <v-btn color="primary" class="add_new" @click="openDialog('add')">Pridať konferenciu</v-btn>
+    <v-btn color="primary" class="add_new" @click="openDialog('add')"
+      >Pridať konferenciu</v-btn
+    >
 
     <!-- Add/Edit Dialog -->
     <v-dialog v-model="isDialogOpen" max-width="800px">
       <v-card>
         <v-card-title>
-          {{ dialogMode === 'add' ? 'Pridať konferenciu' : dialogMode === 'edit' ? 'Upraviť konferenciu' : 'Detail konferencie' }}
+          {{
+            dialogMode === 'add'
+              ? 'Pridať konferenciu'
+              : dialogMode === 'edit'
+                ? 'Upraviť konferenciu'
+                : 'Detail konferencie'
+          }}
         </v-card-title>
         <v-card-text>
           <v-form ref="formRef">
@@ -491,5 +528,4 @@ export default defineComponent({
   justify-content: center;
   margin-top: 100px;
 }
-
 </style>

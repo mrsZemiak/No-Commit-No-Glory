@@ -1,11 +1,10 @@
 <script lang="ts">
-import ParticipantWorksTable from "@/components/participant/ParticipantWorksTable.vue";
+import ParticipantWorksTable from '@/components/participant/ParticipantWorksTable.vue'
 
 export default {
-  name: "ParticipantView",
+  name: 'ParticipantView',
   components: {
     ParticipantWorksTable,
-
   },
 }
 </script>
@@ -14,6 +13,4 @@ export default {
   <ParticipantWorksTable></ParticipantWorksTable>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

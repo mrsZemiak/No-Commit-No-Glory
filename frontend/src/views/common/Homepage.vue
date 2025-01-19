@@ -1,79 +1,86 @@
 <template>
   <v-app>
-  <div class="homepage">
-    <!-- Navbar -->
-    <Navbar />
+    <div class="homepage">
+      <!-- Navbar -->
+      <Navbar />
 
-    <!-- Banner -->
-    <div class="banner-container">
-      <div class="banner-overlay"></div>
-      <img
-        src="@/assets/images/banner.jpg"
-        alt="Banner"
-        class="banner-image"
-      />
-      <div class="banner-text">
-        <span>{{ displayedText }}</span>
+      <!-- Banner -->
+      <div class="banner-container">
+        <div class="banner-overlay"></div>
+        <img
+          src="@/assets/images/banner.jpg"
+          alt="Banner"
+          class="banner-image"
+        />
+        <div class="banner-text">
+          <span>{{ displayedText }}</span>
+        </div>
+        <!-- Logos Section -->
+        <div class="logos-section">
+          <v-container>
+            <v-row justify="space-around" align="center">
+              <div class="logos-wrapper">
+                <v-col cols="12" sm="4" md="3" class="logo-item">
+                  <a href="https://www.fpv.umb.sk/"
+                    ><img src="@/assets/images/umb.png" alt="Logo 1"
+                  /></a>
+                </v-col>
+                <v-col cols="12" sm="4" md="3" class="logo-item">
+                  <a href="https://www.fpvai.ukf.sk/sk/"
+                    ><img src="@/assets/images/ukf.png" alt="Logo 2"
+                  /></a>
+                </v-col>
+                <v-col cols="12" sm="4" md="3" class="logo-item">
+                  <a href="https://fpv.ucm.sk/"
+                    ><img src="@/assets/images/ucm.png" alt="Logo 3"
+                  /></a>
+                </v-col>
+              </div>
+            </v-row>
+          </v-container>
+        </div>
       </div>
-      <!-- Logos Section -->
-      <div class="logos-section">
+
+      <div class="event-info-section">
         <v-container>
-          <v-row justify="space-around" align="center">
-            <div class="logos-wrapper">
-              <v-col cols="12" sm="4" md="3" class="logo-item">
-                <a href="https://www.fpv.umb.sk/"><img src="@/assets/images/umb.png" alt="Logo 1" /></a>
-              </v-col>
-              <v-col cols="12" sm="4" md="3" class="logo-item">
-                <a href="https://www.fpvai.ukf.sk/sk/"><img src="@/assets/images/ukf.png" alt="Logo 2" /></a>
-              </v-col>
-              <v-col cols="12" sm="4" md="3" class="logo-item">
-                <a href="https://fpv.ucm.sk/"><img src="@/assets/images/ucm.png" alt="Logo 3" /></a>
-              </v-col>
-            </div>
+          <v-row justify="center" align="center">
+            <v-col cols="6" class="event-info-item">
+              <v-icon class="icon-accent" left>mdi-calendar</v-icon>
+              <span>{{ eventData.date }}</span>
+            </v-col>
+            <v-col cols="6" class="event-info-item">
+              <v-icon class="icon-accent" left>mdi-map-marker</v-icon>
+              <span>{{ eventData.location }}</span>
+            </v-col>
           </v-row>
         </v-container>
       </div>
-    </div>
+      <TabsSection />
 
-    <div class="event-info-section">
-      <v-container>
-        <v-row justify="center" align="center">
-          <v-col cols="6" class="event-info-item">
-            <v-icon class="icon-accent" left>mdi-calendar</v-icon>
-            <span>{{ eventData.date }}</span>
-          </v-col>
-          <v-col cols="6" class="event-info-item">
-            <v-icon class="icon-accent" left>mdi-map-marker</v-icon>
-            <span>{{ eventData.location }}</span>
-          </v-col>
-        </v-row>
-      </v-container>
-    </div>
-    <TabsSection />
+      <div class="call-to-action-section">
+        <v-container>
+          <h3 class="cta-title">TAK NEVÁHAJTE!</h3>
+          <p class="cta-description">
+            Zúčastnite sa študentskej vedeckej konferencie, ktorá je súťažnou
+            prehliadkou vedeckých prác študentov.
+          </p>
+        </v-container>
+      </div>
 
-    <div class="call-to-action-section">
-    <v-container >
-      <h3 class="cta-title">TAK NEVÁHAJTE!</h3>
-      <p class="cta-description">
-        Zúčastnite sa študentskej vedeckej konferencie, ktorá je súťažnou prehliadkou vedeckých prác študentov.
-      </p>
-    </v-container>
+      <CardsSection />
+      <Footer />
     </div>
-
-    <CardsSection />
-    <Footer />
-  </div>
   </v-app>
 </template>
 
 <script lang="ts">
 import { defineComponent, onMounted, onUnmounted, ref } from 'vue'
-import Navbar from '@/components/homepage/Navbar.vue';
+import Navbar from '@/components/homepage/Navbar.vue'
 import axios from 'axios'
 import TabsSection from '@/components/homepage/TabsSection.vue'
 import CardsSection from '@/components/homepage/CardSection.vue'
 import Footer from '@/components/homepage/Footer.vue'
-import axiosInstance from "@/config/axiosConfig.ts";
+import axiosInstance from '@/config/axiosConfig.ts'
 
 export default defineComponent({
   name: 'Homepage',
@@ -87,80 +94,80 @@ export default defineComponent({
     const eventData = ref({
       date: '',
       location: '',
-    });
+    })
 
-    const message = 'ŠTUDENTSKÁ VEDECKÁ KONFERENCIA';
-    const displayedText = ref('');
-    let index = 0;
+    const message = 'ŠTUDENTSKÁ VEDECKÁ KONFERENCIA'
+    const displayedText = ref('')
+    let index = 0
 
     const typeText = () => {
       if (index < message.length) {
-        displayedText.value += message[index];
-        index++;
-        setTimeout(typeText, 100); // Typing speed
+        displayedText.value += message[index]
+        index++
+        setTimeout(typeText, 100) // Typing speed
       }
-    };
+    }
 
-    const showLogos = ref(true); // Toggle state
-    let interval: number | null = null;
+    const showLogos = ref(true) // Toggle state
+    let interval: number | null = null
 
     const startToggle = () => {
       interval = setInterval(() => {
-        showLogos.value = !showLogos.value;
-      }, 3000);
-    };
+        showLogos.value = !showLogos.value
+      }, 3000)
+    }
 
     const stopToggle = () => {
-      if (interval) clearInterval(interval);
-    };
+      if (interval) clearInterval(interval)
+    }
 
     const getHomepageData = async () => {
       try {
-        const response = await axiosInstance.get('homepage');
-        const ongoingConference = response.data.ongoingConference;
+        const response = await axiosInstance.get('homepage')
+        const ongoingConference = response.data.ongoingConference
 
         if (ongoingConference) {
-          const rawDate = new Date(ongoingConference.date);
+          const rawDate = new Date(ongoingConference.date)
 
           // Format date as dd.mm.yyyy
           const formattedDate = rawDate.toLocaleDateString('sk-SK', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric',
-          });
+          })
 
           eventData.value = {
             date: formattedDate,
             location: ongoingConference.location,
-          };
+          }
         } else {
           eventData.value = {
             date: 'No conference date available',
             location: 'No location available',
-          };
+          }
         }
       } catch (error) {
-        console.error('Error fetching homepage data:', error);
+        console.error('Error fetching homepage data:', error)
         eventData.value = {
           date: 'Unavailable',
           location: 'Unavailable',
-        };
+        }
       }
-    };
+    }
 
     onMounted(() => {
-      getHomepageData();
-      startToggle();
-      typeText();
-    });
+      getHomepageData()
+      startToggle()
+      typeText()
+    })
 
     onUnmounted(() => {
-      stopToggle();
-    });
+      stopToggle()
+    })
 
-    return { eventData, showLogos, displayedText };
+    return { eventData, showLogos, displayedText }
   },
-});
+})
 </script>
 
 <style lang="scss">
@@ -196,9 +203,9 @@ export default defineComponent({
     height: 100%;
     z-index: 2;
     background: linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.3),
-        rgba(0, 0, 0, 0.7)
+      to bottom,
+      rgba(0, 0, 0, 0.3),
+      rgba(0, 0, 0, 0.7)
     );
   }
 
@@ -222,7 +229,6 @@ export default defineComponent({
     @media (min-width: 1200px) {
       font-size: 4rem;
     }
-
   }
 
   .logos-section {
@@ -238,7 +244,8 @@ export default defineComponent({
     align-items: center;
     padding: 20px 0;
 
-    .logos-wrapper, .text-wrapper {
+    .logos-wrapper,
+    .text-wrapper {
       display: flex;
       justify-content: space-evenly;
       align-items: center;
@@ -292,7 +299,9 @@ export default defineComponent({
       font-size: 36px;
       margin-right: 10px;
       color: #bc463a;
-      transition: transform 0.3s ease, color 0.3s ease;
+      transition:
+        transform 0.3s ease,
+        color 0.3s ease;
     }
   }
 }
@@ -317,5 +326,4 @@ export default defineComponent({
     line-height: 1.2;
   }
 }
-
 </style>

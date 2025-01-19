@@ -8,7 +8,7 @@ import {
   getAllConferences,
   createConference,
   updateConference,
-  getPapersGroupedByConference,
+  getAllPapers,
   assignReviewer,
   downloadPapersByConference,
   changeSubmissionDeadline,
@@ -18,7 +18,7 @@ import {
   deleteCategory,
   getConferenceById,
   getQuestionById,
-  getAdminReports,
+  getAdminReports, getReviewers, getPaperById
 } from '../controllers/admin.controller'
 import { authenticateToken } from '../middleware/authenticateToken';
 
@@ -30,6 +30,7 @@ router.use(authenticateToken);
 //Users
 router.get('/users', getAllUsers);
 router.patch('/users/:userId',  editUserDetails); //validateEditUserDetails, validateRequest,
+router.get('/reviewers', getReviewers)
 
 //Categories
 router.get('/categories', getAllCategories);
@@ -50,10 +51,11 @@ router.post('/questions', createQuestion);
 router.patch('/questions/:questionId', updateQuestion)
 
 //Papers by conference
-router.get('/papers', getPapersGroupedByConference);
-router.get('/papers/download', downloadPapersByConference);
-router.patch('/papers/:paperId/reviewer', assignReviewer); //Assign reviewer to paper
-router.patch('/papers/:paperId/deadline', changeSubmissionDeadline); // Change submission deadline for a specific paper
+router.get('/papers', getAllPapers);
+router.get('/papers/:paperId', getPaperById);
+router.get('/papers/download/:conferenceId', downloadPapersByConference);
+router.patch('/papers/:paperId/reviewer', assignReviewer);
+router.patch('/papers/:paperId/deadline', changeSubmissionDeadline);
 
 router.get("/reports", getAdminReports);
 export default router;

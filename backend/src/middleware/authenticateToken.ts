@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { JsonWebTokenError, TokenExpiredError } from 'jsonwebtoken'
 import { config } from '../config';
 
 export interface AuthRequest extends Request {
-    user?: { userId: string; role: string; last_login?: Date; };
+    user?: { userId: string; role: string; };
 }
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction): void => {
@@ -15,7 +15,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
         return;
     }
 
-    const token = authHeader && authHeader.split(' ')[1];
+    const token = authHeader.split(' ')[1];
     if (!token) {
         res.status(401).json({ message: 'Neautorizované: Nebol poskytnutný token' });
         return;
@@ -28,6 +28,17 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
         next();
     } catch (error) {
         console.error('Token verification failed:', error);
+        if (error instanceof TokenExpiredError) {
+            // Token expired
+            res.status(401).json({ message: 'Token expired', expiredAt: error.expiredAt });
+            return;
+        } else if (error instanceof JsonWebTokenError) {
+            // Other JWT-related errors
+            res.status(403).json({ message: 'Forbidden: Invalid or malformed token' });
+            return;
+        }
+
+        // Any other JWT-related error
         res.status(403).json({ message: 'Zakázané: Neplatný alebo expirovaný token' });
     }
 };

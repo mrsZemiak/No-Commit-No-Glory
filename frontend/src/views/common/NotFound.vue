@@ -11,7 +11,9 @@
       <v-card-title class="text-h3">Stránka sa nenašla</v-card-title>
       <v-card-text>
         <p>Stránka, ktorú hľadáte, neexistuje.</p>
-        <p>Budete presmerovaní na domovskú stránku za {{ countdown }} sekund.</p>
+        <p>
+          Budete presmerovaní na domovskú stránku za {{ countdown }} sekund.
+        </p>
       </v-card-text>
       <v-card-actions>
         <v-btn color="primary" @click="redirectNow">Domovská stránka</v-btn>
@@ -21,41 +23,40 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { defineComponent, ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
-  name: "NotFoundPage",
+  name: 'NotFoundPage',
   setup() {
-    const router = useRouter();
-    const countdown = ref(5); // Countdown timer (5 seconds)
+    const router = useRouter()
+    const countdown = ref(5) // Countdown timer (5 seconds)
 
     const redirectNow = () => {
-      router.push("/"); // Redirect to homepage
-    };
+      router.push('/') // Redirect to homepage
+    }
 
     // Countdown logic
     onMounted(() => {
       const interval = setInterval(() => {
         if (countdown.value > 0) {
-          countdown.value--;
+          countdown.value--
         } else {
-          clearInterval(interval);
+          clearInterval(interval)
           //redirectNow(); // Redirect when countdown reaches 0
         }
-      }, 1000);
-    });
+      }, 1000)
+    })
 
     return {
       countdown,
       redirectNow,
-    };
+    }
   },
-});
+})
 </script>
 
 <style scoped lang="scss">
-
 .not-found-container {
   background-color: #9e9e9e;
   display: flex;

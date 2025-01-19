@@ -35,31 +35,45 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-
-    if(user.status === UserStatus.Pending || user.status === UserStatus.Inactive || user.status === UserStatus.Suspended) {
+    //Check user account status
+    if (
+      user.status === UserStatus.Pending ||
+      user.status === UserStatus.Inactive ||
+      user.status === UserStatus.Suspended
+    ) {
       res.status(403).json({
-        message: 'Nemôžete sa prihlásiť, váš účet nie je aktívny'});
+        message: 'Nemôžete sa prihlásiť, váš účet nie je aktívny',
+      });
       return;
     }
 
-    //Generate JWT
+    //Generate JWT (access token)
     const token = jwt.sign(
-      { userId: user._id, email: user.role },
+      { userId: user._id, email: user.email, role: user.role },
       config.jwtSecret,
-      { expiresIn: '1h' }
+      { expiresIn: '1h' } // Short-lived access token
     );
 
     //Generate refresh token
-    user.refreshToken = jwt.sign(
-      { userId: user._id},
+    const refreshToken = jwt.sign(
+      { userId: user._id },
       config.jwtSecret,
       { expiresIn: '7d' } // Longer expiration for refresh token
     );
 
+    //Save the refresh token in the database
+    user.refreshToken = refreshToken;
     await user.save();
 
-    res.status(200).json({ token, role: user.role, message: 'Prihlásenie bolo úspešne' });
+    //Send tokens and user data in response
+    res.status(200).json({
+      token,
+      refreshToken, // Include the refresh token in the response
+      role: user.role,
+      message: 'Prihlásenie bolo úspešne',
+    });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ message: 'Prihlásenie zlyhalo', error });
   }
 };
@@ -83,14 +97,20 @@ export const logoutUser = async (req: AuthRequest, res: Response): Promise<void>
 
 export const refreshToken = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { refreshToken } = req.body;
+    console.log('Request Body:', req.body);
+    const { refreshToken } = req.body as { refreshToken: string };
+
+    if (!refreshToken) {
+      res.status(400).json({ message: 'No refresh token provided' });
+      return;
+    }
 
     // Verify the refresh token
     const decoded = jwt.verify(refreshToken, config.jwtSecret) as { userId: string };
-    const user = await User.findById(decoded.userId);
 
+    const user = await User.findById(decoded.userId);
     if (!user || user.refreshToken !== refreshToken) {
-      res.status(401).json({ message: 'Neplatný alebo expirovaný obnovovací token' });
+      res.status(401).json({ message: 'Invalid or expired refresh token' });
       return;
     }
 
@@ -103,6 +123,7 @@ export const refreshToken = async (req: AuthRequest, res: Response): Promise<voi
 
     res.status(200).json({ token: newToken });
   } catch (error) {
-    res.status(401).json({ message: 'Neplatný alebo expirovaný obnovovací token', error });
+    console.error('Error refreshing token:', error);
+    res.status(401).json({ message: 'Invalid or expired refresh token', error: error });
   }
 };

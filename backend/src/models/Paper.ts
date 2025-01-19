@@ -24,7 +24,7 @@ export interface IPaper extends Document {
   deadline_date?: Date;
   reviewer?: mongoose.Schema.Types.ObjectId;
   review?: mongoose.Types.ObjectId;
-  awarded?: boolean;
+
 }
 
 const PaperSchema: Schema = new Schema({

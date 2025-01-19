@@ -30,12 +30,12 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from "vue";
-import axiosInstance from "@/config/axiosConfig";
-import type { User } from "@/types/user";
+import { defineComponent, ref, onMounted } from 'vue'
+import axiosInstance from '@/config/axiosConfig'
+import type { User } from '@/types/user'
 
 export default defineComponent({
-  name: "ModalAssignReviewer",
+  name: 'ModalAssignReviewer',
   props: {
     isVisible: {
       type: Boolean,
@@ -46,50 +46,62 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ["close", "snackbar", "refreshWork"],
+  emits: ['close', 'snackbar', 'refreshWork'],
   setup(props, { emit }) {
-    const reviewers = ref<User[]>([]);
-    const selectedReviewer = ref<string | null>(null);
-    const isLoading = ref(false);
+    const reviewers = ref<User[]>([])
+    const selectedReviewer = ref<string | null>(null)
+    const isLoading = ref(false)
 
     const fetchReviewers = async () => {
-      isLoading.value = true;
+      isLoading.value = true
       try {
-        const response = await axiosInstance.get("/admin/reviewers");
-        reviewers.value = response.data;
+        const response = await axiosInstance.get('/admin/reviewers')
+        reviewers.value = response.data
       } catch (error) {
-        console.error("Error fetching reviewers:", error);
-        emit("snackbar", { message: "Nepodarilo sa načítať recenzentov.", color: "error" });
+        console.error('Error fetching reviewers:', error)
+        emit('snackbar', {
+          message: 'Nepodarilo sa načítať recenzentov.',
+          color: 'error',
+        })
       } finally {
-        isLoading.value = false;
+        isLoading.value = false
       }
-    };
+    }
 
     const assignReviewer = async () => {
       if (!selectedReviewer.value) {
-        emit("snackbar", { message: "Prosím vyberte recenzenta.", color: "error" });
-        return;
+        emit('snackbar', {
+          message: 'Prosím vyberte recenzenta.',
+          color: 'error',
+        })
+        return
       }
       try {
-        const response = await axiosInstance.patch(`/admin/papers/${props.work._id}/reviewer`, {
-          reviewerId: selectedReviewer.value,
-        });
-        emit("snackbar", { message: response.data.message, color: "success" });
-        emit("refreshWork"); // Refresh the parent component's work data
-        closeModal();
+        const response = await axiosInstance.patch(
+          `/admin/papers/${props.work._id}/reviewer`,
+          {
+            reviewerId: selectedReviewer.value,
+          },
+        )
+        emit('snackbar', { message: response.data.message, color: 'success' })
+        emit('refreshWork') // Refresh the parent component's work data
+        closeModal()
       } catch (error) {
-        console.error("Error assigning reviewer:", error);
-        emit("snackbar", { message: "Nepodarilo sa prideliť recenzenta.", color: "error" });
+        console.error('Error assigning reviewer:', error)
+        emit('snackbar', {
+          message: 'Nepodarilo sa prideliť recenzenta.',
+          color: 'error',
+        })
       }
-    };
+    }
 
     const closeModal = () => {
-      emit("close");
-    };
+      emit('close')
+    }
 
     onMounted(() => {
-      fetchReviewers();
-    });
+      fetchReviewers()
+    })
 
     return {
       reviewers,
@@ -97,9 +109,9 @@ export default defineComponent({
       isLoading,
       assignReviewer,
       closeModal,
-    };
+    }
   },
-});
+})
 </script>
 
 <style scoped>

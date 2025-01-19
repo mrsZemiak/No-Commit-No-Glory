@@ -6,7 +6,8 @@
     <!-- Failure Message -->
     <h2>Overenie e-mailu zlyhalo</h2>
     <p>
-      Nepodarilo sa nám overiť vašu e-mailovú adresu. Uistite sa, že je odkaz správny, alebo to skúste znova.
+      Nepodarilo sa nám overiť vašu e-mailovú adresu. Uistite sa, že je odkaz
+      správny, alebo to skúste znova.
     </p>
 
     <!-- Back Home Button -->
@@ -17,21 +18,21 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { useRouter } from 'vue-router';
+import { defineComponent } from 'vue'
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
   name: 'EmailVerificationFailure',
   setup() {
-    const router = useRouter();
+    const router = useRouter()
 
     const navigateToHome = () => {
-      router.push('/'); // Redirect to home page
-    };
+      router.push('/') // Redirect to home page
+    }
 
-    return { navigateToHome };
+    return { navigateToHome }
   },
-});
+})
 </script>
 
 <style scoped>
@@ -77,5 +78,4 @@ p {
 .button:hover {
   background-color: #a03931;
 }
-
 </style>

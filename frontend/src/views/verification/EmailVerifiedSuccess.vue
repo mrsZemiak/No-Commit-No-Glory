@@ -6,7 +6,8 @@
     <!-- Success Message -->
     <h2>Email Verified Successfully</h2>
     <p>
-      Thank you for verifying your email address. You can now log in and access your account.
+      Thank you for verifying your email address. You can now log in and access
+      your account.
     </p>
 
     <!-- Login Button -->
@@ -17,21 +18,21 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { useRouter } from 'vue-router';
+import { defineComponent } from 'vue'
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
   name: 'EmailVerificationSuccess',
   setup() {
-    const router = useRouter();
+    const router = useRouter()
 
     const navigateToHome = () => {
-      router.push('/'); // Redirect to home page
-    };
+      router.push('/') // Redirect to home page
+    }
 
-    return { navigateToHome };
+    return { navigateToHome }
   },
-});
+})
 </script>
 
 <style scoped>

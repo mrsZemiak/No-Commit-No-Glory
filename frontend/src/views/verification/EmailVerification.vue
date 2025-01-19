@@ -13,31 +13,31 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { useAuthStore } from '@/stores/auth.ts';
+import { defineComponent } from 'vue'
+import { useAuthStore } from '@/stores/auth.ts'
 
 export default defineComponent({
   name: 'EmailVerification',
   async mounted() {
-    const query = new URLSearchParams(window.location.search);
-    const token = query.get('token'); // Extract the token from the query string
+    const query = new URLSearchParams(window.location.search)
+    const token = query.get('token') // Extract the token from the query string
 
     if (token) {
       try {
-        const authStore = useAuthStore();
-        await authStore.verifyEmail(token); // Call the Pinia action for verification
+        const authStore = useAuthStore()
+        await authStore.verifyEmail(token) // Call the Pinia action for verification
 
-        this.$router.push('/email-verified-success'); // Redirect to success page
+        this.$router.push('/email-verified-success') // Redirect to success page
       } catch (error) {
-        console.error('Email verification failed:', error);
-        this.$router.push('/email-verified-failure'); // Redirect to failure page
+        console.error('Email verification failed:', error)
+        this.$router.push('/email-verified-failure') // Redirect to failure page
       }
     } else {
-      console.error('No token provided for email verification');
-      this.$router.push('/email-verified-failure'); // Redirect to failure page
+      console.error('No token provided for email verification')
+      this.$router.push('/email-verified-failure') // Redirect to failure page
     }
   },
-});
+})
 </script>
 
 <style scoped lang="scss">

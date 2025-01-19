@@ -1,77 +1,90 @@
 <script lang="ts">
-import { defineComponent, ref, reactive, onMounted } from 'vue';
-import { useCategoryStore } from "@/stores/categoryStore";
+import { defineComponent, ref, reactive, onMounted } from 'vue'
+import { useCategoryStore } from '@/stores/categoryStore'
 
 export default defineComponent({
-  name: "CategoryTable",
+  name: 'CategoryTable',
   setup() {
     // Initialize the category store
-    const categoryStore = useCategoryStore();
+    const categoryStore = useCategoryStore()
 
     // Dialogs and form state
-    const isDialogOpen = ref(false);
-    const isDeleteDialogOpen = ref(false);
-    const dialogMode = ref<"add" | "edit">("add");
-    const currentCategory = reactive({ _id: "", name: "", isActive: true });
-    const valid = ref(false);
+    const isDialogOpen = ref(false)
+    const isDeleteDialogOpen = ref(false)
+    const dialogMode = ref<'add' | 'edit'>('add')
+    const currentCategory = reactive({ _id: '', name: '', isActive: true })
+    const valid = ref(false)
 
     // Headers for the data table
     const headers = [
-      { title: "Stav", key: "isActive" },
-      { title: "Názov kategórie", key: "name" },
-      { title: "", value: "actions", sortable: false },
-    ];
+      { title: 'Stav', key: 'isActive' },
+      { title: 'Názov kategórie', key: 'name' },
+      { title: '', value: 'actions', sortable: false },
+    ]
 
     // Dialog handling
-    const openDialog = (mode: "add" | "edit", category = { _id: "", name: "", isActive: true }) => {
-      dialogMode.value = mode;
-      Object.assign(currentCategory, category);
-      isDialogOpen.value = true;
-    };
+    const openDialog = (
+      mode: 'add' | 'edit',
+      category = { _id: '', name: '', isActive: true },
+    ) => {
+      dialogMode.value = mode
+      Object.assign(currentCategory, category)
+      isDialogOpen.value = true
+    }
 
     const closeDialog = () => {
-      isDialogOpen.value = false;
-      Object.assign(currentCategory, { _id: "", name: "", isActive: true });
-    };
+      isDialogOpen.value = false
+      Object.assign(currentCategory, { _id: '', name: '', isActive: true })
+    }
 
     const saveCategory = async () => {
       try {
-        if (dialogMode.value === "add") {
-          await categoryStore.addCategory({ name: currentCategory.name, isActive: currentCategory.isActive });
+        if (dialogMode.value === 'add') {
+          await categoryStore.addCategory({
+            name: currentCategory.name,
+            isActive: currentCategory.isActive,
+          })
         } else {
-          await categoryStore.updateCategory(currentCategory._id, { name: currentCategory.name, isActive: currentCategory.isActive });
+          await categoryStore.updateCategory(currentCategory._id, {
+            name: currentCategory.name,
+            isActive: currentCategory.isActive,
+          })
         }
-        closeDialog();
+        closeDialog()
       } catch (error) {
-        console.error("Error saving category:", error);
+        console.error('Error saving category:', error)
       }
-    };
+    }
 
     // Delete confirmation handling
-    const confirmDelete = (category: { _id: string; name: string; isActive: boolean }) => {
-      Object.assign(currentCategory, category);
-      isDeleteDialogOpen.value = true;
-    };
+    const confirmDelete = (category: {
+      _id: string
+      name: string
+      isActive: boolean
+    }) => {
+      Object.assign(currentCategory, category)
+      isDeleteDialogOpen.value = true
+    }
 
     const closeDeleteDialog = () => {
-      isDeleteDialogOpen.value = false;
-    };
+      isDeleteDialogOpen.value = false
+    }
 
     const deleteCategory = async () => {
       try {
-        await categoryStore.deleteCategory(currentCategory._id);
+        await categoryStore.deleteCategory(currentCategory._id)
       } catch (error) {
-        console.error("Error deleting category:", error);
+        console.error('Error deleting category:', error)
       } finally {
-        closeDeleteDialog();
+        closeDeleteDialog()
       }
-    };
+    }
 
     onMounted(() => {
       categoryStore.fetchAllCategories().then(() => {
-        console.log("Fetched Categories:", categoryStore.categories);
-      });
-    });
+        console.log('Fetched Categories:', categoryStore.categories)
+      })
+    })
 
     return {
       categoryStore,
@@ -87,9 +100,9 @@ export default defineComponent({
       confirmDelete,
       closeDeleteDialog,
       deleteCategory,
-    };
+    }
   },
-});
+})
 </script>
 
 <template>
@@ -131,7 +144,9 @@ export default defineComponent({
       </template>
     </v-data-table>
 
-    <v-btn color="primary" class="add_new" @click="openDialog('add')">Pridať kategóriu</v-btn>
+    <v-btn color="primary" class="add_new" @click="openDialog('add')"
+      >Pridať kategóriu</v-btn
+    >
 
     <!-- Add/Edit Dialog -->
     <v-dialog v-model="isDialogOpen" max-width="800px">
@@ -149,7 +164,10 @@ export default defineComponent({
             />
             <v-select
               v-model="currentCategory.isActive"
-              :items="[{ title: 'Aktívna', value: true }, { title: 'Neaktívna', value: false }]"
+              :items="[
+                { title: 'Aktívna', value: true },
+                { title: 'Neaktívna', value: false },
+              ]"
               label="Stav"
               outlined
             />
@@ -169,7 +187,11 @@ export default defineComponent({
       <v-card>
         <v-card-title>Potvrdenie odstránenia</v-card-title>
         <v-card-text>
-          <p>Ste si istí, že chcete odstrániť kategóriu <strong>{{ currentCategory.name }}</strong>?</p>
+          <p>
+            Ste si istí, že chcete odstrániť kategóriu
+            <strong>{{ currentCategory.name }}</strong
+            >?
+          </p>
         </v-card-text>
         <v-card-actions>
           <v-btn color="secondary" @click="closeDeleteDialog">Zrušiť</v-btn>
@@ -180,5 +202,4 @@ export default defineComponent({
   </v-card>
 </template>
 
-<style lang="scss">
-</style>
+<style lang="scss"></style>

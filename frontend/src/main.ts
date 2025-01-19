@@ -1,21 +1,21 @@
-import { createApp } from 'vue';
-import { createPinia } from 'pinia';
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import { useAuthStore } from '@/stores/auth.ts'
-import App from './App.vue';
-import router from './router';
-import vuetify from './plugins/vuetify';
+import App from './App.vue'
+import router from './router'
+import vuetify from './plugins/vuetify'
 
 // Create the app instance
-const app = createApp(App);
+const app = createApp(App)
 
 // Use plugins
-app.use(vuetify);
-app.use(router);
-app.use(createPinia());
+app.use(vuetify)
+app.use(router)
+app.use(createPinia())
 
-const authStore = useAuthStore();
+const authStore = useAuthStore()
 
 // Mount the app to the DOM
 authStore.loadAuthState().then(() => {
-  app.mount('#app');
-});
+  app.mount('#app')
+})

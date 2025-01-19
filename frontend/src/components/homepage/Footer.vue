@@ -28,9 +28,7 @@
     <div class="copyright-section">
       <v-container>
         <v-row justify="center" align="center">
-          <p class="copyright">
-            © 2025 SciSubmit. All Rights Reserved
-          </p>
+          <p class="copyright">© 2025 SciSubmit. All Rights Reserved</p>
         </v-row>
       </v-container>
     </div>
@@ -38,11 +36,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent } from 'vue'
 
 export default defineComponent({
   name: 'Footer',
-});
+})
 </script>
 
 <style lang="scss">
@@ -77,7 +75,7 @@ export default defineComponent({
   }
 }
 .copyright-section {
-  background-color: #2C3531;
+  background-color: #2c3531;
   color: #ffffff; /* White text */
   padding: 10px 0;
 

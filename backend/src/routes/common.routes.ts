@@ -3,7 +3,7 @@ import {
   registerUser,
   verifyEmail,
 } from '../controllers/user.controller';
-import { loginUser } from '../controllers/auth.controller';
+import { loginUser, refreshToken } from '../controllers/auth.controller'
 import {
   registerValidationRules,
   verifyEmailValidationRules,
@@ -18,5 +18,6 @@ router.get('/homepage', getHomepageData);
 router.post('/register', registerValidationRules, validateRequest, registerUser);
 router.post('/login', loginValidationRules, validateRequest, loginUser);
 router.get('/verify-email', verifyEmailValidationRules, validateRequest, verifyEmail);
+router.post('/refresh-token', refreshToken);
 
 export default router;

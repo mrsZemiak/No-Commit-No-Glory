@@ -14,11 +14,26 @@
       <v-tabs-window-item value="benefits">
         <div class="tab-content">
           <ul>
-            <li>Je zadarmo: účasť na konferencii je bez konferenčného poplatku</li>
-            <li>Výstupom je publikácia: prezentovaný príspevok bude publikovaný v zborníku recenzovaných prác</li>
-            <li>Možnosť získať ocenenie: najlepšie práce budú ocenené diplomom a mimoriadnym štipendiom či vecnou cenou</li>
-            <li>Výhody pre ďalšiu kariéru: skúsenosti s vystúpením na konferenciách a publikácie zvyšujú napríklad šancu prijatia na doktorandské štúdium</li>
-            <li>Šanca pre nové kontakty: na konferencii je možnosť spoznať nových ľudí v odbore a nadviazať nové spolupráce</li>
+            <li>
+              Je zadarmo: účasť na konferencii je bez konferenčného poplatku
+            </li>
+            <li>
+              Výstupom je publikácia: prezentovaný príspevok bude publikovaný v
+              zborníku recenzovaných prác
+            </li>
+            <li>
+              Možnosť získať ocenenie: najlepšie práce budú ocenené diplomom a
+              mimoriadnym štipendiom či vecnou cenou
+            </li>
+            <li>
+              Výhody pre ďalšiu kariéru: skúsenosti s vystúpením na
+              konferenciách a publikácie zvyšujú napríklad šancu prijatia na
+              doktorandské štúdium
+            </li>
+            <li>
+              Šanca pre nové kontakty: na konferencii je možnosť spoznať nových
+              ľudí v odbore a nadviazať nové spolupráce
+            </li>
           </ul>
         </div>
       </v-tabs-window-item>
@@ -28,10 +43,13 @@
         <div class="tab-content">
           <ul>
             <li>
-              Odovzdanie práce:&nbsp;<strong>{{ deadlines.submissionDeadline }}</strong>
+              Odovzdanie práce:&nbsp;<strong>{{
+                deadlines.submissionDeadline
+              }}</strong>
             </li>
             <li>
-              Potvrdenie prijatia práce a sprístupnenie recenzného posudku:&nbsp;
+              Potvrdenie prijatia práce a sprístupnenie recenzného
+              posudku:&nbsp;
               <strong>{{ deadlines.reviewAvailable }}</strong>
             </li>
             <li>
@@ -42,7 +60,9 @@
               Konferencia:&nbsp;<strong>{{ deadlines.conferenceDate }}</strong>
             </li>
             <li>
-              Oprava práce po konferencii:&nbsp;<strong>{{ deadlines.finalRevision }}</strong>
+              Oprava práce po konferencii:&nbsp;<strong>{{
+                deadlines.finalRevision
+              }}</strong>
             </li>
           </ul>
         </div>
@@ -57,7 +77,10 @@
             </li>
           </ul>
         </div>
-        <p class="note">Počet a zameranie jednotlivých sekcií budú upresnené po odovzdaní všetkých príspevkov.</p>
+        <p class="note">
+          Počet a zameranie jednotlivých sekcií budú upresnené po odovzdaní
+          všetkých príspevkov.
+        </p>
       </v-tabs-window-item>
 
       <!-- PROGRAM -->
@@ -66,15 +89,22 @@
           <ul>
             <li><strong>8:15 – 9:00</strong>&nbsp; Registrácia</li>
             <li><strong>9:00 – 9:20</strong>&nbsp; Otvorenie konferencie</li>
-            <li><strong>9:20 – 13:00</strong>&nbsp; Prezentácie príspevkov v sekciách</li>
+            <li>
+              <strong>9:20 – 13:00</strong>&nbsp; Prezentácie príspevkov v
+              sekciách
+            </li>
             <li><strong>13:00 – 14:00</strong>&nbsp; Prestávka na obed</li>
-            <li><strong>14:00 – 14:30</strong>&nbsp; Vyhodnotenie konferencie, vyhlásenie najlepších prác</li>
+            <li>
+              <strong>14:00 – 14:30</strong>&nbsp; Vyhodnotenie konferencie,
+              vyhlásenie najlepších prác
+            </li>
           </ul>
         </div>
         <p class="note">
           Detailný program je možné pozrieť
           <a href="/docs/program.pdf" target="_blank" rel="noopener noreferrer">
-            TU</a>
+            TU</a
+          >
         </p>
       </v-tabs-window-item>
     </v-tabs-window>
@@ -82,51 +112,53 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
-import axios from 'axios';
-import type { ActiveCategory } from '@/types/conference';
-import axiosInstance from "@/config/axiosConfig.ts";
+import { defineComponent, ref, onMounted } from 'vue'
+import axios from 'axios'
+import type { ActiveCategory } from '@/types/conference'
+import axiosInstance from '@/config/axiosConfig.ts'
 
 export default defineComponent({
   name: 'TabsSection',
   setup() {
-    const activeTab = ref('benefits');
-    const categories = ref<ActiveCategory[]>([]);
+    const activeTab = ref('benefits')
+    const categories = ref<ActiveCategory[]>([])
     const deadlines = ref({
       submissionDeadline: '',
       reviewAvailable: '',
       revisedSubmission: '',
       conferenceDate: '',
       finalRevision: '',
-    });
-    const programDocumentUrl = ref('');
+    })
+    const programDocumentUrl = ref('')
 
     const getCategories = async () => {
       try {
-        const response = await axiosInstance.get('/homepage');
-        categories.value = response.data.activeCategories || [];
+        const response = await axiosInstance.get('/homepage')
+        categories.value = response.data.activeCategories || []
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error('Error fetching categories:', error)
       }
-    };
+    }
 
     const getConferenceData = async () => {
       try {
-        const response = await axiosInstance.get('/homepage');
-        const ongoingConference = response.data.ongoingConference;
+        const response = await axiosInstance.get('/homepage')
+        const ongoingConference = response.data.ongoingConference
 
         if (ongoingConference) {
-          const submissionDeadline = new Date(ongoingConference.deadline_submission);
-          const reviewDeadline = new Date(ongoingConference.deadline_review);
-          const conferenceDate = new Date(ongoingConference.date);
+          const submissionDeadline = new Date(
+            ongoingConference.deadline_submission,
+          )
+          const reviewDeadline = new Date(ongoingConference.deadline_review)
+          const conferenceDate = new Date(ongoingConference.date)
 
           // Calculate derived dates
-          const reviewAvailable = new Date(reviewDeadline);
-          reviewAvailable.setDate(reviewAvailable.getDate() + 1); // +1 day
+          const reviewAvailable = new Date(reviewDeadline)
+          reviewAvailable.setDate(reviewAvailable.getDate() + 1) // +1 day
 
-          const revisedSubmission = new Date(reviewAvailable);
-          revisedSubmission.setMonth(reviewAvailable.getMonth() + 1); // End of the month
-          revisedSubmission.setDate(0); // Set to last day of the previous month
+          const revisedSubmission = new Date(reviewAvailable)
+          revisedSubmission.setMonth(reviewAvailable.getMonth() + 1) // End of the month
+          revisedSubmission.setDate(0) // Set to last day of the previous month
 
           deadlines.value = {
             submissionDeadline: submissionDeadline.toLocaleDateString('sk-SK'),
@@ -134,36 +166,34 @@ export default defineComponent({
             revisedSubmission: revisedSubmission.toLocaleDateString('sk-SK'),
             conferenceDate: conferenceDate.toLocaleDateString('sk-SK'),
             finalRevision: revisedSubmission.toLocaleDateString('sk-SK'),
-          };
+          }
         }
-
       } catch (error) {
-        console.error('Error fetching conference data:', error);
+        console.error('Error fetching conference data:', error)
       }
-    };
+    }
 
     const getProgramDocument = async () => {
       try {
-        const response = await axiosInstance.get('/homepage');
-        programDocumentUrl.value = response.data.programDocument || '';
+        const response = await axiosInstance.get('/homepage')
+        programDocumentUrl.value = response.data.programDocument || ''
       } catch (error) {
-        console.error('Error fetching program document:', error);
+        console.error('Error fetching program document:', error)
       }
-    };
+    }
 
     onMounted(() => {
-      getCategories();
-      getConferenceData();
-      getProgramDocument();
-    });
+      getCategories()
+      getConferenceData()
+      getProgramDocument()
+    })
 
-    return { activeTab, categories, deadlines, programDocumentUrl };
+    return { activeTab, categories, deadlines, programDocumentUrl }
   },
-});
+})
 </script>
 
 <style lang="scss">
-
 .tabs-container {
   margin-top: 40px;
   margin-bottom: 40px;
@@ -229,7 +259,7 @@ export default defineComponent({
     font-size: 1.5rem;
     font-weight: bold;
     color: #116466;
-    background-color: rgb(16,100,102, 0.1);
+    background-color: rgb(16, 100, 102, 0.1);
     margin: 0 5px 0 5px;
     text-transform: uppercase;
     padding: 10px 16px;
@@ -252,5 +282,4 @@ export default defineComponent({
     }
   }
 }
-
 </style>

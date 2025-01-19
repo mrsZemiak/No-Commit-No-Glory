@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer";
 import { config } from '../config'
+import path from 'path'
 
 interface EmailOptions {
   to: string;
@@ -10,7 +11,7 @@ interface EmailOptions {
     filename: string;
     path?: string;
     content?: Buffer | string;
-    cid?: string; // Content-ID for inline attachments
+    cid?: string;
   }>;
 }
 
@@ -34,7 +35,14 @@ export const sendEmail = async (options: EmailOptions) => {
       subject: options.subject,
       html: options.html,
       text: options.text || undefined,
-      attachments: options.attachments || [],
+      attachments: [
+        ...(options.attachments || []), // Include any other attachments provided
+        {
+          filename: "logo.png", // Name of the image
+          path: path.resolve(__dirname, "../assets/logo.png"), // Adjust the path to your logo file
+          cid: "scisubmit-logo", // Must match the "cid" in the email HTML
+        },
+      ],
     };
 
     await transporter.sendMail(emailOptions);

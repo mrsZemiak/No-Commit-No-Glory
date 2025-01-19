@@ -340,33 +340,70 @@ export const updateQuestion = async (req: AuthRequest, res: Response): Promise<v
 };
 
 /** PAPERS **/
-
-//Get all papers grouped by conference
-export const getPapersGroupedByConference = async (_req: AuthRequest, res: Response): Promise<void> => {
+// Get all papers with associated conference details
+export const getAllPapers = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
-    // Fetch all conferences
-    const conferences = await Conference.find().sort({ year: -1 });
-
-    // Fetch papers for each conference and group them
-    const groupedConferences = await Promise.all(
-      conferences.map(async (conference) => {
-        const papers = await Paper.find({ conference: conference._id })
-          .populate('user', 'first_name last_name email').populate('category', 'name')
-          .select('title user category deadline_date status file_link'); // Include only relevant fields
-
-        return {
-          year: conference.year,
-          date: conference.date,
-          location: conference.location,
-          papers,
-        };
+    const papers = await Paper.find()
+      .populate({
+        path: "conference",
+        select: "year location date", // Include relevant fields from Conference
       })
-    );
+      .populate({
+        path: "user",
+        select: "first_name last_name email", // Include relevant fields from User
+      })
+      .populate({
+        path: "category",
+        select: "name", // Include relevant fields from Category
+      })
+      .populate({
+        path: "reviewer",
+        select: "first_name last_name email university",
+      })
+      .select(
+        "status title submission_date abstract keywords authors category conference file_link final_submission deadline_date "
+      );
 
-    res.status(200).json(groupedConferences);
+    res.status(200).json(papers);
   } catch (error) {
-    console.error('Error fetching grouped papers:', error);
-    res.status(500).json({ message: 'Nepodarilo sa načítať zoskupené práce.', error });
+    console.error("Error fetching all papers:", error);
+    res.status(500).json({ message: "Failed to fetch papers.", error });
+  }
+};
+
+export const getPaperById = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { paperId } = req.params;
+    const paper = await Paper.findById(paperId)
+      .populate({
+        path: "conference",
+        select: "year location date",
+      })
+      .populate({
+        path: "user",
+        select: "first_name last_name email university",
+      })
+      .populate({
+        path: "category",
+        select: "name", // Include relevant fields from Category
+      })
+      .populate({
+        path: "reviewer",
+        select: "first_name last_name email university",
+      })
+      .select(
+        "status title submission_date abstract keywords authors category conference file_link final_submission deadline_date"
+      );
+
+    if (!paper) {
+      res.status(404).json({ message: "Nepodarilo sa nájsť prácu." });
+      return;
+    }
+
+    res.status(200).json(paper);
+  } catch (error) {
+    console.error("Error fetching paper:", error);
+    res.status(500).json({ message: "Failed to fetch paper.", error });
   }
 };
 
@@ -397,16 +434,27 @@ export const changeSubmissionDeadline = async (req: AuthRequest, res: Response):
   }
 };
 
+export const getReviewers = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const reviewers = await User.find({ role: 'reviewer' }, 'first_name last_name email _id university');
+    res.status(200).json(reviewers);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Nepodarilo sa nájsť recenzenty' });
+  }
+};
+
 //Assign reviewer to paper (dynamic update)
 export const assignReviewer = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { paperId } = req.params;
-    const updates = req.body; // Allows dynamic updates
+    const { reviewerId } = req.body;
 
-    const updatedPaper = await Paper.findByIdAndUpdate(paperId, updates, {
-      new: true,
-      runValidators: true,
-    }).populate("reviewer", "first_name last_name email");
+    const updatedPaper = await Paper.findByIdAndUpdate(
+      paperId,
+      { reviewer: reviewerId },
+      { new: true, runValidators: true }
+    ).populate("reviewer", "first_name last_name email university"); // Populate the reviewer data
 
     if (!updatedPaper) {
       res.status(404).json({ message: "Nepodarilo sa nájsť prácu" });
@@ -471,25 +519,25 @@ export const downloadPapersByConference = async (req: AuthRequest, res: Response
   }
 };
 
-// Admin Reports Controller
+//Admin Reports Controller
 export const getAdminReports = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     // Total Papers Count
     const totalPapers = await Paper.countDocuments();
 
-    // Papers Grouped by Status
+    //Papers Grouped by Status
     const papersByStatus = await Paper.aggregate([
       { $group: { _id: "$status", count: { $sum: 1 } } }
     ]);
 
-    // Papers by Category
+    //Papers by Category
     const papersByCategory = await Paper.aggregate([
       { $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "categoryInfo" } },
       { $unwind: "$categoryInfo" },
       { $group: { _id: "$categoryInfo.name", count: { $sum: 1 } } }
     ]);
 
-    // Active Reviewers Count
+    //Active Reviewers Count
     const activeReviewers = await User.countDocuments({ role: "reviewer", status: "active" });
 
     // Papers Under Review

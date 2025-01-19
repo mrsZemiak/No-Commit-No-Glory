@@ -1,7 +1,11 @@
 <template>
   <div class="review-result">
     <h2>Výsledok hodnotenia pre ID: {{ id }}</h2>
-    <div v-for="(question, index) in questions" :key="index" class="result-group">
+    <div
+      v-for="(question, index) in questions"
+      :key="index"
+      class="result-group"
+    >
       <label class="fw-bold">{{ question.text }}</label>
       <div v-if="question.type === 'rating'">
         <p>{{ reviewData[question.text] || 'N/A' }}</p>
@@ -13,14 +17,16 @@
         <p>{{ reviewData[question.text] || 'Žiadna odpoveď' }}</p>
       </div>
     </div>
-    <button @click="$router.push('/')" class="btn btn-primary">Späť na tabuľku</button>
+    <button @click="$router.push('/')" class="btn btn-primary">
+      Späť na tabuľku
+    </button>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import axios from 'axios';
-import axiosInstance from "@/config/axiosConfig.ts";
+import { defineComponent } from 'vue'
+import axios from 'axios'
+import axiosInstance from '@/config/axiosConfig.ts'
 
 export default defineComponent({
   name: 'ReviewResult',
@@ -33,14 +39,14 @@ export default defineComponent({
   data() {
     return {
       questions: [] as {
-        text: string;
-        type: 'rating' | 'yes_no' | 'text';
+        text: string
+        type: 'rating' | 'yes_no' | 'text'
       }[],
       reviewData: {} as Record<string, string | number>,
-    };
+    }
   },
   mounted() {
-    this.fetchReviewData();
+    this.fetchReviewData()
   },
   methods: {
     async fetchReviewData() {
@@ -49,16 +55,16 @@ export default defineComponent({
         const [questionsResponse, reviewResponse] = await Promise.all([
           axiosInstance.get('auth/participant/questions'),
           axiosInstance.get(`auth/participant/review/${this.id}`),
-        ]);
+        ])
 
-        this.questions = questionsResponse.data;
-        this.reviewData = reviewResponse.data;
+        this.questions = questionsResponse.data
+        this.reviewData = reviewResponse.data
       } catch (error) {
-        console.error('Error fetching review data:', error);
+        console.error('Error fetching review data:', error)
       }
     },
   },
-});
+})
 </script>
 
 <style scoped>

@@ -7,7 +7,7 @@ import authRoutes from './routes/auth.routes';
 import reviewerRoutes from "./routes/reviewer.routes";
 import participantRoutes from "./routes/participant.routes";
 import adminRoutes from './routes/admin.routes'
-import { updateConferenceStatusMiddleware } from './middleware/updateConferenceStatus'
+import path from 'path'
 
 dotenv.config();
 
@@ -51,5 +51,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/auth/admin', adminRoutes);
 app.use('/api/auth/participant', participantRoutes);
 app.use('/api/auth/reviewer', reviewerRoutes);
+app.use('/uploads', express.static(path.join(__dirname, './uploads')));
 
 export default app;

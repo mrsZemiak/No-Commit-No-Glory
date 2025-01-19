@@ -79,7 +79,9 @@
           </div>
 
           <div class="filter-group">
-            <button @click="resetFilters" class="btn btn-primary btn-sm">Zrušiť filtrovanie</button>
+            <button @click="resetFilters" class="btn btn-primary btn-sm">
+              Zrušiť filtrovanie
+            </button>
           </div>
         </div>
       </div>
@@ -88,59 +90,78 @@
     <div class="table-responsive">
       <table class="table">
         <thead>
-        <tr>
-          <th>Názov</th>
-          <th>Kategória</th>
-          <th>Čas poslania</th>
-          <th>Rok konferencie</th>
-          <th>Hodnotenie</th>
-          <th>Akcie</th>
-        </tr>
+          <tr>
+            <th>Názov</th>
+            <th>Kategória</th>
+            <th>Čas poslania</th>
+            <th>Rok konferencie</th>
+            <th>Hodnotenie</th>
+            <th>Akcie</th>
+          </tr>
         </thead>
         <tbody>
-        <tr v-for="work in paginatedWorks" :key="work._id">
-          <td>{{ work.title }}</td>
-          <td>{{ work.category.name }}</td>
-          <td>{{ formatTimestamp(work.submission_date) }}</td>
-          <td>{{ work.conference.year }}</td>
-          <td>
+          <tr v-for="work in paginatedWorks" :key="work._id">
+            <td>{{ work.title }}</td>
+            <td>{{ work.category.name }}</td>
+            <td>{{ formatTimestamp(work.submission_date) }}</td>
+            <td>{{ work.conference.year }}</td>
+            <td>
               <span
                 :class="{
                   'badge badge-secondary': work.status === 'submitted',
                   'badge badge-warning': work.status === 'under_review',
                   'badge badge-success': work.status === 'accepted',
-                  'badge badge-tertiary': work.status === 'accepted_with_changes',
+                  'badge badge-tertiary':
+                    work.status === 'accepted_with_changes',
                   'badge badge-danger': work.status === 'rejected',
                   'badge badge-primary': work.status === 'draft',
-
                 }"
               >
-                {{ statusLabels[work.status] || "Neznámy stav" }}
+                {{ statusLabels[work.status] || 'Neznámy stav' }}
               </span>
-          </td>
-          <td class="button-group-multiple">
-            <router-link
-              v-if="work.status === 'accepted' || work.status === 'rejected' || work.status === 'accepted_with_changes'"
-              :to="{ name: 'ReviewForm', params: { id: work._id }, query: {
-                isEditable: 'false',
-                isReviewer: 'false'
-              } }">
-              <button class="btn btn-edit btn-sm ml-2">Pozrieť hodnotenie</button>
-            </router-link>
-            <div v-else>
-              <button class="btn btn-edit btn-sm ml-2" disabled>Pozrieť hodnotenie</button>
-            </div>
-            <button  v-if="work.status === 'draft' || work.status === 'accepted_with_changes'"
-              class="btn btn-edit btn-sm ml-2"
-              @click="editWork(work)"
-            >
-              Upraviť
-            </button>
-            <div v-else>
-              <button class="btn btn-edit btn-sm ml-2" disabled>Upraviť</button>
-            </div>
-          </td>
-        </tr>
+            </td>
+            <td class="button-group-multiple">
+              <router-link
+                v-if="
+                  work.status === 'accepted' ||
+                  work.status === 'rejected' ||
+                  work.status === 'accepted_with_changes'
+                "
+                :to="{
+                  name: 'ReviewForm',
+                  params: { id: work._id },
+                  query: {
+                    isEditable: 'false',
+                    isReviewer: 'false',
+                  },
+                }"
+              >
+                <button class="btn btn-edit btn-sm ml-2">
+                  Pozrieť hodnotenie
+                </button>
+              </router-link>
+              <div v-else>
+                <button class="btn btn-edit btn-sm ml-2" disabled>
+                  Pozrieť hodnotenie
+                </button>
+              </div>
+              <button
+                v-if="
+                  work.status === 'draft' ||
+                  work.status === 'accepted_with_changes'
+                "
+                class="btn btn-edit btn-sm ml-2"
+                @click="editWork(work)"
+              >
+                Upraviť
+              </button>
+              <div v-else>
+                <button class="btn btn-edit btn-sm ml-2" disabled>
+                  Upraviť
+                </button>
+              </div>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -149,7 +170,7 @@
       <div class="pagination">
         <button
           class="btn btn-primary"
-          @click="currentPage > 1 && (currentPage--)"
+          @click="currentPage > 1 && currentPage--"
           :disabled="currentPage === 1"
         >
           Previous
@@ -157,7 +178,7 @@
         <span class="pagination-current">Strana {{ currentPage }}</span>
         <button
           class="btn btn-primary"
-          @click="currentPage < totalPages && (currentPage++)"
+          @click="currentPage < totalPages && currentPage++"
           :disabled="currentPage === totalPages || remainingItems <= perPage"
         >
           Next
@@ -170,85 +191,92 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import axios from 'axios'
-import axiosInstance from "@/config/axiosConfig.ts";
+import axiosInstance from '@/config/axiosConfig.ts'
 
 export interface Author {
-  firstName: string;
-  lastName: string;
+  firstName: string
+  lastName: string
 }
 
 export interface Paper {
-  _id: string;
-  title: string;
-  category: { id: string; name: string };
-  submission_date: number;
-  status: "submitted" | "under_review" | "accepted" | "accepted_with_changes" | "rejected" | "draft";
-  conference: { id: string; year: number };
-  authors: Author[];
-  keywords: string[];
-  abstract: string;
+  _id: string
+  title: string
+  category: { id: string; name: string }
+  submission_date: number
+  status:
+    | 'submitted'
+    | 'under_review'
+    | 'accepted'
+    | 'accepted_with_changes'
+    | 'rejected'
+    | 'draft'
+  conference: { id: string; year: number }
+  authors: Author[]
+  keywords: string[]
+  abstract: string
 }
 
 export default defineComponent({
-  name: "ParticipantWorksTable",
+  name: 'ParticipantWorksTable',
   data() {
     return {
       works: [] as Paper[],
       filters: {
-        title: "",
-        category: "",
+        title: '',
+        category: '',
         selectedReviews: [] as string[],
         year: null as number | null,
       },
       dropdownOpen: false,
       currentPage: 1,
       perPage: 10,
-      error: "",
+      error: '',
       statusLabels: {
-        draft: "Návrh",
-        submitted: "Odoslané",
-        under_review: "V procese hodnotenia",
-        accepted: "Schválené",
-        rejected: "Zamietnuté",
-        accepted_with_changes: "Schválené so zmenami",
+        draft: 'Návrh',
+        submitted: 'Odoslané',
+        under_review: 'V procese hodnotenia',
+        accepted: 'Schválené',
+        rejected: 'Zamietnuté',
+        accepted_with_changes: 'Schválené so zmenami',
       },
-    };
+    }
   },
   computed: {
     totalPages() {
-      return Math.ceil(this.filteredWorks.length / this.perPage);
+      return Math.ceil(this.filteredWorks.length / this.perPage)
     },
     paginatedWorks() {
-      const startIndex = (this.currentPage - 1) * this.perPage;
-      return this.filteredWorks.slice(startIndex, startIndex + this.perPage);
+      const startIndex = (this.currentPage - 1) * this.perPage
+      return this.filteredWorks.slice(startIndex, startIndex + this.perPage)
     },
     remainingItems() {
-      const startIndex = (this.currentPage - 1) * this.perPage;
-      return this.filteredWorks.length - startIndex;
+      const startIndex = (this.currentPage - 1) * this.perPage
+      return this.filteredWorks.length - startIndex
     },
     filteredWorks() {
-      return this.works.filter((work) => {
+      return this.works.filter(work => {
         const matchesName =
-          this.filters.title === "" ||
-          work.title.toLowerCase().includes(this.filters.title.toLowerCase());
+          this.filters.title === '' ||
+          work.title.toLowerCase().includes(this.filters.title.toLowerCase())
         const matchesCategory =
-          this.filters.category === "" ||
+          this.filters.category === '' ||
           work.category.name
             .toLowerCase()
-            .includes(this.filters.category.toLowerCase());
+            .includes(this.filters.category.toLowerCase())
         const matchesYear =
-          this.filters.year === null || work.conference.year === this.filters.year;
+          this.filters.year === null ||
+          work.conference.year === this.filters.year
         const matchesReviewed =
           this.filters.selectedReviews.length === 0 ||
-          this.filters.selectedReviews.includes(work.status);
-        return matchesName && matchesCategory && matchesYear && matchesReviewed;
-      });
+          this.filters.selectedReviews.includes(work.status)
+        return matchesName && matchesCategory && matchesYear && matchesReviewed
+      })
     },
   },
   methods: {
     async fetchPapers() {
       try {
-        const token = "token123"; // Replace with the actual token from your database
+        const token = 'token123' // Replace with the actual token from your database
         //const token = localStorage.getItem('authToken'); // Replace with your actual token retrieval logic
 
         const response = await axiosInstance.get('/participant/papers', {
@@ -256,39 +284,38 @@ export default defineComponent({
             Authorization: `Bearer ${token}`, // Include the token
           },
           params: {
-            userId: "", // Include query params
+            userId: '', // Include query params
           },
-        });
+        })
         this.works = response.data.map((work: any) => ({
           ...work,
           _id: work._id?.$oid || work._id,
-        }));
+        }))
       } catch (err) {
-        this.error = "Nepodarilo sa načítať práce.";
+        this.error = 'Nepodarilo sa načítať práce.'
       }
     },
     formatTimestamp(timestamp: number): string {
-      const date = new Date(timestamp);
-      return date.toLocaleString();
+      const date = new Date(timestamp)
+      return date.toLocaleString()
     },
     editWork(work: Paper): void {
       this.$router.push({
-        name: "SubmissionForm",
+        name: 'SubmissionForm',
         params: { workId: work._id },
-      });
+      })
     },
     resetFilters(): void {
-      this.filters.title = "";
-      this.filters.category = "";
-      this.filters.selectedReviews = [];
-      this.filters.year = null;
+      this.filters.title = ''
+      this.filters.category = ''
+      this.filters.selectedReviews = []
+      this.filters.year = null
     },
   },
   mounted() {
-    this.fetchPapers();
+    this.fetchPapers()
   },
-});
+})
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
