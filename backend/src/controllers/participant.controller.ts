@@ -5,67 +5,76 @@ import Category from '../models/Category'
 import Conference from '../models/Conference'
 import { sendEmail } from '../utils/emailService'
 import User from '../models/User'
+import paperUpload from '../middleware/fileUpload'
+import path from 'path'
+import fs from 'fs'
 
-//Submit new paper
-export const submitPaper = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) {
-      res.status(401).json({ message: "Neautorizované. Používateľ nie je prihlásený." });
-      return;
+
+// Submit a new paper
+export const submitPaper = [
+  paperUpload.single("paper"), // Middleware for handling file uploads
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) {
+        res.status(401).json({ message: "Neautorizované. Používateľ nie je prihlásený." });
+        return;
+      }
+
+      const { title, abstract, keywords, category, conference, authors, isFinal } = req.body;
+
+      //Validate conference
+      const selectedConference = await Conference.findById(conference);
+      if (!selectedConference || selectedConference.status !== "Aktuálna") {
+        res.status(400).json({ message: "Konferencia neexistuje alebo nie je aktuálna." });
+        return;
+      }
+
+      //Validate submission deadline
+      if (selectedConference.deadline_submission < new Date()) {
+        res.status(400).json({ message: "Deadline na odoslanie prác pre túto konferenciu už vypršal." });
+        return;
+      }
+
+      //Ensure the uploaded file exists
+      if (!req.file) {
+        res.status(400).json({ message: "Chýba súbor na odoslanie." });
+        return;
+      }
+
+      //Build file path
+      const filePath = `/uploads/docs/${conference}/${req.file.filename}`;
+      const status = isFinal ? "Submitted" : "Draft";
+
+      // Create a new paper record
+      const paper = new Paper({
+        user: userId,
+        title,
+        abstract,
+        keywords,
+        category,
+        conference,
+        authors,
+        file_link: filePath,
+        submission_date: new Date(),
+        isFinal: !!isFinal,
+        status,
+        deadline_date: selectedConference.deadline_submission,
+      });
+
+      const savedPaper = await paper.save();
+
+      res.status(201).json({
+        message: isFinal ? "Práca bola úspešne odoslaná" : "Práca bola uložená ako koncept.",
+        paper: savedPaper,
+      });
+    } catch (error) {
+      console.error("Error submitting paper:", error);
+      res.status(500).json({ message: "Nepodarilo sa odoslať prácu.", error });
     }
+  },
+];
 
-    const { title, abstract, keywords, category, conference, authors, isFinal } = req.body;
-
-    // Validate conference
-    const selectedConference = await Conference.findById(conference);
-    if (!selectedConference || selectedConference.status !== "Aktuálna") {
-      res.status(400).json({ message: "Konferencia neexistuje alebo nie je aktuálna." });
-      return;
-    }
-
-    // Validate submission deadline
-    if (selectedConference.deadline_submission < new Date()) {
-      res.status(400).json({ message: "Deadline na odoslanie prác pre túto konferenciu už vypršal." });
-      return;
-    }
-
-    // Validate uploaded file
-    if (!req.file) {
-      res.status(400).json({ message: "Chýba súbor na odoslanie." });
-      return;
-    }
-
-    const file_link = req.file.path;
-    const status = isFinal ? PaperStatus.Submitted : PaperStatus.Draft;
-
-    // Create and save the paper
-    const paper = new Paper({
-      user: userId,
-      title,
-      abstract,
-      keywords,
-      category,
-      conference,
-      authors,
-      file_link,
-      submission_date: new Date(),
-      isFinal: !!isFinal,
-      status: isFinal ? PaperStatus.Submitted : PaperStatus.Draft,
-      deadline_date: selectedConference.deadline_submission,
-    });
-
-    const savedPaper = await paper.save();
-
-    res.status(201).json({
-      message: isFinal ? "Práca bola úspešne odoslaná" : "Práca bola uložená ako koncept.",
-      paper: savedPaper,
-    });
-  } catch (error) {
-    console.error("Error submitting paper:", error);
-    res.status(500).json({ message: "Nepodarilo sa odoslať prácu.", error });
-  }
-};
 
 //View all papers submitted by the user
 export const viewMyPapers = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -111,55 +120,77 @@ export const getPaperById = async (req: AuthRequest, res: Response): Promise<voi
   }
 };
 
-//Edit existing paper
-export const editPaper = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const userId = req.user?.userId;
-    const { paperId } = req.params;
-    const updates = req.body;
+export const editPaper = [
+  paperUpload.single("paper"),
+  async (req: AuthRequest, res: Response): Promise<void> => {
+    try {
+      const userId = req.user?.userId;
+      const { paperId } = req.params;
+      const updates = req.body;
 
-    // Ensure the paper belongs to the user
-    const paper = await Paper.findOne({ _id: paperId, user: userId });
-    if (!paper) {
-      res.status(404).json({ message: "Práca nebola nájdená alebo nemáte oprávnenie na jej úpravu." });
-      return;
-    }
-
-    //Remove restricted fields from updates
-    delete updates.status;
-    delete updates.user;
-    delete updates.deadline_date;
-    delete updates.reviewer;
-    delete updates.awarded;
-
-    Object.assign(paper, updates);
-
-    //Automatically set status to "Draft" if `isFinal` is not true
-    if (!updates.isFinal) {
-      paper.status = PaperStatus.Draft;
-    } else {
-      paper.status = PaperStatus.Submitted;
-    }
-
-    //Set default deadline_date if not provided
-    if (!paper.deadline_date) {
-      const conference = await Conference.findById(paper.conference);
-      if (conference) {
-        paper.deadline_date = conference.deadline_submission;
+      // Ensure the paper belongs to the user
+      const paper = await Paper.findOne({ _id: paperId, user: userId });
+      if (!paper) {
+        res.status(404).json({ message: "Práca nebola nájdená alebo nemáte oprávnenie na jej úpravu." });
+        return;
       }
+
+      // Remove restricted fields from updates
+      delete updates.status;
+      delete updates.user;
+      delete updates.deadline_date;
+      delete updates.reviewer;
+      delete updates.awarded;
+
+      //Handle file upload if a new file is provided
+      if (req.file) {
+        const newFilePath = `/uploads/docs/${paper.conference}/${req.file.filename}`;
+
+        //Delete the old file if it exists
+        if (paper.file_link) {
+          try {
+            fs.unlink(path.resolve(paper.file_link), () => {
+              console.log("Old document deleted successfully.");
+            });
+          } catch (err) {
+            console.warn("Failed to delete old file:", err);
+          }
+        }
+
+        // Update the file path
+        paper.file_link = newFilePath;
+      }
+
+      // Update other fields
+      Object.assign(paper, updates);
+
+      // Automatically set status to "Draft" if `isFinal` is not true
+      if (!updates.isFinal) {
+        paper.status = PaperStatus.Draft;
+      } else {
+        paper.status = PaperStatus.Submitted;
+      }
+
+      // Set default deadline_date if not provided
+      if (!paper.deadline_date) {
+        const conference = await Conference.findById(paper.conference);
+        if (conference) {
+          paper.deadline_date = conference.deadline_submission;
+        }
+      }
+
+      const updatedPaper = await paper.save();
+
+      res.status(200).json({
+        message: "Práca bola úspešne aktualizovaná.",
+        paper: updatedPaper,
+      });
+    } catch (error) {
+      console.error("Error editing paper:", error);
+      res.status(500).json({ message: "Nepodarilo sa aktualizovať prácu.", error });
     }
-
-    const updatedPaper = await paper.save();
-
-    res.status(200).json({
-      message: "Práca bola úspešne aktualizovaná.",
-      paper: updatedPaper,
-    });
-  } catch (error) {
-    console.error("Error editing paper:", error);
-    res.status(500).json({ message: "Nepodarilo sa aktualizovať prácu.", error });
-  }
-};
+  },
+];
 
 //Get Conferences (only with statusAktuálna)
 export const getConferences = async (req: AuthRequest, res: Response): Promise<void> => {

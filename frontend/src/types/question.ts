@@ -1,7 +1,9 @@
+export type QuestionType = "rating" | "text" | "yes_no";
+
 export interface Question {
   _id: string
   text: string
-  type: 'rating' | 'yes_no' | 'text'
+  type: QuestionType
   options?: { min: number; max: number }
   category: string
 }

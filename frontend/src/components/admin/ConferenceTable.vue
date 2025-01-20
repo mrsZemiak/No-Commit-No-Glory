@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, ref, reactive, onMounted, computed } from 'vue'
+import { defineComponent, ref, reactive, onMounted, computed, inject } from 'vue'
 import { useConferenceStore } from '@/stores/conferenceStore'
 import { useRouter } from 'vue-router'
 import { format } from 'date-fns'
@@ -9,6 +9,15 @@ import type { ConferenceAdmin } from '@/types/conference.ts'
 export default defineComponent({
   name: 'ConferenceTable',
   setup() {
+    const showSnackbar = inject("showSnackbar") as ({ message, color, }: {
+      message: string;
+      color?: string;
+    }) => void;
+
+    if (!showSnackbar) {
+      console.error("showSnackbar is not provided");
+    }
+
     // Initialize the conference store and router
     const conferenceStore = useConferenceStore()
     const router = useRouter()
@@ -37,10 +46,9 @@ export default defineComponent({
       { title: 'Stav', key: 'status' },
       { title: 'Rok', key: 'year' },
       { title: 'Univerzita', key: 'university' },
-      { title: 'Miesto', key: 'location' },
       { title: 'Začiatok', key: 'start_date' },
       { title: 'Koniec', key: 'end_date' },
-      { title: 'Odovzdanie prác', key: 'deadline_submission' },
+      { title: 'Práce do', key: 'deadline_submission' },
       { title: '', value: 'actions', sortable: false },
     ]
 
@@ -82,25 +90,41 @@ export default defineComponent({
     const saveConference = async () => {
       try {
         if (!currentConference.status || !currentConference.year) {
-          console.error('Validation failed: Missing required fields.');
+          showSnackbar?.({
+            message: "Vyplňte všetky povinné polia.",
+            color: "error",
+          });
           return;
         }
 
         if (dialogMode.value === 'add') {
           await conferenceStore.addConference(currentConference);
+          showSnackbar?.({
+            message: "Konferencia bola úspešne pridaná.",
+            color: "success",
+          });
         } else if (dialogMode.value === 'edit') {
           if ('_id' in currentConference && currentConference._id) {
-            await conferenceStore.updateConference(
-              currentConference._id,
-              currentConference
-            );
+            await conferenceStore.updateConference(currentConference._id, currentConference);
+            showSnackbar?.({
+              message: "Konferencia bola úspešne upravená.",
+              color: "success",
+            });
           } else {
             console.error('Conference ID is missing for update.');
+            showSnackbar?.({
+              message: "Pre aktualizáciu chýba ID konferencie.",
+              color: "error",
+            });
           }
         }
         closeDialog();
       } catch (error) {
         console.error('Error saving conference:', error);
+        showSnackbar?.({
+          message: "Nepodarilo sa uložiť konferenciu.",
+          color: "error",
+        });
       }
     };
     /*
@@ -126,7 +150,6 @@ export default defineComponent({
      */
 
     // View works for a specific conference
-
     const viewWorksForConference = (conference: any) => {
       router.push({
         name: 'ConferencePapers',
@@ -217,13 +240,16 @@ export default defineComponent({
     <v-card-title>
       <div class="d-flex justify-space-between align-center w-100">
         <h3>Konferencie</h3>
+        <v-btn color="primary" class="add_new" @click="openDialog('add')"
+        ><v-icon left class="add_icon">mdi-plus-circle-outline</v-icon>Pridať konferenciu</v-btn
+        >
       </div>
     </v-card-title>
 
     <!-- Filters Section -->
     <v-card-subtitle>
       <v-row>
-        <v-col cols="10" md="2">
+        <v-col cols="10" md="3">
           <v-text-field
             v-model="conferenceStore.filters.year"
             label="Filtrovať podľa roku"
@@ -241,14 +267,6 @@ export default defineComponent({
           />
         </v-col>
         <v-col cols="10" md="3">
-          <v-text-field
-            v-model="conferenceStore.filters.location"
-            label="Filtrovať podľa miesta"
-            outlined
-            dense
-          />
-        </v-col>
-        <v-col cols="10" md="2">
           <v-select
             v-model="conferenceStore.filters.selectedStatus"
             :items="statusOptions"
@@ -258,7 +276,7 @@ export default defineComponent({
             multiple
           />
         </v-col>
-        <v-col cols="8" md="2">
+        <v-col cols="8" md="3">
           <v-btn color="primary" small @click="conferenceStore.resetFilters"
             >Zrušiť filter</v-btn
           >
@@ -313,23 +331,17 @@ export default defineComponent({
           </td>
           <td>{{ conference.year }}</td>
           <td>{{ conference.university }}</td>
-          <td>{{ conference.location }}</td>
           <td>{{ formatTimestamp(conference.start_date) }}</td>
           <td>{{ formatTimestamp(conference.end_date) }}</td>
           <td>{{ formatTimestamp(conference.deadline_submission) }}</td>
-          <td class="d-flex justify-center align-center">
+          <td class="d-flex justify-end align-center w-100">
             <v-btn color="#E7B500" title="Edit" @click="openDialog('edit', conference)">
               <v-icon size="24">mdi-pencil</v-icon>
             </v-btn>
-
           </td>
         </tr>
       </template>
     </v-data-table>
-
-    <v-btn color="primary" class="add_new" @click="openDialog('add')"
-      >Pridať konferenciu</v-btn
-    >
 
     <!-- Add/Edit Dialog -->
     <v-dialog v-model="isDialogOpen" max-width="800px">

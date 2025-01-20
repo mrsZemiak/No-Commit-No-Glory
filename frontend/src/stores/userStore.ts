@@ -11,15 +11,31 @@ export const useUserStore = defineStore('users', () => {
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  // Actions
+  //Role Mappings
+  const roleMapping: Record<string, string> = {
+    Účastník: 'participant',
+    Recenzent: 'reviewer',
+    Admin: 'admin',
+  };
+
+  const reverseRoleMapping: Record<string, string> = {
+    participant: 'Účastník',
+    reviewer: 'Recenzent',
+    admin: 'Admin',
+  };
+
+  //Actions
   // Admin-specific actions
   const fetchAllUsers = async () => {
     loading.value = true
     error.value = null
     try {
       const response = await axiosInstance.get('/auth/admin/users')
-      adminUsers.value = response.data
-      console.log("adminUSers.value",adminUsers.value)
+      adminUsers.value = response.data.map((user: any) => ({
+        ...user,
+        role: reverseRoleMapping[user.role] || user.role, //Map role to Slovak
+      }));
+      //console.log("adminUsers.value",adminUsers.value)
     } catch (err) {
       error.value = 'Failed to fetch users.'
       console.error(err)
@@ -55,25 +71,35 @@ export const useUserStore = defineStore('users', () => {
     }
   };
 
-  const updateUser = async (
-    id: string,
-    updates: { email?: string; role?: string; status?: string },
-  ) => {
+  const updateUser = async (id: string,
+    updates: { email?: string; role?: string; status?: string },) => {
     try {
+      //Map Slovak role to English before sending to the API
+      const mappedUpdates = {
+        ...updates,
+        role: updates.role ? roleMapping[updates.role] || updates.role : undefined,
+      };
+
       const response = await axiosInstance.patch(
         `/auth/admin/users/${id}`,
-        updates,
-      )
-      const index = adminUsers.value.findIndex(u => u._id === id)
+        mappedUpdates,
+      );
+
+      //Find and update the user in the local store
+      const index = adminUsers.value.findIndex((u) => u._id === id);
       if (index !== -1) {
-        adminUsers.value[index] = { ...adminUsers.value[index], ...updates }
+        adminUsers.value[index] = {
+          ...adminUsers.value[index],
+          ...updates, //Use the original updates (Slovak role) to update UI
+        };
       }
-      return response.data
+
+      return response.data;
     } catch (err) {
-      console.error('Failed to update user:', err)
-      throw err
+      console.error('Failed to update user:', err);
+      throw err;
     }
-  }
+  };
 
   // Profile-specific actions
   const fetchUserProfile = async () => {
@@ -131,6 +157,8 @@ export const useUserStore = defineStore('users', () => {
     loading,
     error,
     reviewers,
+    roleMapping,
+    reverseRoleMapping,
 
     // Actions
     setUserProfile,

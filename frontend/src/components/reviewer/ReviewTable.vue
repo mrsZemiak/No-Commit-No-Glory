@@ -128,7 +128,7 @@ export default defineComponent({
       try {
         const reviewerId = '6775538dedbad0434a6f9ca8' //temporary id
         const response = await axiosInstance.get(
-          `/reviewer/assigned-papers?reviewerId=${reviewerId}`,
+          `/auth/reviewer/papers`,
         )
         this.works = response.data.map((paper: any) => ({
           _id: paper._id,

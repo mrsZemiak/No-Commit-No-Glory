@@ -1,3 +1,88 @@
+<script lang="ts">
+import { defineComponent, onMounted, ref, watch } from 'vue'
+import SideBar from '@/components/common/SideBar.vue'
+import { useAuthStore } from '@/stores/auth.ts'
+import { useNotificationStore } from '@/stores/notificationStore.ts'
+
+export default defineComponent({
+  name: 'AuthenticatedLayout',
+  components: { SideBar },
+  setup() {
+    const showModal = ref(false)
+    const authStore = useAuthStore()
+    const notificationStore = useNotificationStore();
+
+    //Fetch notifications on layout load
+    const fetchNotifications = async () => {
+      try {
+        await notificationStore.fetchNotifications();
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    };
+
+    //Watch for token expiration
+    watch(
+      () => authStore.isTokenExpired,
+      (expired) => {
+        if (expired) {
+          console.log("Token expired, showing modal");
+          showModal.value = true;
+        }
+      },
+    );
+
+    //Handle token refresh
+    const refreshToken = async () => {
+      try {
+        await authStore.refreshAccessToken()
+        showModal.value = false
+      } catch (error) {
+        showSnackbar({
+          message: 'Obnovenie tokenu zlyhalo. Prihláste sa znova.',
+          color: 'error',
+        })
+        logout()
+      }
+    }
+
+    // Snackbar logic
+    const snackbar = ref({
+      show: false,
+      message: '',
+      color: 'error',
+      timeout: 5000,
+    })
+
+    const showSnackbar = ({ message, color = 'error'}: {
+      message: string
+      color?: string
+    }) => {
+      snackbar.value = { show: true, message, color, timeout: 5000 }
+    }
+
+    //Handle logout
+    const logout = () => {
+      authStore.logout()
+      showModal.value = false
+      window.location.href = '/'
+    }
+
+    onMounted(fetchNotifications);
+
+    return {
+      showModal,
+      notificationStore,
+      snackbar,
+      showSnackbar,
+      refreshToken,
+      logout,
+
+    }
+  },
+})
+</script>
+
 <template>
   <div class="banner-container">
     <div class="banner-overlay"></div>
@@ -11,6 +96,18 @@
   <!-- Main Content -->
   <v-main>
     <v-container class="main-container" fluid>
+      <!-- Snackbar Component -->
+      <v-snackbar
+        v-model="snackbar.show"
+        :color="snackbar.color"
+        :timeout="snackbar.timeout"
+        top
+      >
+        {{ snackbar.message }}
+        <template #actions>
+          <v-btn @click="snackbar.show = false">Zrušiť</v-btn>
+        </template>
+      </v-snackbar>
       <router-view :key="$route.fullPath" />
     </v-container>
   </v-main>
@@ -31,67 +128,16 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, watch } from 'vue'
-import SideBar from '@/components/common/SideBar.vue'
-import { useAuthStore } from '@/stores/auth.ts'
-
-export default defineComponent({
-  name: 'AuthenticatedLayout',
-  components: { SideBar },
-  setup() {
-    const showModal = ref(false)
-    const authStore = useAuthStore()
-
-    // Watch for token expiration
-    watch(
-      () => authStore.isTokenExpired,
-      (expired) => {
-        if (expired) {
-          console.log("Token expired, showing modal");
-          showModal.value = true;
-        }
-      },
-    );
-
-    // Handle token refresh
-    const refreshToken = async () => {
-      try {
-        await authStore.refreshAccessToken()
-        showModal.value = false
-      } catch (error) {
-        console.error('Failed to refresh token:', error)
-        logout()
-      }
-    }
-
-    // Handle logout
-    const logout = () => {
-      authStore.logout()
-      showModal.value = false
-      window.location.href = '/'
-    }
-
-    return {
-      showModal,
-      refreshToken,
-      logout,
-    }
-  },
-})
-</script>
-
 <style lang="scss">
 .sidebar {
   z-index: 10;
 }
 
-
 /* Main content styling */
 .v-main {
   margin: 0 auto;
   width: 100%;
-  max-width: 1200px;
+  max-width: 1500px;
   overflow: visible;
   padding-top: 0;
   position: relative;

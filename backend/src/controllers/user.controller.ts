@@ -151,7 +151,7 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
 //Set up Multer for avatar uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.resolve(__dirname, './../uploads/avatars'); // Resolve relative to the current file
+    const uploadPath = path.resolve(__dirname, '../../uploads/avatars'); // Resolve relative to the current file
     console.log('Resolved Upload Directory:', uploadPath);
 
     //Create the directory if it doesn't exist
@@ -220,7 +220,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
       //Optionally delete the old avatar if it exists
       if (user.avatar) {
         try {
-          fs.unlink(path.resolve(user.avatar), (err) => {
+          fs.unlink(path.resolve(user.avatar), () => {
             console.log("Old avatar deleted successfully.");
           });
         } catch (error) {

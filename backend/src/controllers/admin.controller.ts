@@ -192,7 +192,7 @@ export const createConference = async (req: AuthRequest, res: Response): Promise
     await newConference.save();
 
     // Create directory for the conference
-    const uploadPath = `uploads/docs/${newConference._id}`;
+    const uploadPath =  path.resolve(__dirname, `./../uploads/docs/${newConference._id}`);
     await fs.mkdir(uploadPath, { recursive: true });
 
     res.status(201).json({ message: 'Konferencia bola úspešne vytvorená', conference: newConference });
@@ -474,22 +474,29 @@ export const assignReviewer = async (req: AuthRequest, res: Response): Promise<v
 //Paper download grouped by conference
 export const downloadPapersByConference = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { conferenceId } = req.query;
+    const { conferenceId } = req.params;
 
     if (!conferenceId) {
       res.status(400).json({ message: "Je potrebné zadať ID konferencie." });
       return;
     }
 
-    //Define the path where papers are stored
-    const conferenceUploadPath = path.resolve(`uploads/docs/${conferenceId}`);
+    //Path where papers are stored
+    const conferenceUploadPath = path.resolve(__dirname, '../../uploads/docs', conferenceId);
 
     //Check if the conference folder exists
     try {
       await fs.access(conferenceUploadPath);
     } catch (err) {
-      res.status(404).json({ message: "Pre túto konferenciu neexistuje priečinok s prácami." });
-      return;
+      //Folder does not exist, create it
+      try {
+        await fs.mkdir(conferenceUploadPath, { recursive: true });
+        console.log(`Folder created: ${conferenceUploadPath}`);
+      } catch (mkdirErr) {
+        console.error("Error creating the folder:", mkdirErr);
+        res.status(500).json({ message: "Nepodarilo sa vytvoriť priečinok pre túto konferenciu.", error: mkdirErr });
+        return;
+      }
     }
 
     //Read all files in the directory
@@ -503,7 +510,7 @@ export const downloadPapersByConference = async (req: AuthRequest, res: Response
     const zip = new AdmZip();
     files.forEach((file) => {
       const filePath = path.join(conferenceUploadPath, file);
-      zip.addLocalFile(filePath, "", file); // Add files to ZIP
+      zip.addLocalFile(filePath, "", file); //Add files to ZIP
     });
 
     //Headers for downloading the ZIP file

@@ -118,6 +118,11 @@ const routes = [
         meta: { role: 'reviewer' },
         children: [
           {
+            path: 'papers',
+            name: 'ReviewTable',
+            component: () => import('@/components/reviewer/ReviewTable.vue'),
+          },
+          {
             path: 'reviews',
             name: 'ReviewTable',
             component: () => import('@/components/reviewer/ReviewTable.vue'),

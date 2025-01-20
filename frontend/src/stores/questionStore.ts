@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axiosInstance from '@/config/axiosConfig'
+import type { Question } from '@/types/question.ts'
 
 export const useQuestionStore = defineStore('questions', () => {
   //Reactive state
@@ -36,7 +37,7 @@ export const useQuestionStore = defineStore('questions', () => {
     }
   }
 
-  const addQuestion = async (question: any) => {
+  const addQuestion = async (question: Question) => {
     try {
       const response = await axiosInstance.post(
         '/auth/admin/questions',

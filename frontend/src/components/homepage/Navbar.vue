@@ -1,3 +1,220 @@
+<script lang="ts">
+import { computed, defineComponent, ref } from 'vue'
+import axios from 'axios'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import axiosInstance from '@/config/axiosConfig.ts'
+
+export default defineComponent({
+  name: 'Navbar',
+  setup() {
+    const loginDialog = ref(false)
+    const activeTab = ref('login')
+    const password = ref('')
+    const confirmPassword = ref('')
+    const showPassword = ref(false)
+    const showConfirmPassword = ref(false)
+    const loginEmail = ref('')
+    const loginPassword = ref('')
+    const forgotPasswordEmail = ref('')
+    const registerFirstName = ref('')
+    const registerLastName = ref('')
+    const registerEmail = ref('')
+    const registerPassword = ref('')
+    const registerUniversity = ref('')
+    const registerRole = ref('')
+    const universities = ref([
+      'Univerzita Konštantína Filozofa',
+      'Univerzita Mateja Bela',
+      'Univerzita sv. Cyrila a Metoda',
+    ])
+    const roles = ref(['Účastník', 'Recenzent', 'Admin'])
+
+    const router = useRouter()
+    const authStore = useAuthStore()
+
+    //Password mismatch check
+    const passwordError = ref<string | null>(null)
+    const passwordMismatch = computed(() => {
+      const mismatch =
+        registerPassword.value !== confirmPassword.value &&
+        confirmPassword.value !== ''
+      passwordError.value = mismatch ? 'Heslá sa nezhodujú.' : null
+      return mismatch
+    })
+
+    //Error pop-ups for better UX
+    const errors = ref<Record<string, string[]>>({})
+    const snackbar = ref({
+      show: false,
+      message: '',
+      color: 'error',
+      timeout: 5000,
+    })
+
+    const openLoginModal = () => {
+      loginDialog.value = true // Open the login modal
+    }
+
+    const showSnackbar = ({
+                            message,
+                            color = 'error',
+                          }: {
+      message: string
+      color?: string
+    }) => {
+      snackbar.value = { show: true, message, color, timeout: 5000 }
+    }
+
+    //Login modal
+    const handleLogin = async () => {
+      try {
+        // Call the login action from the auth store
+        await authStore.login(loginEmail.value, loginPassword.value)
+
+        // Show success message
+        showSnackbar({ message: 'Prihlásenie bolo úspešné.', color: 'success' })
+        console.log('Login successful:', authStore.user)
+
+        // Close the login dialog
+        loginDialog.value = false
+
+        // Redirect to the /auth route (role-based redirection handled by the router)
+        await router.push('/auth')
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          const backendMessage =
+            error.response?.data?.message || 'An unexpected error occurred.'
+          console.error('Login failed:', backendMessage)
+          showSnackbar({ message: backendMessage, color: 'error' })
+        } else {
+          console.error('Unexpected error:', error)
+          showSnackbar({
+            message: 'An unexpected error occurred.',
+            color: 'error',
+          })
+        }
+      }
+    }
+
+    const togglePasswordVisibility = () => {
+      showPassword.value = !showPassword.value
+    }
+
+    const toggleConfirmPasswordVisibility = () => {
+      showConfirmPassword.value = !showConfirmPassword.value
+    }
+
+    const handleForgotPassword = async () => {
+      try {
+        const response = await axiosInstance.post('/forgot-password', {
+          email: forgotPasswordEmail.value,
+        })
+        console.log('Password recovery email sent:', response.data)
+        activeTab.value = 'login'
+      } catch (error) {
+        console.error('Password recovery failed:', error)
+      }
+    }
+
+    //Registration modal
+    const handleRegister = async () => {
+      try {
+        const translatedRole =
+          registerRole.value === 'Účastník'
+            ? 'participant'
+            : registerRole.value === 'Recenzent'
+              ? 'reviewer'
+              : registerRole.value === 'Admin'
+                ? 'admin'
+                : ''
+
+        const payload = {
+          first_name: registerFirstName.value,
+          last_name: registerLastName.value,
+          email: registerEmail.value,
+          password: registerPassword.value,
+          confirmPassword: confirmPassword.value,
+          university: registerUniversity.value,
+          role: translatedRole,
+        }
+        const response = await authStore.register(payload)
+
+        showSnackbar({
+          message: response.message || 'Registrácia úspešná!',
+          color: 'success',
+        })
+        console.log('Registration successful:', response.data)
+
+        loginDialog.value = false
+        resetForm()
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          const backendMessage =
+            error.response?.data?.message ||
+            'Nastala neočakávaná chyba pri registrácii.'
+          console.error('Registration failed:', backendMessage)
+          showSnackbar({ message: backendMessage, color: 'error' })
+        } else {
+          console.error('Unexpected error:', error)
+          showSnackbar({
+            message: 'Nastala neočakávaná chyba.',
+            color: 'error',
+          })
+        }
+      }
+    }
+
+    //Reset form fields after successful registration
+    const resetForm = () => {
+      registerFirstName.value = ''
+      registerLastName.value = ''
+      registerEmail.value = ''
+      registerPassword.value = ''
+      confirmPassword.value = ''
+      registerUniversity.value = ''
+      registerRole.value = ''
+    }
+
+    const getError = (field: string) => {
+      return errors.value[field] || []
+    }
+
+    return {
+      loginDialog,
+      activeTab,
+      password,
+      confirmPassword,
+      showPassword,
+      showConfirmPassword,
+      passwordError,
+      passwordMismatch,
+      loginEmail,
+      loginPassword,
+      forgotPasswordEmail,
+      registerFirstName,
+      registerLastName,
+      registerEmail,
+      registerPassword,
+      registerUniversity,
+      registerRole,
+      universities,
+      roles,
+      snackbar,
+      openLoginModal,
+      showSnackbar,
+      togglePasswordVisibility,
+      toggleConfirmPasswordVisibility,
+      handleLogin,
+      handleForgotPassword,
+      handleRegister,
+      getError,
+      resetForm,
+    }
+  },
+})
+</script>
+
 <template>
   <v-app-bar app color="rgba(210, 233, 227, 0.8)" elevate-on-scroll flat>
     <!-- Logo -->
@@ -168,223 +385,6 @@
     </template>
   </v-snackbar>
 </template>
-
-<script lang="ts">
-import { computed, defineComponent, ref } from 'vue'
-import axios from 'axios'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import axiosInstance from '@/config/axiosConfig.ts'
-
-export default defineComponent({
-  name: 'Navbar',
-  setup() {
-    const loginDialog = ref(false)
-    const activeTab = ref('login')
-    const password = ref('')
-    const confirmPassword = ref('')
-    const showPassword = ref(false)
-    const showConfirmPassword = ref(false)
-    const loginEmail = ref('')
-    const loginPassword = ref('')
-    const forgotPasswordEmail = ref('')
-    const registerFirstName = ref('')
-    const registerLastName = ref('')
-    const registerEmail = ref('')
-    const registerPassword = ref('')
-    const registerUniversity = ref('')
-    const registerRole = ref('')
-    const universities = ref([
-      'Univerzita Konštantína Filozofa',
-      'Univerzita Mateja Bela',
-      'Univerzita sv. Cyrila a Metoda',
-    ])
-    const roles = ref(['Účastník', 'Recenzent', 'Administrator'])
-
-    const router = useRouter()
-    const authStore = useAuthStore()
-
-    //Password mismatch check
-    const passwordError = ref<string | null>(null)
-    const passwordMismatch = computed(() => {
-      const mismatch =
-        registerPassword.value !== confirmPassword.value &&
-        confirmPassword.value !== ''
-      passwordError.value = mismatch ? 'Heslá sa nezhodujú.' : null
-      return mismatch
-    })
-
-    //Error pop-ups for better UX
-    const errors = ref<Record<string, string[]>>({})
-    const snackbar = ref({
-      show: false,
-      message: '',
-      color: 'error',
-      timeout: 5000,
-    })
-
-    const openLoginModal = () => {
-      loginDialog.value = true // Open the login modal
-    }
-
-    const showSnackbar = ({
-      message,
-      color = 'error',
-    }: {
-      message: string
-      color?: string
-    }) => {
-      snackbar.value = { show: true, message, color, timeout: 5000 }
-    }
-
-    //Login modal
-    const handleLogin = async () => {
-      try {
-        // Call the login action from the auth store
-        await authStore.login(loginEmail.value, loginPassword.value)
-
-        // Show success message
-        showSnackbar({ message: 'Prihlásenie bolo úspešné.', color: 'success' })
-        console.log('Login successful:', authStore.user)
-
-        // Close the login dialog
-        loginDialog.value = false
-
-        // Redirect to the /auth route (role-based redirection handled by the router)
-        await router.push('/auth')
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          const backendMessage =
-            error.response?.data?.message || 'An unexpected error occurred.'
-          console.error('Login failed:', backendMessage)
-          showSnackbar({ message: backendMessage, color: 'error' })
-        } else {
-          console.error('Unexpected error:', error)
-          showSnackbar({
-            message: 'An unexpected error occurred.',
-            color: 'error',
-          })
-        }
-      }
-    }
-
-    const togglePasswordVisibility = () => {
-      showPassword.value = !showPassword.value
-    }
-
-    const toggleConfirmPasswordVisibility = () => {
-      showConfirmPassword.value = !showConfirmPassword.value
-    }
-
-    const handleForgotPassword = async () => {
-      try {
-        const response = await axiosInstance.post('/forgot-password', {
-          email: forgotPasswordEmail.value,
-        })
-        console.log('Password recovery email sent:', response.data)
-        activeTab.value = 'login'
-      } catch (error) {
-        console.error('Password recovery failed:', error)
-      }
-    }
-
-    //Registration modal
-    const handleRegister = async () => {
-      try {
-        const translatedRole =
-          registerRole.value === 'Účastník'
-            ? 'participant'
-            : registerRole.value === 'Recenzent'
-              ? 'reviewer'
-              : registerRole.value === 'Admin'
-                ? 'admin'
-                : ''
-
-        const payload = {
-          first_name: registerFirstName.value,
-          last_name: registerLastName.value,
-          email: registerEmail.value,
-          password: registerPassword.value,
-          confirmPassword: confirmPassword.value,
-          university: registerUniversity.value,
-          role: translatedRole,
-        }
-        const response = await authStore.register(payload)
-
-        showSnackbar({
-          message: response.message || 'Registrácia úspešná!',
-          color: 'success',
-        })
-        console.log('Registration successful:', response.data)
-
-        loginDialog.value = false
-        resetForm()
-      } catch (error) {
-        if (axios.isAxiosError(error)) {
-          const backendMessage =
-            error.response?.data?.message ||
-            'Nastala neočakávaná chyba pri registrácii.'
-          console.error('Registration failed:', backendMessage)
-          showSnackbar({ message: backendMessage, color: 'error' })
-        } else {
-          console.error('Unexpected error:', error)
-          showSnackbar({
-            message: 'Nastala neočakávaná chyba.',
-            color: 'error',
-          })
-        }
-      }
-    }
-
-    // Reset form fields after successful registration
-    const resetForm = () => {
-      registerFirstName.value = ''
-      registerLastName.value = ''
-      registerEmail.value = ''
-      registerPassword.value = ''
-      confirmPassword.value = ''
-      registerUniversity.value = ''
-      registerRole.value = ''
-    }
-
-    const getError = (field: string) => {
-      return errors.value[field] || []
-    }
-
-    return {
-      loginDialog,
-      activeTab,
-      password,
-      confirmPassword,
-      showPassword,
-      showConfirmPassword,
-      passwordError,
-      passwordMismatch,
-      loginEmail,
-      loginPassword,
-      forgotPasswordEmail,
-      registerFirstName,
-      registerLastName,
-      registerEmail,
-      registerPassword,
-      registerUniversity,
-      registerRole,
-      universities,
-      roles,
-      snackbar,
-      openLoginModal,
-      showSnackbar,
-      togglePasswordVisibility,
-      toggleConfirmPasswordVisibility,
-      handleLogin,
-      handleForgotPassword,
-      handleRegister,
-      getError,
-      resetForm,
-    }
-  },
-})
-</script>
 
 <style lang="scss">
 .v-app-bar {

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, onMounted, ref, computed, watch, reactive } from 'vue'
+import { defineComponent, onMounted, ref, computed, reactive } from 'vue'
 import { usePaperStore } from "@/stores/paperStore";
 import { format } from "date-fns";
 import { sk } from "date-fns/locale";
@@ -17,10 +17,10 @@ export default defineComponent({
     const paperStore = usePaperStore();
     const userStore = useUserStore();
 
-    // Track which conference is expanded
+    //Track which conference is expanded
     const expandedConferenceId = ref<string | null>(null);
 
-    // Filters for conferences
+    //Filters for conferences
     const conferenceFilters = reactive({
       year: null,
       location: "",
@@ -29,12 +29,12 @@ export default defineComponent({
     const itemsPerPage = 5; // Maximum conferences per page
     const currentPage = ref(1);
 
-    // Filters for papers
+    //Filters for papers
     const paperFilters = reactive({
       selectedStatus: null as PaperStatus | null,
     });
 
-    // Filtered conferences
+    //Filtered conferences
     const filteredConferences = computed(() => {
       return groupedPapers.value.filter((conference) => {
         return (
@@ -56,7 +56,7 @@ export default defineComponent({
       return filteredConferences.value.slice(start, end);
     });
 
-    // Filtered papers for selected conference
+    //Filtered papers for selected conference
     const filteredPapers = computed(() => {
       return paperStore.adminPapers.filter((paper) => {
         // Ensure the paper belongs to the expanded conference
@@ -70,16 +70,20 @@ export default defineComponent({
 
         // Include the paper if it belongs to the conference and matches the filter
         return belongsToConference && matchesStatus;
+      }) .sort((a, b) => {
+        // Sort by submission_date, newest first
+        const dateA = new Date(a.submission_date).getTime();
+        const dateB = new Date(b.submission_date).getTime();
+        return dateB - dateA; // Newest papers on top
       });
     });
 
-    // Reset filters
+    //Reset filters
     const resetFilters = () => {
       paperFilters.selectedStatus = null;
     };
 
-
-    // Table headers for papers
+    //Table headers for papers
     const tableHeaders = [
       { title: "", value: "view", sortable: false },
       { title: "Status", value: "status" },
@@ -117,7 +121,7 @@ export default defineComponent({
     const selectedPaper = ref<AdminPaper | null>(null);
     const selectedReviewer = ref<any>(null);
 
-    // Preprocess reviewers to include fullName
+    //Preprocess reviewers to include fullName
     const availableReviewers = computed(() =>
       userStore.reviewers.map((user) => ({
         ...user,
@@ -157,7 +161,7 @@ export default defineComponent({
     };
 
 
-    // Open dialog for assigning a reviewer
+    //Open dialog for assigning a reviewer
     const openAssignReviewerDialog = (paper: AdminPaper) => {
       selectedPaper.value = paper;
       // Fetch reviewers if not already fetched
@@ -179,13 +183,11 @@ export default defineComponent({
       isDropdownOpen.value = false; // Close dropdown after selection
     };
 
-
-    // Close the dialog
     const closeAssignReviewerDialog = () => {
       isAssignReviewerDialogOpen.value = false;
     };
 
-    // Assign reviewer to the selected paper
+    //Assign reviewer to the selected paper
     const assignReviewer = async () => {
       if (!selectedPaper.value || !selectedReviewer.value) return;
 
@@ -216,7 +218,22 @@ export default defineComponent({
         : format(parsedDate, "dd.MM.yyyy", { locale: sk });
     };
 
-    // Fetch admin papers on mount
+    const downloadAllPapers = async (conferenceId: string) => {
+      if (!conferenceId) {
+        console.error("Conference ID is missing");
+        return;
+      }
+
+      try {
+        console.log("Downloading all papers for conference ID:", conferenceId);
+        await paperStore.downloadAllPapersInConference(conferenceId);
+        console.log("Download successful");
+      } catch (error) {
+        console.error("Failed to download papers:", error);
+      }
+    };
+
+    //Fetch admin papers on mount
     onMounted(() => {
       paperStore.getAllPapers().then(() => {
         console.log("Papers from API:", paperStore.adminPapers);
@@ -261,17 +278,20 @@ export default defineComponent({
       openDeadlineDialog,
       toggleConference,
       formatDate,
+      downloadAllPapers,
     };
   },
 });
 </script>
 
 <template>
-  <v-card class="conference-card">
+  <v-card>
     <v-card-title>
       <div class="d-flex justify-space-between align-center w-100">
         <h3>Konferenčné príspevky</h3>
       </div>
+    </v-card-title>
+    <v-card-subtitle>
       <!-- Conference Filters -->
       <v-row class="mt-4" dense>
         <v-col cols="6" md="3">
@@ -291,12 +311,11 @@ export default defineComponent({
             dense
           />
         </v-col>
-        <v-col cols="12" md="3" class="d-flex justify-center align-center">
-          <v-btn color="primary" @click="resetConferenceFilters">Reset Filters</v-btn>
+        <v-col cols="12" md="2">
+          <v-btn color="primary" small @click="resetConferenceFilters">Zrušiť filter</v-btn>
         </v-col>
       </v-row>
-    </v-card-title>
-
+      </v-card-subtitle>
 
       <!-- Loop through grouped conferences -->
       <v-row>
@@ -305,7 +324,7 @@ export default defineComponent({
           v-for="conference in filteredConferences"
           :key="conference._id"
         >
-          <v-card outlined class="mb-3">
+          <v-card outlined class="mb-3 inner-card">
             <v-card-title>
               <v-row class="align-center">
                 <!-- Conference Title Section -->
@@ -321,7 +340,7 @@ export default defineComponent({
                     color="primary"
                     @click="toggleConference(conference._id)"
                   >
-                    <v-icon left>
+                    <v-icon left class="conf-icon">
                       {{ expandedConferenceId === conference._id ? "mdi-eye-off" : "mdi-eye" }}
                     </v-icon>
                     {{ expandedConferenceId === conference._id ? "Skryť" : "Zobraziť" }} Práce
@@ -331,7 +350,7 @@ export default defineComponent({
                     class="mr-2"
                     @click="paperStore.downloadAllPapersInConference(conference._id)"
                   >
-                    <v-icon left>mdi-download</v-icon>Stiahnuť všetky práce
+                    <v-icon left class="conf-icon">mdi-download</v-icon>Stiahnuť všetko
                   </v-btn>
                 </v-col>
               </v-row>
@@ -351,7 +370,7 @@ export default defineComponent({
                         dense
                       />
                     </v-col>
-                    <v-col cols="4" md="2" class="d-flex justify-center">
+                    <v-col cols="4" md="2">
                       <v-btn color="primary" @click="resetFilters" small>Zrušiť filter</v-btn>
                     </v-col>
                   </v-row>
@@ -378,6 +397,7 @@ export default defineComponent({
                           color="primary"
                           @click="viewPaper(paper)"
                           style="cursor: pointer"
+                          title="View details"
                         >
                           mdi-eye
                         </v-icon>
@@ -412,14 +432,14 @@ export default defineComponent({
                       <td class="d-flex justify-end align-center">
                         <!-- Assign Reviewer -->
                         <v-btn
-                          color="secondary"
+                          color="#3C888C"
                           title="Assign Reviewer"
                           @click="openAssignReviewerDialog(paper)"
                         >
                           <v-icon size="24">mdi-account-plus</v-icon>
                         </v-btn>
                         <v-btn
-                          color="primary"
+                          color="#E7B500"
                           @click="openDeadlineDialog(paper)"
                           title="Edit Deadline"
                         >
@@ -508,6 +528,14 @@ export default defineComponent({
                   </v-row>
                 </v-card-text>
                 <v-card-actions>
+                  <v-btn
+                    color="primary"
+                    @click=""
+                    title="Edit Deadline"
+                  >
+                    <v-icon size="36">mdi-download-box</v-icon>
+                    Stiahnuť
+                  </v-btn>
                   <v-btn color="tertiary" @click="isPaperViewDialogOpen = false">Zrušiť</v-btn>
                 </v-card-actions>
               </v-card>
@@ -537,7 +565,7 @@ export default defineComponent({
   </v-card>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 h4 {
   color: #bc4639;
 }
@@ -595,8 +623,16 @@ p {
   padding: 20px;
 }
 
-.conference-card {
-  border: #116466;
+.inner-card {
+  margin-inline: 20px !important;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.conf-icon {
+  margin-right: 5px;
 }
 
 </style>

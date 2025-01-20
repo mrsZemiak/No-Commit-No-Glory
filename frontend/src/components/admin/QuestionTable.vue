@@ -1,27 +1,171 @@
+<script lang="ts">
+import { defineComponent, ref, computed, onMounted, inject } from "vue";
+import { useQuestionStore } from "@/stores/questionStore";
+import type { Question } from '@/types/question.ts'
+
+export default defineComponent({
+  name: "QuestionTable",
+  setup() {
+    //Access the global showSnackbar function
+    const showSnackbar = inject("showSnackbar") as ({ message, color, }: {
+      message: string;
+      color?: string;
+    }) => void;
+
+    if (!showSnackbar) {
+      console.error("showSnackbar is not provided");
+    }
+
+    const questionStore = useQuestionStore();
+
+    //State for filters and dialog
+    const filters = ref({
+      text: "",
+      type: [] as string[],
+      category: [] as string[],
+    });
+    const currentPage = ref(1);
+    const perPage = ref(10);
+    const dialogVisible = ref(false);
+    const dialogMode = ref<"add" | "edit">("add");
+    const dialogForm = ref<Question>({
+      _id: '',
+      text: '',
+      type: 'text',
+      options: {
+        min: 1,
+        max: 6,
+      },
+      category: '',
+    })
+
+    const typeOptions = [
+      { text: "Textová otázka", value: "text" },
+      { text: "Hodnotenie", value: "rating" },
+      { text: "Áno/Nie", value: "yes_no" },
+    ];
+
+    const categoryOptions = [
+      { text: "Dodržiavanie pravidiel", value: "Dodržiavanie pravidiel" },
+      { text: "Hodnotenie", value: "Hodnotenie" },
+      { text: "Obsah práce", value: "Obsah práce" },
+      { text: "Štruktúra práce", value: "Štruktúra práce" },
+    ];
+
+    const questionLabels = {
+      rating: "Hodnotenie",
+      text: "Text",
+      yes_no: "Áno/Nie",
+    };
+
+    const tableHeaders = [
+      { title: "Text", value: "text" },
+      { title: "Typ", value: "type" },
+      { title: "Kategória", value: "category" },
+      { title: "", value: "actions", sortable: false },
+    ];
+
+    //Computed filtered questions
+    const filteredQuestions = computed(() =>
+      questionStore.adminQuestions.filter((question) => {
+        const matchesText = !filters.value.text || question.text.toLowerCase().includes(filters.value.text.toLowerCase());
+        const matchesType = !filters.value.type.length || filters.value.type.includes(question.type);
+        const matchesCategory = !filters.value.category.length || filters.value.category.includes(question.category);
+        return matchesText && matchesType && matchesCategory;
+      })
+    );
+
+    //Dialog handling
+    const openDialog = (mode: "add" | "edit", question: any = null) => {
+      dialogMode.value = mode;
+      dialogVisible.value = true;
+
+      if (mode === "add") {
+        dialogForm.value = {
+          _id: "",
+          text: "",
+          type: "text",
+          category: "",
+        };
+      } else if (question) {
+        dialogForm.value = { ...question };
+      }
+    };
+
+    const closeDialog = () => {
+      dialogVisible.value = false;
+    };
+
+    const submitDialogForm = async () => {
+      try {
+        if (dialogMode.value === "add") {
+          await questionStore.addQuestion(dialogForm.value);
+          showSnackbar?.({ message: "Otázka bola úspešne pridaná.", color: "success" });
+        } else {
+          await questionStore.updateQuestion(dialogForm.value._id, dialogForm.value);
+          showSnackbar?.({ message: "Otázka bola úspešne upravená.", color: "success" });
+        }
+        closeDialog();
+      } catch (error) {
+        console.error("Error saving question:", error);
+        showSnackbar?.({ message: "Nepodarilo sa uložiť otázku.", color: "error" });
+      }
+    };
+
+    const resetFilters = () => {
+      filters.value = { text: "", type: [], category: [] };
+    };
+
+    // Fetch questions on mount
+    onMounted(() => {
+      questionStore.fetchAllQuestions().catch((error) => {
+        console.error("Error fetching questions:", error);
+        showSnackbar?.({ message: "Nepodarilo sa načítať otázky.", color: "error" });
+      });
+    });
+
+    return {
+      filters,
+      currentPage,
+      perPage,
+      dialogVisible,
+      dialogMode,
+      dialogForm,
+      typeOptions,
+      categoryOptions,
+      questionLabels,
+      tableHeaders,
+      filteredQuestions,
+      openDialog,
+      closeDialog,
+      submitDialogForm,
+      resetFilters,
+    };
+  },
+});
+</script>
+
 <template>
   <v-card>
     <v-card-title>
       <div class="d-flex justify-space-between align-center w-100">
         <h3>Správa Otázok</h3>
+        <v-btn color="primary" class="add_new" @click="openDialog('add')">
+          <v-icon left class="add_icon">mdi-plus-circle-outline</v-icon>
+          Pridať Otázku
+        </v-btn>
       </div>
     </v-card-title>
+
     <v-card-subtitle>
       <v-row>
-        <v-col cols="12" md="3">
-          <v-text-field
-            v-model="filters.text"
-            label="Filtrovať podľa textu"
-            outlined
-            dense
-          />
-        </v-col>
         <v-col cols="12" md="3">
           <v-select
             v-model="filters.type"
             :items="typeOptions"
+            label="Typ otázky"
             item-title="text"
             item-value="value"
-            label="Typ otázky"
             multiple
             outlined
             dense
@@ -31,18 +175,16 @@
           <v-select
             v-model="filters.category"
             :items="categoryOptions"
+            label="Kategória"
             item-title="text"
             item-value="value"
-            label="Kategória"
             multiple
             outlined
             dense
           />
         </v-col>
         <v-col cols="12" md="3">
-          <v-btn color="primary" small @click="resetFilters"
-            >Zrušiť filtrovanie</v-btn
-          >
+          <v-btn color="primary" small @click="resetFilters">Zrušiť filter</v-btn>
         </v-col>
       </v-row>
     </v-card-subtitle>
@@ -52,19 +194,16 @@
       :items="filteredQuestions"
       :items-per-page="perPage"
       :page.sync="currentPage"
-      :total-items="filteredQuestions.length"
-      pageText="'{0}-{1} z {2}'"
-      items-per-page-text="Otázky na stránku"
-      item-value="_id"
-      dense
       class="custom-table"
+      dense
+      item-value="_id"
     >
       <template v-slot:body="{ items }">
         <tr v-for="question in items" :key="question._id" class="custom-row">
           <td>{{ question.text }}</td>
           <td>
             <v-chip color="primary" dark small class="custom-chip">
-              {{ questionLabels[question.type] || 'Neznámy typ' }}
+              <td>{{ questionLabels[question.type as keyof typeof questionLabels] || "Neznámy typ" }}</td>
             </v-chip>
           </td>
           <td>
@@ -72,12 +211,9 @@
               {{ question.category || 'N/A' }}
             </v-chip>
           </td>
-          <td
-            style="display: flex; justify-content: center; align-items: center"
-          >
+          <td class="d-flex justify-end align-center w-100">
             <v-btn
               color="#E7B500"
-              class="btn_icons"
               @click="openDialog('edit', question)"
             >
               <v-icon size="24">mdi-pencil</v-icon>
@@ -87,15 +223,12 @@
       </template>
     </v-data-table>
 
-    <v-btn color="primary" class="add_new" @click="openDialog('add')"
-      >Pridať Otázku</v-btn
-    >
-
+    <!-- Dialog -->
     <v-dialog v-model="dialogVisible" max-width="800px">
       <v-card>
-        <v-card-title>{{
-          dialogMode === 'add' ? 'Pridať Otázku' : 'Upraviť Otázku'
-        }}</v-card-title>
+        <v-card-title>
+          {{ dialogMode === 'add' ? 'Pridať Otázku' : 'Upraviť Otázku' }}
+        </v-card-title>
         <v-card-text>
           <v-form>
             <v-text-field
@@ -124,7 +257,7 @@
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-btn color="secondary" @click="dialogVisible = false">Zrušiť</v-btn>
+          <v-btn color="secondary" @click="closeDialog">Zrušiť</v-btn>
           <v-btn color="primary" @click="submitDialogForm">Uložiť</v-btn>
         </v-card-actions>
       </v-card>
@@ -132,133 +265,6 @@
   </v-card>
 </template>
 
-<script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue'
-import axiosInstance from '@/config/axiosConfig'
-import type { Question } from '@/types/question'
+<style lang="scss">
 
-const questions = ref<Question[]>([])
-const filters = ref({
-  text: '',
-  type: [] as string[],
-  category: [] as string[],
-})
-const currentPage = ref(1)
-const perPage = 10
-
-const dialogVisible = ref(false)
-const dialogMode = ref<'add' | 'edit'>('add')
-const dialogForm = ref<Question>({
-  _id: '',
-  text: '',
-  type: 'text',
-  options: {
-    min: 1,
-    max: 6,
-  },
-  category: '',
-})
-
-const typeOptions = [
-  { text: 'Textová otázka', value: 'text' },
-  { text: 'Hodnotenie', value: 'rating' },
-  { text: 'Áno/Nie', value: 'yes_no' },
-]
-const categoryOptions = [
-  { text: 'Dodržiavanie pravidiel', value: 'Dodržiavanie pravidiel' },
-  { text: 'Hodnotenie', value: 'Hodnotenie' },
-  { text: 'Obsah práce', value: 'Obsah práce' },
-  { text: 'Štruktúra práce', value: 'Štruktúra práce' },
-]
-
-const questionLabels = {
-  rating: 'Hodnotenie',
-  text: 'Text',
-  yes_no: 'Áno/Nie',
-}
-
-const tableHeaders = [
-  { title: 'Text', value: 'text' },
-  { title: 'Typ', value: 'type' },
-  { title: 'Kategória', value: 'category' },
-  { title: '', value: 'actions', sortable: false },
-]
-
-const fetchQuestions = async () => {
-  try {
-    const response = await axiosInstance.get('/auth/admin/questions')
-    questions.value = response.data
-  } catch (error) {
-    console.error('Error fetching questions:', error)
-  }
-}
-
-const filteredQuestions = computed(() => {
-  return questions.value.filter(question => {
-    const matchesText = filters.value.text
-      ? question.text.toLowerCase().includes(filters.value.text.toLowerCase())
-      : true
-    const matchesType = filters.value.type.length
-      ? filters.value.type.includes(question.type)
-      : true
-    const matchesCategory = filters.value.category.length
-      ? filters.value.category.includes(question.category)
-      : true
-    return matchesText && matchesType && matchesCategory
-  })
-})
-
-const openDialog = (mode: 'add' | 'edit', question: Question | null = null) => {
-  dialogMode.value = mode
-  dialogVisible.value = true
-
-  if (mode === 'add') {
-    dialogForm.value = {
-      _id: '',
-      text: '',
-      type: 'text',
-      category: '',
-    }
-  } else if (question) {
-    dialogForm.value = { ...question }
-  }
-}
-
-const submitDialogForm = async () => {
-  try {
-    if (dialogMode.value === 'add') {
-      const response = await axiosInstance.post(
-        '/auth/admin/questions',
-        dialogForm.value,
-      )
-      questions.value.push(response.data)
-    } else {
-      await axiosInstance.patch(
-        `/auth/admin/questions/${dialogForm.value._id}`,
-        dialogForm.value,
-      )
-      const index = questions.value.findIndex(
-        q => q._id === dialogForm.value._id,
-      )
-      if (index !== -1) {
-        questions.value[index] = dialogForm.value
-      }
-    }
-    dialogVisible.value = false
-  } catch (error) {
-    console.error('Error saving question:', error)
-  }
-}
-
-const resetFilters = () => {
-  filters.value = {
-    text: '',
-    type: [],
-    category: [],
-  }
-}
-
-onMounted(fetchQuestions)
-</script>
-
-<style lang="scss"></style>
+</style>

@@ -47,8 +47,7 @@
               <v-select
                 v-model="form.categoryPick"
                 :items="categories"
-                item-text="name"
-                item-value="id"
+                item-value="name"
                 label="Výber sekcie"
                 outlined
                 required
@@ -171,6 +170,7 @@ onMounted(async () => {
     }))
     conferences.value = conferencesResponse.data.map((conference: any) => ({
       id: conference._id,
+      year: conference.year,
       location: conference.location,
     }))
 

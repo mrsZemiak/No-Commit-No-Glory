@@ -197,25 +197,32 @@ export const usePaperStore = defineStore('papers', () => {
   };
 
   const downloadAllPapersInConference = async (conferenceId: string | undefined) => {
+    if (!conferenceId) {
+      console.error('Conference ID is undefined');
+      alert('Chyba: Neznáma konferencia. Skúste to znova.');
+      return;
+    }
+
     try {
       const response = await axiosInstance.get(
         `/auth/admin/papers/download/${conferenceId}`,
         {
           responseType: 'blob',
-        },
-      )
+        }
+      );
 
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', 'conference-papers.zip') // Change filename as needed
-      document.body.appendChild(link)
-      link.click()
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `conference-${conferenceId}-papers.zip`);
+      document.body.appendChild(link);
+      link.click();
     } catch (err) {
-      console.error('Failed to download papers for conference:', err)
-      throw err
+      console.error('Failed to download papers for conference:', err);
+      alert('Nepodarilo sa stiahnuť práce. Skúste to znova.');
+      throw err;
     }
-  }
+  };
 
   return {
     //State

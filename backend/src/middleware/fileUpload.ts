@@ -2,7 +2,7 @@ import multer from 'multer'
 import path from 'path';
 import {promises as fs} from 'fs'
 
-// Multer configuration
+//Multer configuration
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
     try {
@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
         return;
       }
 
-      const uploadPath = `uploads/docs/${conference_id}`;
+      const uploadPath = path.resolve(__dirname, `../../uploads/docs/${conference_id}`);
 
       // Ensure the directory exists
       await fs.mkdir(uploadPath, { recursive: true });
@@ -43,7 +43,6 @@ const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.
 const paperUpload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Limit file size to 5 MB
 });
 
 export default paperUpload;

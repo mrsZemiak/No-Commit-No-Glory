@@ -5,6 +5,8 @@ import { AuthRequest } from '../middleware/authenticateToken'
 import { sendEmail } from '../utils/emailService'
 import User from '../models/User'
 import Question from '../models/Question'
+import path from 'path'
+import fs from 'fs/promises'
 
 //Assigned papers
 export const getAssignedPapers = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -16,7 +18,7 @@ export const getAssignedPapers = async (req: AuthRequest, res: Response): Promis
     }
 
     const papers = await Paper.find({ reviewer: reviewerId })
-      .select("title category keywords abstract file_link");
+      .select("title category keywords conference abstract file_link");
 
     if (!papers.length) {
       res.status(404).json({ message: "Žiadne práce pridelené tomuto recenzentovi." });
@@ -191,7 +193,7 @@ export const notifyReviewer = async (req: AuthRequest, res: Response): Promise<v
   }
 };
 
-// Download assigned paper
+//Download assigned paper
 export const downloadPaper = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const paperId = req.params.paperId;
@@ -202,7 +204,20 @@ export const downloadPaper = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
-    res.download(paper.file_link, (err) => {
+    //Resolve the file path to ensure it is absolute
+    const filePath = path.resolve(paper.file_link);
+
+    //Check if the file exists and is accessible
+    try {
+      await fs.access(filePath)
+    } catch (err) {
+      console.error("File not found or inaccessible:", err);
+      res.status(404).json({ message: "Súbor neexistuje alebo nie je dostupný." });
+      return;
+    }
+
+    //Send the file to the client
+    res.download(filePath, (err) => {
       if (err) {
         console.error("Error downloading file:", err);
         res.status(500).json({ error: "Nepodarilo sa stiahnuť prácu." });
@@ -214,7 +229,7 @@ export const downloadPaper = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
-// Contact admin
+//Contact admin
 export const contactAdmin = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { subject, message } = req.body;

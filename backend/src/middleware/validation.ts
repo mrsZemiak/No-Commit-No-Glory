@@ -121,7 +121,7 @@ export const validateReviewSubmission = [
 
               // Validate the answer based on the question type
               switch (question.type) {
-                  case "Hodnotenie": // Rating
+                  case "rating": // Rating
                       if (
                         typeof response.answer !== "number" ||
                         response.answer < question.options!.min ||
@@ -130,12 +130,12 @@ export const validateReviewSubmission = [
                           throw new Error(`Invalid rating for question ID: ${response.question}`);
                       }
                       break;
-                  case "Áno/Nie": // Yes/No
+                  case "yes_no": // Yes/No
                       if (response.answer !== "Áno" && response.answer !== "Nie") {
                           throw new Error(`Invalid yes/no answer for question ID: ${response.question}`);
                       }
                       break;
-                  case "Text": // Text
+                  case "text": // Text
                       if (typeof response.answer !== "string") {
                           throw new Error(`Invalid text answer for question ID: ${response.question}`);
                       }
