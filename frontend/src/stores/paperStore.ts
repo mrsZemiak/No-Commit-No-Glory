@@ -13,42 +13,66 @@ export const usePaperStore = defineStore('papers', () => {
 
   //Actions
   /** Participant Actions **/
-  const createPaper = async (paper: any, file: File, isFinal: boolean) => {
+  const createPaper = async (paper: any, file: File | null, isFinal: boolean) => {
     try {
-      const formData = new FormData()
-      Object.keys(paper).forEach(key => formData.append(key, paper[key]))
-      formData.append('file', file)
-      formData.append('isFinal', String(isFinal)) // Indicates if this is the final submission
+      const formData = new FormData();
+
+      formData.append('authors', JSON.stringify(paper.authors));
+
+      Object.keys(paper).forEach((key) => {
+        const value = paper[key];
+        if (key !== 'authors' && value !== undefined && value !== null && key !== "file_link") {
+          if (typeof value === 'object' && value._id) {
+            formData.append(key, value._id);
+          } else {
+            formData.append(key, value);
+          }
+        }
+      });
+
+      if (file && file instanceof File) {
+        formData.append('file_link', file)
+      }
 
       const response = await axiosInstance.post(
         '/auth/participant/papers',
         formData,
         {
           headers: { 'Content-Type': 'multipart/form-data' },
-        },
-      )
+        }
+      );
 
-      participantPapers.value.push(response.data) // Add to participant papers
-      return response.data
+      participantPapers.value.push(response.data); // Add to participant papers
+      return response.data;
     } catch (err) {
-      console.error('Failed to create paper:', err)
-      throw err
+      console.error('Failed to create paper:', err);
+      throw err;
     }
-  }
+  };
 
-  const getMyPapers = async () => {
-    loading.value = true
-    error.value = null
+  const getMyPapers = async (filters?: { conference?: string; status?: string }) => {
+    loading.value = true;
+    error.value = null;
+
     try {
-      const response = await axiosInstance.get('/auth/participant/papers')
-      participantPapers.value = response.data // Fetch all papers where participant is the author
+      const params: any = {};
+      if (filters?.conference) params.conference = filters.conference;
+      if (filters?.status) params.status = filters.status;
+
+      const response = await axiosInstance.get('/auth/participant/papers', {
+        params, // Send filters as query parameters
+      });
+
+      participantPapers.value = response.data;
+      return response.data;
     } catch (err) {
-      error.value = 'Failed to fetch participant papers.'
-      console.error(err)
+      error.value = 'Failed to fetch participant papers.';
+      console.error(err);
+      throw err;
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }
+  };
 
   const fetchPaperById = async (id: string) => {
     loading.value = true
@@ -68,33 +92,41 @@ export const usePaperStore = defineStore('papers', () => {
 
   const updatePaper = async (id: string, updates: any, file?: File) => {
     try {
-      const formData = new FormData()
-      Object.keys(updates).forEach(key => formData.append(key, updates[key]))
-      if (file) {
-        formData.append('file', file) // Include file if provided
+      const formData = new FormData();
+
+      Object.keys(updates).forEach((key) => {
+        const value = updates[key];
+        if (value !== undefined && value !== null && key !== "file") {
+          if (typeof value === 'object' && value._id) {
+            formData.append(key, value._id);
+          } else {
+            formData.append(key, value);
+          }
+        }
+      });
+
+      if (file && file instanceof File) {
+        formData.append('file_link', file);
       }
+      console.log("FormData contents before sending:");
+      const response = await axiosInstance.patch(`/auth/participant/papers/${id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
-      const response = await axiosInstance.patch(
-        `/auth/participant/papers/${id}`,
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        },
-      )
-
-      const index = participantPapers.value.findIndex(p => p._id === id)
+      const index = participantPapers.value.findIndex((p) => p._id === id);
       if (index !== -1) {
         participantPapers.value[index] = {
           ...participantPapers.value[index],
           ...updates,
-        }
+        };
       }
-      return response.data
-    } catch (err) {
-      console.error('Failed to update paper:', err)
-      throw err
+
+      return response.data;
+    } catch (err: any) {
+      console.error('Failed to update paper:', err.response?.data || err.message);
+      throw err;
     }
-  }
+  };
 
   /** Reviewer Actions **/
   const getAssignedPapers = async () => {

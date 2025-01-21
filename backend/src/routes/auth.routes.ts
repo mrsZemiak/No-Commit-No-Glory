@@ -18,6 +18,7 @@ router.patch('/profile', upload.single('avatar'), async (req, res) => {
   } catch (error) {
     res.status(400).json({ message: error });
   }
-});router.post('/logout', logoutUser);
+});
+router.post('/logout', logoutUser);
 
 export default router;

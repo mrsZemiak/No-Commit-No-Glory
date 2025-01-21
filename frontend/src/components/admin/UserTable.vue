@@ -38,22 +38,22 @@ export default defineComponent({
     };
 
     const roleColors = {
-      'Admin': "cyan",
-      'Účastník': "orange",
-      'Recenzent': "pink",
-      admin: "cyan",
-      participant: "orange",
-      reviewer: "pink"
+      'Admin': "pink",
+      'Účastník': "black",
+      'Recenzent': "primary",
+      admin: "pink",
+      participant: "black",
+      reviewer: "primary"
     }
 
     // Table headers
     const tableHeaders = [
       { title: "Stav", value: "status" },
-      { title: "Role", value: "role" },
       { title: "Priezvisko", value: "last_name" },
       { title: "Meno", value: "first_name" },
       { title: "Email", value: "email" },
       { title: "Univerzita", value: "university" },
+      { title: "Role", value: "role" },
       { title: "", value: "actions", sortable: false },
     ];
 
@@ -203,9 +203,9 @@ export default defineComponent({
             dense
           />
         </v-col>
-        <v-col cols="8" md="2">
-          <v-btn color="primary" block @click="resetFilters" small>
-            Zrušiť filtr
+        <v-col cols="10" md="2">
+          <v-btn color="primary" small @click="resetFilters">
+            Zrušiť filter
           </v-btn>
         </v-col>
       </v-row>
@@ -228,25 +228,26 @@ export default defineComponent({
               :color="statusColors[user.status as keyof typeof statusColors]"
               dark
               small
-              class="custom-chip"
+              class="d-flex justify-center custom-chip rounded"
             >
               {{ user.status }}
-            </v-chip>
-          </td>
-          <td>
-            <v-chip
-              :color="roleColors[user.role as keyof typeof roleColors]"
-              dark small class="custom-chip" prepend-icon="mdi-label">
-              {{ userStore.reverseRoleMapping[user.role.name] || userStore.reverseRoleMapping[user.role] || user.role }}
             </v-chip>
           </td>
           <td>{{ user.last_name }}</td>
           <td>{{ user.first_name }}</td>
           <td>{{ user.email }}</td>
           <td>{{ user.university }}</td>
+          <td>
+            <v-chip
+              :color="roleColors[user.role as keyof typeof roleColors]"
+              dark small prepend-icon="mdi-label"
+              class="d-flex justify-start custom-chip rounded">
+              {{ userStore.reverseRoleMapping[user.role.name] || userStore.reverseRoleMapping[user.role] || user.role }}
+            </v-chip>
+          </td>
           <td class="d-flex justify-center align-center">
-            <v-btn @click="openDialog('edit', user)" color="#E7B500">
-              <v-icon>mdi-pencil</v-icon>
+            <v-btn @click="openDialog('edit', user)" color="#FFCD16">
+              <v-icon size="24">mdi-pencil</v-icon>
             </v-btn>
           </td>
         </tr>

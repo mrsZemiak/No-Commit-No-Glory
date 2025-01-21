@@ -276,7 +276,7 @@ export default defineComponent({
             multiple
           />
         </v-col>
-        <v-col cols="8" md="3">
+        <v-col cols="8" md="2">
           <v-btn color="primary" small @click="conferenceStore.resetFilters"
             >Zrušiť filter</v-btn
           >
@@ -300,6 +300,7 @@ export default defineComponent({
           v-for="conference in items"
           :key="conference._id"
           class="custom-row"
+          @click="openDialog('view', conference)"
         >
           <td>
             <v-icon
@@ -324,7 +325,7 @@ export default defineComponent({
               "
               outlined
               small
-              class="custom-chip"
+              class="d-flex justify-center custom-chip rounded"
             >
               {{ conference.status }}
             </v-chip>
@@ -334,8 +335,8 @@ export default defineComponent({
           <td>{{ formatTimestamp(conference.start_date) }}</td>
           <td>{{ formatTimestamp(conference.end_date) }}</td>
           <td>{{ formatTimestamp(conference.deadline_submission) }}</td>
-          <td class="d-flex justify-end align-center w-100">
-            <v-btn color="#E7B500" title="Edit" @click="openDialog('edit', conference)">
+          <td class="d-flex justify-end align-center">
+            <v-btn color="#FFCD16" title="Edit" @click="openDialog('edit', conference)">
               <v-icon size="24">mdi-pencil</v-icon>
             </v-btn>
           </td>
@@ -367,7 +368,6 @@ export default defineComponent({
                   dense
                   required
                   class="large-text-field"
-                  :disabled="dialogMode === 'view'"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -379,7 +379,6 @@ export default defineComponent({
                   type="number"
                   required
                   class="large-text-field"
-                  :disabled="dialogMode === 'view'"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -527,7 +526,7 @@ export default defineComponent({
         </v-card-text>
         <v-card-actions>
           <v-btn color="secondary" @click="closeDialog">Zrušiť</v-btn>
-          <v-btn color="primary" @click="saveConference">Uložiť</v-btn>
+          <v-btn v-if="dialogMode !== 'view'" color="primary" @click="saveConference">Uložiť</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

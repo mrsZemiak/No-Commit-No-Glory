@@ -158,14 +158,14 @@ export default defineComponent({
               :color="category.isActive ? 'green' : 'grey'"
               dark
               small
-              class="custom-chip"
+              class="d-flex justify-center custom-chip rounded"
             >
               {{ category.isActive ? 'Aktívna' : 'Neaktívna' }}
             </v-chip>
           </td>
           <td>{{ category.name }}</td>
           <td class="d-flex justify-end align-center w-100">
-            <v-btn color="#E7B500" @click="openDialog('edit', category)">
+            <v-btn color="#FFCD16" @click="openDialog('edit', category)">
               <v-icon size="24">mdi-pencil</v-icon>
             </v-btn>
             <v-btn color="#BC463A" @click="confirmDelete(category)">

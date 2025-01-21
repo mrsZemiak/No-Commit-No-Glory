@@ -90,24 +90,12 @@ const routes = [
         path: 'participant',
         meta: { role: 'participant' },
         children: [
-          {
-            path: 'submit',
-            name: 'SubmitWork',
-            component: () =>
-              import('@/components/participant/SubmissionForm.vue'),
-          },
+          { path: '', redirect: { name: 'ParticipantWorks' } },
           {
             path: 'works',
             name: 'ParticipantWorks',
             component: () =>
               import('@/components/participant/MyWorksTable.vue'),
-          },
-          {
-            path: 'work/:id/edit',
-            name: 'EditSubmission',
-            component: () =>
-              import('@/components/participant/SubmissionForm.vue'),
-            props: true,
           },
         ],
       },

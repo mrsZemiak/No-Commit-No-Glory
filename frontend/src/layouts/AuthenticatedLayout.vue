@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, onMounted, ref, watch } from 'vue'
+import { defineComponent, onMounted, provide, ref, watch } from 'vue'
 import SideBar from '@/components/common/SideBar.vue'
 import { useAuthStore } from '@/stores/auth.ts'
 import { useNotificationStore } from '@/stores/notificationStore.ts'
@@ -60,6 +60,9 @@ export default defineComponent({
     }) => {
       snackbar.value = { show: true, message, color, timeout: 5000 }
     }
+
+    //Provide showSnackbar to child components
+    provide('showSnackbar', showSnackbar);
 
     //Handle logout
     const logout = () => {

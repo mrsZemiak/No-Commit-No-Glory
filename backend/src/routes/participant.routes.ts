@@ -6,7 +6,7 @@ import {
   submitPaper,
   viewMyPapers
 } from '../controllers/participant.controller'
-import { validateRequest, validateSubmitPaper } from '../middleware/validation'
+//import { validateRequest, validateSubmitPaper } from '../middleware/validation'
 import { authenticateToken } from '../middleware/authenticateToken'
 import paperUpload from '../middleware/fileUpload'
 
@@ -16,10 +16,10 @@ router.use(authenticateToken);
 
 router.get('/papers', viewMyPapers);
 router.post(
-  '/upload-paper',
-  paperUpload.single('paper'),
-  validateSubmitPaper,
-  validateRequest,
+  '/papers',
+  paperUpload.single('file_link'),
+  //validateSubmitPaper,
+  //validateRequest,
   submitPaper
 );
 router.get('/papers/:paperId', getPaperById)

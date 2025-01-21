@@ -27,7 +27,6 @@ export const getUserById = async (req: AuthRequest, res: Response): Promise<void
     const user = await User.findById(userId).populate("role");
     if (!user) {
       res.status(404).json({ message: "Používateľ nebol nájdený" });
-      return;
     }
     res.status(200).json(user);
   } catch (error) {
@@ -49,7 +48,6 @@ export const editUserDetails = async (req: AuthRequest, res: Response): Promise<
 
     if (!updatedUser) {
       res.status(404).json({ message: "Používateľ nebol nájdený alebo sa nepodarilo aktualizovať" });
-      return;
     }
 
     res.status(200).json({
@@ -66,7 +64,7 @@ export const editUserDetails = async (req: AuthRequest, res: Response): Promise<
 //Get all categories
 export const getAllCategories = async (req: AuthRequest, res: Response) => {
   try {
-    // Fetch all categories
+    //Fetch all categories
     const categories = await Category.find();
 
     res.status(200).json({ categories });
@@ -83,7 +81,6 @@ export const getCategoryById = async (req: AuthRequest, res: Response): Promise<
     const category = await Category.findById(categoryId);
     if (!category) {
       res.status(404).json({ message: "Kategória nebola nájdená" });
-      return;
     }
     res.status(200).json(category);
   } catch (error) {
@@ -110,7 +107,6 @@ export const updateCategory = async (req: AuthRequest, res: Response): Promise<v
     const { categoryId } = req.params;
     const updates = req.body;
 
-    // Validate input
     if (!categoryId || !updates || Object.keys(updates).length === 0) {
       res.status(400).json({ message: 'Neplatná požiadavka. Je potrebné zadať ID kategórie a údaje na aktualizáciu.' });
       return;
@@ -140,7 +136,6 @@ export const deleteCategory = async (req: AuthRequest, res: Response): Promise<v
     const deletedCategory = await Category.findByIdAndDelete(categoryId);
     if (!deletedCategory) {
       res.status(404).json({ message: 'Kategória nebola nájdená' });
-      return;
     }
 
     res.status(200).json({ message: 'Kategória bola úspešne vymazaná', category: deletedCategory });
@@ -312,6 +307,21 @@ export const createQuestion = async (req: AuthRequest, res: Response): Promise<v
     res.status(500).json({ message: 'Nepodarilo sa vytvoriť otázku', error });
   }
 };
+//Delete existing question
+export const deleteQuestion = async (req: AuthRequest, res: Response): Promise<void> => {
+  const { questionId } = req.params;
+
+  try {
+    const result = await Question.findByIdAndDelete(questionId);
+    if (!result) {
+      res.status(404).json({ message: 'Otázka sa nenašla.' });
+    }
+    res.status(200).json({ message: 'Otázka bola úspešne odstránená.' });
+  } catch (error) {
+    console.error('Error deleting question:', error);
+    res.status(500).json({ message: 'Otázku sa nepodarilo odstrániť.' });
+  }
+};
 
 // Update question (dynamic update)
 export const updateQuestion = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -326,7 +336,6 @@ export const updateQuestion = async (req: AuthRequest, res: Response): Promise<v
 
     if (!updatedQuestion) {
       res.status(404).json({ message: "Nepodarilo sa nájsť otázku" });
-      return;
     }
 
     res.status(200).json({
@@ -397,7 +406,6 @@ export const getPaperById = async (req: AuthRequest, res: Response): Promise<voi
 
     if (!paper) {
       res.status(404).json({ message: "Nepodarilo sa nájsť prácu." });
-      return;
     }
 
     res.status(200).json(paper);
@@ -415,7 +423,6 @@ export const changeSubmissionDeadline = async (req: AuthRequest, res: Response):
 
     if (!newDeadline) {
       res.status(400).json({ message: 'Je potrebný nový termín' });
-      return;
     }
     const updatedPaper = await Paper.findByIdAndUpdate(
       paperId,
@@ -424,7 +431,6 @@ export const changeSubmissionDeadline = async (req: AuthRequest, res: Response):
     );
     if (!updatedPaper) {
       res.status(404).json({ message: 'Nepodarilo sa nájsť prácu' });
-      return;
     }
 
     res.status(200).json({ message: 'Termín odovzdania bol úspešne aktualizovaný', paper: updatedPaper });
@@ -458,7 +464,6 @@ export const assignReviewer = async (req: AuthRequest, res: Response): Promise<v
 
     if (!updatedPaper) {
       res.status(404).json({ message: "Nepodarilo sa nájsť prácu" });
-      return;
     }
 
     res.status(200).json({
@@ -478,7 +483,6 @@ export const downloadPapersByConference = async (req: AuthRequest, res: Response
 
     if (!conferenceId) {
       res.status(400).json({ message: "Je potrebné zadať ID konferencie." });
-      return;
     }
 
     //Path where papers are stored
@@ -495,7 +499,6 @@ export const downloadPapersByConference = async (req: AuthRequest, res: Response
       } catch (mkdirErr) {
         console.error("Error creating the folder:", mkdirErr);
         res.status(500).json({ message: "Nepodarilo sa vytvoriť priečinok pre túto konferenciu.", error: mkdirErr });
-        return;
       }
     }
 
@@ -503,7 +506,6 @@ export const downloadPapersByConference = async (req: AuthRequest, res: Response
     const files = await fs.readdir(conferenceUploadPath);
     if (files.length === 0) {
       res.status(404).json({ message: "Pre túto konferenciu neboli nájdené žiadne dokumenty." });
-      return;
     }
 
     //Create ZIP archive

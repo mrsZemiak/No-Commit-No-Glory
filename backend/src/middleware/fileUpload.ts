@@ -6,13 +6,13 @@ import {promises as fs} from 'fs'
 const storage = multer.diskStorage({
   destination: async (req, file, cb) => {
     try {
-      const { conference_id } = req.body;
-      if (!conference_id) {
+      const conferenceId = req.body.conference;
+      if (!conferenceId) {
         cb(new Error('Chýba ID konferencie'), '');
         return;
       }
 
-      const uploadPath = path.resolve(__dirname, `../../uploads/docs/${conference_id}`);
+      const uploadPath = path.resolve(__dirname, `../../uploads/docs/${conferenceId}`);
 
       // Ensure the directory exists
       await fs.mkdir(uploadPath, { recursive: true });
@@ -22,7 +22,7 @@ const storage = multer.diskStorage({
     }
   },
   filename: (req, file, cb) => {
-    // Use the original file name
+    //Use the original file name
     cb(null, file.originalname);
   },
 });

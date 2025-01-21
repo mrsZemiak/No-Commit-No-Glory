@@ -18,18 +18,18 @@ import {
   deleteCategory,
   getConferenceById,
   getQuestionById,
-  getAdminReports, getReviewers, getPaperById
+  getAdminReports, getReviewers, getPaperById, deleteQuestion, getUserById
 } from '../controllers/admin.controller'
 import { authenticateToken } from '../middleware/authenticateToken';
 
 const router = Router();
 
-//Apply authentication and admin authorization globally for all admin routes
 router.use(authenticateToken);
 
 //Users
 router.get('/users', getAllUsers);
-router.patch('/users/:userId',  editUserDetails); //validateEditUserDetails, validateRequest,
+router.get('/users/:id', getUserById);
+router.patch('/users/:userId',  editUserDetails);
 router.get('/reviewers', getReviewers)
 
 //Categories
@@ -49,6 +49,7 @@ router.get('/questions', getAllQuestions);
 router.get('/questions/:questionId', getQuestionById);
 router.post('/questions', createQuestion);
 router.patch('/questions/:questionId', updateQuestion)
+router.delete('/questions/:questionId', deleteQuestion);
 
 //Papers by conference
 router.get('/papers', getAllPapers);

@@ -43,7 +43,7 @@ export const useQuestionStore = defineStore('questions', () => {
         '/auth/admin/questions',
         question,
       )
-      adminQuestions.value.push(response.data)
+      adminQuestions.value = [...adminQuestions.value];
     } catch (err) {
       console.error('Failed to add question:', err)
       throw err

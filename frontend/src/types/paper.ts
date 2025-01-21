@@ -1,3 +1,5 @@
+import type { Review } from '@/types/review.ts'
+
 export enum PaperStatus {
   Draft = 'Draft',
   Submitted = 'Odovzdaná',
@@ -11,17 +13,22 @@ export interface Paper {
   _id: string;
   title: string;
   status: string;
-  user?: {
+  user: {
     first_name: string;
     last_name: string;
   };
-  category?: {
+  category: {
     name: string;
   };
   conference: {year: number, location: string, date: Date}
-  deadline_date?: string | Date;
+  abstract: string;
+  keywords: string[];
+  authors: { firstName: string; lastName: string }[];
   submission_date: string | Date;
-  file_link?: string;
+  isFinal: boolean;
+  file_link: File;
+  deadline_date?: string | Date;
+  review?: Review;
 }
 
 export interface AdminPaper {
@@ -42,7 +49,7 @@ export interface AdminPaper {
     year: number;
     location: string;
   };
-  file_link: string;
+  file_link: File;
   deadline_date?: Date;
   reviewer: string;
   abstract: string;

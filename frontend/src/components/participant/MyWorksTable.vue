@@ -1,321 +1,551 @@
-<template>
-  <div class="table-card">
-    <div class="card-header">
-      <header class="table-header">
-        <h3>Moje práce</h3>
-      </header>
-    </div>
-
-    <div class="filters">
-      <div class="filter-dropdown">
-        <button @click="dropdownOpen = !dropdownOpen" class="btn btn-primary">
-          Filter
-        </button>
-
-        <div v-if="dropdownOpen" class="dropdown-content">
-          <div class="filter-group">
-            <label class="fw-bold">Názov:</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="filters.title"
-              placeholder="Filtrovať podľa názvu"
-            />
-          </div>
-
-          <div class="filter-group">
-            <label class="fw-bold">Kategória:</label>
-            <input
-              type="text"
-              class="form-control"
-              v-model="filters.category"
-              placeholder="Filtrovať podľa kategórie"
-            />
-          </div>
-
-          <div class="filter-group">
-            <label class="fw-bold">Rok konferencie:</label>
-            <input
-              type="number"
-              class="form-control"
-              v-model="filters.year"
-              placeholder="Filtrovať podľa roka konferencie"
-            />
-          </div>
-          <div class="filter-group">
-            <label class="fw-bold">Stav práce:</label>
-            <div>
-              <input
-                type="checkbox"
-                value="submitted"
-                v-model="filters.selectedReviews"
-              />
-              <label>Odoslané</label>
-            </div>
-            <div>
-              <input
-                type="checkbox"
-                value="under_review"
-                v-model="filters.selectedReviews"
-              />
-              <label>V procese hodnotenia</label>
-            </div>
-            <div>
-              <input
-                type="checkbox"
-                value="approved"
-                v-model="filters.selectedReviews"
-              />
-              <label>Schválené</label>
-            </div>
-            <div>
-              <input
-                type="checkbox"
-                value="rejected"
-                v-model="filters.selectedReviews"
-              />
-              <label>Zamietnuté</label>
-            </div>
-          </div>
-
-          <div class="filter-group">
-            <button @click="resetFilters" class="btn btn-primary btn-sm">
-              Zrušiť filtrovanie
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="table-responsive">
-      <table class="table">
-        <thead>
-          <tr>
-            <th>Názov</th>
-            <th>Kategória</th>
-            <th>Čas poslania</th>
-            <th>Rok konferencie</th>
-            <th>Hodnotenie</th>
-            <th>Akcie</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="work in paginatedWorks" :key="work._id">
-            <td>{{ work.title }}</td>
-            <td>{{ work.category.name }}</td>
-            <td>{{ formatTimestamp(work.submission_date) }}</td>
-            <td>{{ work.conference.year }}</td>
-            <td>
-              <span
-                :class="{
-                  'badge badge-secondary': work.status === 'submitted',
-                  'badge badge-warning': work.status === 'under_review',
-                  'badge badge-success': work.status === 'accepted',
-                  'badge badge-tertiary':
-                    work.status === 'accepted_with_changes',
-                  'badge badge-danger': work.status === 'rejected',
-                  'badge badge-primary': work.status === 'draft',
-                }"
-              >
-                {{ statusLabels[work.status] || 'Neznámy stav' }}
-              </span>
-            </td>
-            <td class="button-group-multiple">
-              <router-link
-                v-if="
-                  work.status === 'accepted' ||
-                  work.status === 'rejected' ||
-                  work.status === 'accepted_with_changes'
-                "
-                :to="{
-                  name: 'ReviewForm',
-                  params: { id: work._id },
-                  query: {
-                    isEditable: 'false',
-                    isReviewer: 'false',
-                  },
-                }"
-              >
-                <button class="btn btn-edit btn-sm ml-2">
-                  Pozrieť hodnotenie
-                </button>
-              </router-link>
-              <div v-else>
-                <button class="btn btn-edit btn-sm ml-2" disabled>
-                  Pozrieť hodnotenie
-                </button>
-              </div>
-              <button
-                v-if="
-                  work.status === 'draft' ||
-                  work.status === 'accepted_with_changes'
-                "
-                class="btn btn-edit btn-sm ml-2"
-                @click="editWork(work)"
-              >
-                Upraviť
-              </button>
-              <div v-else>
-                <button class="btn btn-edit btn-sm ml-2" disabled>
-                  Upraviť
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <footer class="pagination-footer">
-      <div class="pagination">
-        <button
-          class="btn btn-primary"
-          @click="currentPage > 1 && currentPage--"
-          :disabled="currentPage === 1"
-        >
-          Previous
-        </button>
-        <span class="pagination-current">Strana {{ currentPage }}</span>
-        <button
-          class="btn btn-primary"
-          @click="currentPage < totalPages && currentPage++"
-          :disabled="currentPage === totalPages || remainingItems <= perPage"
-        >
-          Next
-        </button>
-      </div>
-    </footer>
-  </div>
-</template>
-
 <script lang="ts">
-import { defineComponent } from 'vue'
-import axios from 'axios'
-import axiosInstance from '@/config/axiosConfig.ts'
-
-export interface Author {
-  firstName: string
-  lastName: string
-}
-
-export interface Paper {
-  _id: string
-  title: string
-  category: { id: string; name: string }
-  submission_date: number
-  status:
-    | 'submitted'
-    | 'under_review'
-    | 'accepted'
-    | 'accepted_with_changes'
-    | 'rejected'
-    | 'draft'
-  conference: { id: string; year: number }
-  authors: Author[]
-  keywords: string[]
-  abstract: string
-}
+import { defineComponent, reactive, computed, ref, onMounted, inject } from 'vue'
+import { usePaperStore } from '@/stores/paperStore';
+import { useConferenceStore } from '@/stores/conferenceStore';
+import { useCategoryStore } from '@/stores/categoryStore';
+import { format } from 'date-fns';
+import { type Paper, PaperStatus } from '@/types/paper.ts'
+import type { ActiveCategory, ParticipantConference } from '@/types/conference.ts'
+import { useUserStore } from '@/stores/userStore.ts'
 
 export default defineComponent({
-  name: 'ParticipantWorksTable',
-  data() {
-    return {
-      works: [] as Paper[],
-      filters: {
-        title: '',
-        category: '',
-        selectedReviews: [] as string[],
-        year: null as number | null,
-      },
-      dropdownOpen: false,
-      currentPage: 1,
-      perPage: 10,
-      error: '',
-      statusLabels: {
-        draft: 'Návrh',
-        submitted: 'Odoslané',
-        under_review: 'V procese hodnotenia',
-        accepted: 'Schválené',
-        rejected: 'Zamietnuté',
-        accepted_with_changes: 'Schválené so zmenami',
-      },
-    }
-  },
-  computed: {
-    totalPages() {
-      return Math.ceil(this.filteredWorks.length / this.perPage)
-    },
-    paginatedWorks() {
-      const startIndex = (this.currentPage - 1) * this.perPage
-      return this.filteredWorks.slice(startIndex, startIndex + this.perPage)
-    },
-    remainingItems() {
-      const startIndex = (this.currentPage - 1) * this.perPage
-      return this.filteredWorks.length - startIndex
-    },
-    filteredWorks() {
-      return this.works.filter(work => {
-        const matchesName =
-          this.filters.title === '' ||
-          work.title.toLowerCase().includes(this.filters.title.toLowerCase())
-        const matchesCategory =
-          this.filters.category === '' ||
-          work.category.name
-            .toLowerCase()
-            .includes(this.filters.category.toLowerCase())
-        const matchesYear =
-          this.filters.year === null ||
-          work.conference.year === this.filters.year
-        const matchesReviewed =
-          this.filters.selectedReviews.length === 0 ||
-          this.filters.selectedReviews.includes(work.status)
-        return matchesName && matchesCategory && matchesYear && matchesReviewed
-      })
-    },
-  },
-  methods: {
-    async fetchPapers() {
-      try {
-        const token = 'token123' // Replace with the actual token from your database
-        //const token = localStorage.getItem('authToken'); // Replace with your actual token retrieval logic
+  name: 'ParticipantWorks',
+  setup() {
+    const showSnackbar = inject('showSnackbar') as (options: { message: string; color?: string }) => void;
 
-        const response = await axiosInstance.get('/participant/papers', {
-          headers: {
-            Authorization: `Bearer ${token}`, // Include the token
-          },
-          params: {
-            userId: '', // Include query params
-          },
-        })
-        this.works = response.data.map((work: any) => ({
-          ...work,
-          _id: work._id?.$oid || work._id,
-        }))
-      } catch (err) {
-        this.error = 'Nepodarilo sa načítať práce.'
+    if (!showSnackbar) {
+      console.error('Snackbar injection failed. Please ensure it is provided in the AuthenticatedLayout.');
+    }
+    const paperStore = usePaperStore();
+    const conferenceStore = useConferenceStore();
+    const userStore = useUserStore();
+    const categoryStore = useCategoryStore();
+    const menuConfOpen = ref(false);
+    const menuCatOpen = ref(false);
+
+    const filters = reactive({
+      selectedConference: '',
+      selectedStatus: [] as readonly PaperStatus[],
+    });
+
+    const statusOptions = [
+      PaperStatus.Draft,
+      PaperStatus.Submitted,
+      PaperStatus.UnderReview,
+      PaperStatus.Accepted,
+      PaperStatus.AcceptedWithChanges,
+      PaperStatus.Rejected];
+
+    const statusColors ={
+      [PaperStatus.Draft]: 'grey',
+      [PaperStatus.Submitted]: 'blue',
+      [PaperStatus.UnderReview]: 'orange',
+      [PaperStatus.Accepted]: 'green',
+      [PaperStatus.AcceptedWithChanges]:'primary',
+      [PaperStatus.Rejected]: 'red',
+    }
+
+    const canEditPaper = (paper: Paper) => {
+      //Allow editing only if the paper is in Draft status
+      return paper.status === PaperStatus.Draft;
+    };
+
+    const canViewReview = (paper: Paper) => {
+      //Allow viewing review only if the paper has a review and is not in Draft
+      return !!paper.review && paper.status !== PaperStatus.Draft;
+    };
+
+    const isDeadlineEditable = (conference: ParticipantConference) => {
+      //Disable the deadline edit button if the conference end_date has passed
+      const now = new Date();
+      const conferenceEndDate = new Date(conference.end_date || now); // Assuming conference.end_date exists
+      return conferenceEndDate > now;
+    };
+
+    const conferences = computed(() => {
+      return conferenceStore.participantConferences.map((conference) => ({
+        ...conference,
+        displayName: `${conference.year} - ${conference.location}: ${formatDate(conference.date)}`,
+      }));
+    });
+
+    const selectedConference = computed(() =>
+      currentPaper.conference
+        ? `${currentPaper.conference.year} - ${currentPaper.conference.location}: ${formatDate(currentPaper.conference.date)}`
+        : ''
+    );
+
+    const selectedCategory = computed(() =>
+      currentPaper.category
+        ? `${currentPaper.category.name}`
+        : ''
+    );
+
+    const user = userStore.userProfile;
+    const isDialogOpen = ref(false);
+    const dialogMode = ref<'add' | 'edit' | 'view'>('add');
+    const currentPaper = reactive<Partial<Paper & { file_link: File | null }>>({
+      user: { first_name: '', last_name: '' },
+      status: '',
+      title: '',
+      category: undefined as ActiveCategory | undefined,
+      conference: undefined as ParticipantConference | undefined,
+      abstract: '',
+      keywords: [],
+      authors: [] as Array<{ firstName: string; lastName: string }>,
+      submission_date: '',
+      file_link: undefined,
+      deadline_date: '',
+      isFinal: false
+    });
+
+    const tableHeaders = [
+      { title: 'Status', key: 'status' },
+      { title: 'Konferencia', key: 'conference.year' },
+      { title: 'Názov práce', key: 'title' },
+      { title: 'Vytvorenie', key: 'submission_date' },
+      { title: '', key: 'actions', sortable: false },
+    ];
+
+    const required = (v: string | null) => !!v || 'Field is required';
+
+
+    const filteredPapers = computed(() =>
+      paperStore.participantPapers.filter((paper) =>
+        (!filters.selectedConference || paper.conference._id === filters.selectedConference) &&
+        (!filters.selectedStatus.length || filters.selectedStatus.includes(paper.status))
+      )
+    );
+
+    const fetchDependencies = async () => {
+      try {
+        await Promise.all([
+          conferenceStore.fetchParticipantConferences(),
+          categoryStore.fetchParticipantCategories(),
+          paperStore.getMyPapers(),
+          userStore.fetchUserProfile(),
+        ]);
+
+        // Fetch the logged-in user's data
+        const user = userStore.userProfile;
+        if (user) {
+          currentPaper.authors = [
+            {
+              firstName: user.first_name,
+              lastName: user.last_name,
+            },
+          ];
+        } else {
+          console.warn('Logged-in user profile is empty.');
+        }
+      } catch (error) {
+        console.error('Failed to fetch dependencies:', error);
       }
-    },
-    formatTimestamp(timestamp: number): string {
-      const date = new Date(timestamp)
-      return date.toLocaleString()
-    },
-    editWork(work: Paper): void {
-      this.$router.push({
-        name: 'SubmissionForm',
-        params: { workId: work._id },
-      })
-    },
-    resetFilters(): void {
-      this.filters.title = ''
-      this.filters.category = ''
-      this.filters.selectedReviews = []
-      this.filters.year = null
-    },
+    };
+
+    const addAuthor = () => {
+      if (!currentPaper.authors) {
+        currentPaper.authors = [];
+      }
+      currentPaper.authors.push({ firstName: '', lastName: '' });
+    };
+
+    const removeAuthor = (index: number) => {
+      if (currentPaper.authors) {
+        currentPaper.authors.splice(index, 1);
+      }
+    };
+
+    const selectConference = (conference: ParticipantConference) => {
+      if (conference) {
+        currentPaper.conference = conference;
+        menuConfOpen.value = false;
+      } else {
+        console.error("Invalid conference selected");
+      }
+    };
+
+    const selectCategory = (category: ActiveCategory) => {
+      currentPaper.category = category;
+      menuCatOpen.value = false;
+    };
+
+
+    const resetFilters = () => {
+      filters.selectedConference = '';
+      filters.selectedStatus = [] as PaperStatus[];
+    };
+
+    const openDialog = (mode: 'add' | 'edit' | 'view', paper: any = {}) => {
+      dialogMode.value = mode;
+
+      if (mode === 'add') {
+        Object.assign(currentPaper, {
+          user: { first_name: '', last_name: '' },
+          status: '',
+          title: '',
+          category: { name: '' },
+          conference: undefined,
+          abstract: '',
+          keywords: [],
+          authors: userStore.userProfile
+            ? [
+              {
+                firstName: userStore.userProfile.first_name,
+                lastName: userStore.userProfile.last_name,
+              },
+            ]
+            : [],
+          submission_date: '',
+          file_link: undefined,
+          deadline_date: '',
+          isFinal: false,
+        });
+      } else {
+        //Use the existing paper's data
+        Object.assign(currentPaper, paper);
+      }
+
+      isDialogOpen.value = true;
+    };
+
+    const closeDialog = () => {
+      isDialogOpen.value = false;
+      Object.assign(currentPaper, { title: '', category: '', conference: '', file_link: undefined, isFinal: false });
+    };
+
+    const savePaper = async () => {
+      try {
+        if (!currentPaper.file_link) {
+          showSnackbar?.({ message: 'Na uloženie práce je potrebný súbor.', color: 'error' });
+          return;
+        }
+
+        const payload = {
+          ...currentPaper,
+          conference: currentPaper.conference && '_id' in currentPaper.conference ? currentPaper.conference._id : undefined,
+          category: currentPaper.category && '_id' in currentPaper.category ? currentPaper.category._id : undefined,
+        };
+
+        await paperStore.createPaper(payload, currentPaper.file_link, false);
+        showSnackbar?.({ message: 'Práca uložená ako koncept.', color: 'success' });
+        closeDialog();
+      } catch (err) {
+        console.error(err);
+        showSnackbar?.({ message: 'Uloženie práce zlyhalo.', color: 'error' });
+      }
+    };
+
+    const submitPaper = async () => {
+      try {
+        if (!currentPaper.file_link) {
+          showSnackbar?.({ message: 'Na uloženie práce je potrebný súbor.', color: 'error' });
+          return;
+        }
+        await paperStore.createPaper(currentPaper, currentPaper.file_link, true);
+        showSnackbar?.({ message: 'Práca bola úspešne odoslaná.', color: 'success' });
+        closeDialog();
+      } catch (err) {
+        console.error(err);
+        showSnackbar?.({ message: 'Nepodarilo sa odoslať príspevok.', color: 'error' });
+
+      }
+    };
+
+    const viewReview = (paper: any) => {
+      console.log('View review for', paper);
+    };
+
+    const formatDate = (date: Date | string) => format(new Date(date), 'dd.MM.yyyy');
+
+    onMounted(() => {
+      fetchDependencies()
+    });
+
+    return {
+      filters,
+      paperStore,
+      conferenceStore,
+      categoryStore,
+      statusOptions,
+      tableHeaders,
+      filteredPapers,
+      isDialogOpen,
+      dialogMode,
+      currentPaper,
+      statusColors,
+      selectedConference,
+      menuConfOpen,
+      menuCatOpen,
+      conferences,
+      selectedCategory,
+      user,
+      canEditPaper,
+      canViewReview,
+      isDeadlineEditable,
+      addAuthor,
+      removeAuthor,
+      selectCategory,
+      selectConference,
+      required,
+      openDialog,
+      closeDialog,
+      savePaper,
+      submitPaper,
+      viewReview,
+      resetFilters,
+      formatDate,
+    };
   },
-  mounted() {
-    this.fetchPapers()
-  },
-})
+});
 </script>
 
-<style scoped></style>
+<template>
+  <v-card>
+    <!-- Title Section -->
+    <v-card-title>
+      <div class="d-flex justify-space-between align-center w-100">
+        <h3>Moje práce</h3>
+        <v-btn color="primary" @click="openDialog('add')">
+          <v-icon left class="add_icon">mdi-plus-circle-outline</v-icon> Pridať novú prácu
+        </v-btn>
+      </div>
+    </v-card-title>
+
+    <!-- Filters Section -->
+    <v-card-subtitle>
+      <v-row>
+        <v-col cols="10" md="3">
+          <v-text-field
+            v-model="conferenceStore.filters.year"
+            label="Filtrovať podľa roku"
+            type="number"
+            outlined
+            dense
+          />
+        </v-col>
+        <v-col cols="10" md="4">
+          <v-select
+            v-model="filters.selectedStatus"
+            label="Filter by Status"
+            :items="statusOptions"
+            multiple
+            outlined
+            dense
+          />
+        </v-col>
+        <v-col cols="8" md="3">
+          <v-btn color="primary" small @click="resetFilters">Zrušiť filter</v-btn>
+        </v-col>
+      </v-row>
+    </v-card-subtitle>
+
+    <!-- Data Table -->
+    <v-data-table
+      :headers="tableHeaders"
+      :items="filteredPapers"
+      :items-per-page="10"
+      dense
+      item-value="_id"
+      class="custom-table"
+    >
+      <template v-slot:body="{ items }">
+        <tr v-for="paper in items" :key="paper._id">
+          <td>
+            <v-chip
+              :color="statusColors[paper.status as keyof typeof statusColors]"
+              outlined
+              small
+              class="d-flex justify-center custom-chip rounded"
+            >
+              {{ paper.status }}
+            </v-chip>
+          </td>
+          <td>{{ paper.conference.year }} - {{ formatDate(paper.conference.date) }}</td>
+          <td>{{ paper.title }}</td>
+          <td>{{ formatDate(paper.submission_date) }}</td>
+          <td class="d-flex justify-end align-center">
+            <v-btn :disabled="!canEditPaper(paper)"
+                   color="#FFCD16"
+                   @click="openDialog('edit', paper)"
+                   title="Upraviť">
+              <v-icon size="24">mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn :disabled="!canViewReview(paper)"
+                   color="success"
+                   @click="viewReview"
+                   title="Ukazať recenziu">
+              <v-icon size="24" color="black">mdi-account-alert</v-icon>
+            </v-btn>
+          </td>
+        </tr>
+      </template>
+    </v-data-table>
+
+    <!-- Add/Edit Dialog -->
+    <v-dialog v-model="isDialogOpen" max-width="800px">
+      <v-card>
+        <v-card-title>
+          {{
+            dialogMode === 'add'
+              ? 'Pridať novú prácu'
+              : dialogMode === 'edit'
+                ? 'Upraviť prácu'
+                : 'Podrobnosti o práci'
+          }}
+        </v-card-title>
+        <v-card-text>
+          <v-form ref="form">
+            <v-text-field
+              v-model="currentPaper.title"
+              label="Title"
+              :rules="[required]"
+              outlined
+              dense
+            />
+            <v-menu
+              v-model="menuCatOpen"
+              close-on-content-click
+              offset-y
+              class="custom-menu"
+            >
+              <template v-slot:activator="{ props }">
+                <v-text-field
+                  v-bind="props"
+                  label="Category"
+                  v-model="selectedCategory"
+                  outlined
+                  dense
+                  readonly
+                  append-inner-icon="mdi-chevron-down"
+                />
+              </template>
+              <v-list>
+                <v-list-item
+                  v-for="category in categoryStore.participantCategories"
+                  :key="category._id"
+                  @click="selectCategory(category)"
+                >
+                  <v-list-item-title>
+                    {{ category.name }}
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+            <v-menu
+              v-model="menuConfOpen"
+              close-on-content-click
+              offset-y
+              class="custom-menu"
+            >
+              <template v-slot:activator="{ props }">
+                <v-text-field
+                  v-bind="props"
+                  label="Conference"
+                  v-model="selectedConference"
+                  outlined
+                  dense
+                  readonly
+                  append-inner-icon="mdi-chevron-down"
+                />
+              </template>
+              <v-list>
+                <v-list-item
+                  v-for="conference in conferences"
+                  :key="conference._id"
+                  @click="selectConference(conference)"
+                >
+                  <v-list-item-title>
+                    {{ conference.year }} - {{ conference.location }}: {{ formatDate(conference.date) }}
+                  </v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+            <!-- Keywords -->
+            <v-text-field
+              v-model="currentPaper.keywords"
+              label="Kľúčové slová"
+              placeholder="Vložte kľúčové slová oddelené čiarkou"
+              outlined
+              dense
+              required
+            />
+            <v-row>
+              <v-col cols="12" v-for="(author, index) in currentPaper.authors" :key="index">
+                <v-row class="row_height">
+                  <v-col cols="5" md="5">
+                    <v-text-field
+                      v-model="author.firstName"
+                      label="Meno"
+                      outlined
+                      dense
+                      class="flex-grow-1"
+                      :disabled="dialogMode === 'view'"
+                    />
+                  </v-col>
+                  <v-col cols="5" md="6">
+                    <v-text-field
+                      v-model="author.lastName"
+                      label="Priezvisko"
+                      outlined
+                      dense
+                      class="flex-grow-1"
+                      :disabled="dialogMode === 'view'"
+                    />
+                  </v-col>
+                  <v-col cols="2" md="1" class="d-flex justify-end">
+                    <v-btn color="error" @click="removeAuthor(index)" :disabled="dialogMode === 'view'">
+                      <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                  </v-col>
+                </v-row>
+              </v-col>
+              <v-col cols="12" class="d-flex justify-start author">
+              <v-btn color="primary" @click="addAuthor" :disabled="dialogMode === 'view'">
+                <v-icon icon="mdi-plus-circle" start></v-icon>Ďalší autor
+              </v-btn>
+              </v-col>
+            </v-row>
+            <!-- Abstract -->
+            <v-textarea
+              v-model="currentPaper.abstract"
+              label="Abstrakt"
+              outlined
+              dense
+              required
+            />
+            <v-file-input
+              v-model="currentPaper.file_link"
+              label="Nahrajte súbor"
+              :rules="[required]"
+              outlined
+              dense
+              :disabled="dialogMode === 'view'"
+            />
+            <v-checkbox
+              v-model="currentPaper.isFinal"
+              label="Je toto finálna verzia? (Pre odovzdanie práce by malo byť zaškrtnuté)"
+
+            />
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn @click="closeDialog">Zrušiť</v-btn>
+          <v-btn v-if="dialogMode !== 'view'" @click="savePaper" color="primary">Uložiť</v-btn>
+          <v-btn v-if="dialogMode !== 'view' && currentPaper.isFinal" @click="submitPaper" color="error" tonal >Odoslať</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </v-card>
+</template>
+
+<style lang="scss">
+.author {
+  margin-top: -20px;
+  margin-bottom: 10px;
+}
+
+.row_height {
+  margin-bottom: -30px;
+}
+</style>

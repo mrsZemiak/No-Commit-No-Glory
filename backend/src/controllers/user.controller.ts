@@ -181,8 +181,8 @@ export const upload = multer({
 
 //Profile update
 export const updateUserProfile = async (req: AuthRequest, res: Response): Promise<void> => {
-  console.log('Request body:', req.body); // Logs the body of the request
-  console.log('Uploaded file:', req.file); // Logs the file information if uploaded
+  console.log('Request body:', req.body);
+  console.log('Uploaded file:', req.file);
   try {
     const userId = req.user?.userId;
 
@@ -190,11 +190,6 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
     const user = await User.findById(userId);
     if (!user) {
       res.status(404).json({ message: "User not found." });
-      return;
-    }
-
-    if (!req.file) {
-      res.status(400).json({ message: 'Avatar file is missing.' });
       return;
     }
 

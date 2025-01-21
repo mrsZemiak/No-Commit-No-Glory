@@ -87,7 +87,6 @@ const generalLinksBottom: Link[] = [
   { name: "Odhlásiť sa", path: "/auth/logout" },
 ];
 const participantLinks: Link[] = [
-  { name: "Odovzdanie práce", path: "/auth/participant/submit" },
   { name: "Moje práce", path: "/auth/participant/works" },
 ];
 const reviewerLinks: Link[] = [

@@ -44,7 +44,6 @@ export const submitPaper = [
 
       //Build file path
       const filePath = `/uploads/docs/${conference}/${req.file.filename}`;
-      const status = isFinal ? "Submitted" : "Draft";
 
       // Create a new paper record
       const paper = new Paper({
@@ -54,11 +53,10 @@ export const submitPaper = [
         keywords,
         category,
         conference,
-        authors,
+        authors: JSON.parse(authors),
         file_link: filePath,
         submission_date: new Date(),
         isFinal: !!isFinal,
-        status,
         deadline_date: selectedConference.deadline_submission,
       });
 
@@ -193,13 +191,12 @@ export const editPaper = [
 ];
 
 //Get Conferences (only with statusAktuálna)
-export const getConferences = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getConferences = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     const currentDate = new Date();
     const conferences = await Conference.find({
       status: "Aktuálna",
-      date: { $gte: currentDate },
-    }).select("year date location");
+    }).select("_id year date location university start_date end_date deadline_submission");
 
     res.status(200).json(conferences);
   } catch (error) {
@@ -211,7 +208,7 @@ export const getConferences = async (req: AuthRequest, res: Response): Promise<v
 //Get Categories (only active)
 export const getCategories = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const categories = await Category.find({ isActive: true }).select("name");
+    const categories = await Category.find({ isActive: true }).select("_id name");
     res.status(200).json(categories);
   } catch (error) {
     console.error("Error fetching categories:", error);

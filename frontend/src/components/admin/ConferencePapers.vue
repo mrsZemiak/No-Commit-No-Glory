@@ -160,6 +160,16 @@ export default defineComponent({
       }
     };
 
+    const isReviewerDisabled = (paper: AdminPaper) => {
+      return !!paper.reviewer; // Disable if reviewer exists
+    };
+
+    const isDeadlineDisabled = (conference: any) => {
+      if (!conference.date) return true; // If no date, disable the deadline button
+      const currentDate = new Date();
+      const conferenceEndDate = new Date(conference.date);
+      return currentDate > conferenceEndDate; // Disable if the conference has ended
+    };
 
     //Open dialog for assigning a reviewer
     const openAssignReviewerDialog = (paper: AdminPaper) => {
@@ -266,6 +276,8 @@ export default defineComponent({
       filteredConferences,
       filteredPapers,
       PaperStatus,
+      isReviewerDisabled,
+      isDeadlineDisabled,
       resetConferenceFilters,
       resetFilters,
       viewPaper,
@@ -418,7 +430,7 @@ export default defineComponent({
                            : 'grey'"
                           outlined
                           small
-                          class="custom-chip"
+                          class="d-flex justify-center custom-chip rounded"
                         >
                           {{ paper.status }}
                         </v-chip>
@@ -432,6 +444,7 @@ export default defineComponent({
                       <td class="d-flex justify-end align-center">
                         <!-- Assign Reviewer -->
                         <v-btn
+                          :disabled="isReviewerDisabled(paper)"
                           color="#3C888C"
                           title="Assign Reviewer"
                           @click="openAssignReviewerDialog(paper)"
@@ -439,7 +452,8 @@ export default defineComponent({
                           <v-icon size="24">mdi-account-plus</v-icon>
                         </v-btn>
                         <v-btn
-                          color="#E7B500"
+                          :disabled="isDeadlineDisabled(paper.conference)"
+                          color="#FFCD16"
                           @click="openDeadlineDialog(paper)"
                           title="Edit Deadline"
                         >
@@ -484,8 +498,7 @@ export default defineComponent({
                 <v-card-text>
                   <v-row>
                     <v-col cols="12">
-                      <v-table dense>
-                        <template v-slot:default>
+                      <v-table dense class="paperInfo">
                           <tbody>
                           <tr class="spaced-row">
                             <td><strong>Užívateľ:</strong></td>
@@ -522,7 +535,6 @@ export default defineComponent({
                             <td><em>{{ selectedPaper?.abstract }}</em></td>
                           </tr>
                           </tbody>
-                        </template>
                       </v-table>
                     </v-col>
                   </v-row>
@@ -620,7 +632,7 @@ p {
 
 .custom-table {
   font-size: 1.1rem;
-  padding: 20px;
+  padding-inline: 30px;
 }
 
 .inner-card {
@@ -633,6 +645,11 @@ p {
 
 .conf-icon {
   margin-right: 5px;
+}
+
+.paperInfo {
+  display: flex;
+  font-size: 1.2rem;
 }
 
 </style>

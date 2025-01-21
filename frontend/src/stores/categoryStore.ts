@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import axiosInstance from '@/config/axiosConfig'
+import type { ActiveCategory } from '@/types/conference.ts'
 
 export const useCategoryStore = defineStore('categories', () => {
   // Reactive state
@@ -85,8 +86,8 @@ export const useCategoryStore = defineStore('categories', () => {
     loading.value = true
     error.value = null
     try {
-      const response = await axiosInstance.get('/auth/participant/categories') // Endpoint to fetch only active categories with names
-      participantCategories.value = response.data
+      const response = await axiosInstance.get('/auth/participant/categories')
+      participantCategories.value = response.data as ActiveCategory[];
     } catch (err) {
       error.value = 'Failed to fetch participant categories.'
       console.error(err)
@@ -94,11 +95,6 @@ export const useCategoryStore = defineStore('categories', () => {
       loading.value = false
     }
   }
-
-  //Computed properties
-  const activeParticipantCategories = computed(() => {
-    return participantCategories.value.filter(category => category.isActive)
-  })
 
   return {
     //State
@@ -115,7 +111,5 @@ export const useCategoryStore = defineStore('categories', () => {
     deleteCategory,
     fetchParticipantCategories,
 
-    //Computed
-    activeParticipantCategories,
   }
 })

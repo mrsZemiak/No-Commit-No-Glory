@@ -76,7 +76,7 @@ export const validateSubmitPaper = [
       .withMessage('Vyžaduje sa aspoň jedno kľúčové slovo')
       .custom((keywords: string[]) => keywords.every(k => true))
       .withMessage('Kľúčové slová musia byť pole reťazcov'),
-    body('fileName')
+    body('file_link')
       .notEmpty()
       .withMessage('Vyžaduje sa odkaz na súbor')
       .isURL()

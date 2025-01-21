@@ -1,5 +1,5 @@
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, inject } from "vue";
+import { defineComponent, ref, computed, onMounted, inject, reactive } from 'vue'
 import { useQuestionStore } from "@/stores/questionStore";
 import type { Question } from '@/types/question.ts'
 
@@ -17,6 +17,8 @@ export default defineComponent({
     }
 
     const questionStore = useQuestionStore();
+    const currentQuestion = reactive({ _id: '', text: '', type: '', category: '' })
+    const isDeleteDialogOpen = ref(false);
 
     //State for filters and dialog
     const filters = ref({
@@ -24,6 +26,7 @@ export default defineComponent({
       type: [] as string[],
       category: [] as string[],
     });
+
     const currentPage = ref(1);
     const perPage = ref(10);
     const dialogVisible = ref(false);
@@ -62,7 +65,7 @@ export default defineComponent({
       { title: "Text", value: "text" },
       { title: "Typ", value: "type" },
       { title: "Kategória", value: "category" },
-      { title: "", value: "actions", sortable: false },
+      { title: "", value: "actions" },
     ];
 
     //Computed filtered questions
@@ -116,6 +119,39 @@ export default defineComponent({
       filters.value = { text: "", type: [], category: [] };
     };
 
+    // Delete confirmation handling
+    const confirmDelete = (question: {
+      _id: string
+      text: string
+      type: string
+      category: string
+    }) => {
+      Object.assign(currentQuestion, question)
+      isDeleteDialogOpen.value = true
+    }
+
+    const closeDeleteDialog = () => {
+      isDeleteDialogOpen.value = false
+    }
+
+    const deleteQuestion = async () => {
+      try {
+        await questionStore.deleteQuestion(currentQuestion._id);
+        showSnackbar?.({
+          message: "Otázka bola úspešne odstránená.",
+          color: "success",
+        });
+      } catch (error) {
+        console.error('Error deleting question:', error);
+        showSnackbar?.({
+          message: "Nepodarilo sa odstrániť otázku.",
+          color: "error",
+        });
+      } finally {
+        closeDeleteDialog()
+      }
+    }
+
     // Fetch questions on mount
     onMounted(() => {
       questionStore.fetchAllQuestions().catch((error) => {
@@ -136,6 +172,10 @@ export default defineComponent({
       questionLabels,
       tableHeaders,
       filteredQuestions,
+      isDeleteDialogOpen,
+      confirmDelete,
+      closeDeleteDialog,
+      deleteQuestion,
       openDialog,
       closeDialog,
       submitDialogForm,
@@ -202,21 +242,21 @@ export default defineComponent({
         <tr v-for="question in items" :key="question._id" class="custom-row">
           <td>{{ question.text }}</td>
           <td>
-            <v-chip color="primary" dark small class="custom-chip">
+            <v-chip color="primary" dark small class="d-flex justify-center custom-chip rounded">
               <td>{{ questionLabels[question.type as keyof typeof questionLabels] || "Neznámy typ" }}</td>
             </v-chip>
           </td>
           <td>
-            <v-chip color="brown" dark small class="custom-chip">
+            <v-chip color="brown" dark small class="d-flex justify-center custom-chip rounded">
               {{ question.category || 'N/A' }}
             </v-chip>
           </td>
-          <td class="d-flex justify-end align-center w-100">
-            <v-btn
-              color="#E7B500"
-              @click="openDialog('edit', question)"
-            >
+          <td class="d-flex justify-end align-center">
+            <v-btn color="#FFCD16" @click="openDialog('edit', question)">
               <v-icon size="24">mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn color="#BC463A" @click="confirmDelete(question)">
+              <v-icon size="24" color="white">mdi-delete</v-icon>
             </v-btn>
           </td>
         </tr>
@@ -242,6 +282,7 @@ export default defineComponent({
               v-model="dialogForm.type"
               :items="typeOptions"
               label="Typ otázky"
+              item-title="text"
               outlined
               dense
               required
@@ -250,6 +291,7 @@ export default defineComponent({
               v-model="dialogForm.category"
               :items="categoryOptions"
               label="Kategória"
+              item-title="text"
               outlined
               dense
               required
@@ -259,6 +301,22 @@ export default defineComponent({
         <v-card-actions>
           <v-btn color="secondary" @click="closeDialog">Zrušiť</v-btn>
           <v-btn color="primary" @click="submitDialogForm">Uložiť</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Delete Confirmation Dialog -->
+    <v-dialog v-model="isDeleteDialogOpen" max-width="500px">
+      <v-card>
+        <v-card-title>Potvrdenie odstránenia</v-card-title>
+        <v-card-text>
+          <p>
+            Ste si istí, že chcete odstrániť ?
+          </p>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn color="secondary" @click="closeDeleteDialog">Zrušiť</v-btn>
+          <v-btn color="red" @click="deleteQuestion">Odstrániť</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
