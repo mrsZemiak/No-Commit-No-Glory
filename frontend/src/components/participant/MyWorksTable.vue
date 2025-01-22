@@ -253,7 +253,7 @@ export default defineComponent({
           showSnackbar?.({ message: 'Práca bola úspešne upravená.', color: 'success' });
         } else {
           //Create new paper
-          await paperStore.createPaper(payload, currentPaper.file_link, currentPaper.isFinal);
+          await paperStore.createPaper(payload, currentPaper.file_link);
           showSnackbar?.({ message: 'Práca uložená ako koncept.', color: 'success' });
         }
 

@@ -7,7 +7,7 @@ import {
   contactAdmin, updateReview, getQuestions, notifyReviewer
 } from '../controllers/reviewer.controller'
 import { authenticateToken } from '../middleware/authenticateToken'
-import { validateRequest, validateReviewSubmission, validateReviewUpdate } from '../middleware/validation'
+// /import { validateRequest, validateReviewSubmission, validateReviewUpdate } from '../middleware/validation'
 
 const router = Router();
 
@@ -18,8 +18,8 @@ router.get('/papers/:paperId/download', downloadPaper);
 router.get('/reviews/:reviewId', getReviewById);
 
 router.get('/questions', getQuestions);
-router.post('/submit-review', validateReviewSubmission, validateRequest, submitReview);
-router.patch("/reviews/:reviewId", validateReviewUpdate, validateRequest, updateReview);
+router.post('/submit-review', submitReview);
+router.patch("/reviews/:reviewId", updateReview);
 
 router.post("/contact-admin", contactAdmin);
 router.post("/notify-reviewer", notifyReviewer);

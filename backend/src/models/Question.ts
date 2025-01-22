@@ -3,10 +3,10 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IQuestion extends Document {
   text: string;
   type: 'rating' | 'yes_no' | 'text';
-  options?: {
+  options: {
     min: { type: Number, default: 1 },
     max: { type: Number, default: 6 },
-    choices?: string[];
+    choices: string[];
   };
   category?: string; // E.g., "Content", "Format"
 }

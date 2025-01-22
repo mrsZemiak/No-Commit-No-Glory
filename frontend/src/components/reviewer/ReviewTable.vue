@@ -2,7 +2,7 @@
   <v-container>
     <v-card>
       <v-card-title>
-        <h2>Assigned Papers</h2>
+        <h2>Pridelené práce</h2>
       </v-card-title>
       <v-card-text>
         <v-data-table
@@ -31,26 +31,6 @@
                 >
                   mdi-eye
                 </v-icon>
-              </td>
-              <td>
-                <v-chip
-                  :color="paper.status === 'Accepted'
-                   ? 'green'
-                   : paper.status === 'Rejected'
-                   ? 'red'
-                   : paper.status === 'AcceptedWithChanges'
-                   ? '#2c3531'
-                   : paper.status === 'UnderReview'
-                   ? '#E7B500'
-                   : paper.status === 'Submitted'
-                   ? 'blue'
-                   : 'grey'"
-                  outlined
-                  small
-                  class="d-flex justify-center custom-chip rounded"
-                >
-                  {{ paper.status }}
-                </v-chip>
               </td>
               <td>{{ paper.title }}</td>
               <td>{{ paper.category?.name }}</td>
@@ -150,7 +130,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref, computed, inject } from 'vue'
 import { useReviewStore } from '@/stores/reviewStore';
 import { usePaperStore } from '@/stores/paperStore.ts'
 import { useUserStore } from '@/stores/userStore.ts'
@@ -158,6 +138,15 @@ import { useQuestionStore } from '@/stores/questionStore.ts'
 
 export default defineComponent({
   setup() {
+    const showSnackbar = inject("showSnackbar") as ({ message, color, }: {
+      message: string;
+      color?: string;
+    }) => void;
+
+    if (!showSnackbar) {
+      console.error("showSnackbar is not provided");
+    }
+
     const reviewStore = useReviewStore();
     const paperStore = usePaperStore();
     const userStore = useUserStore();
@@ -174,7 +163,7 @@ export default defineComponent({
     const headers = [
       { title: '', value: 'actions' },
       { title: 'Názov', value: 'title' },
-      { title: 'Sekcie', value: 'category' },
+      { title: 'Sekcia', value: 'category' },
       { title: 'Konferencia', value: 'conferenceYear' },
       { title: '', value: 'download' },
     ];
@@ -194,7 +183,7 @@ export default defineComponent({
 
     const openReviewDialog = async (paperId: string) => {
       try {
-        selectedPaper.value = await paperStore.fetchPaperById(paperId);
+        selectedPaper.value = await paperStore.getAssignedPapers(paperId);
         console.log('Selected paper:', selectedPaper.value);
         reviewDialog.value = true;
       } catch (error) {

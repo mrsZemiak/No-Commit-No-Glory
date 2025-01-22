@@ -14,7 +14,7 @@ export const usePaperStore = defineStore('papers', () => {
 
   //Actions
   /** Participant Actions **/
-  const createPaper = async (paper: any, file: File, isFinal: boolean) => {
+  const createPaper = async (paper: any, file: File) => {
     try {
       const formData = new FormData();
 

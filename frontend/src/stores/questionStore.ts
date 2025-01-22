@@ -98,12 +98,6 @@ export const useQuestionStore = defineStore('questions', () => {
     }))
   })
 
-  const activeReviewerQuestions = computed(() => {
-    return reviewerQuestions.value.filter(
-      question => question.status === 'active',
-    )
-  })
-
   return {
     // State
     adminQuestions,
@@ -121,6 +115,5 @@ export const useQuestionStore = defineStore('questions', () => {
 
     // Computed
     reviewerQuestionsWithOptions,
-    activeReviewerQuestions,
   }
 })
