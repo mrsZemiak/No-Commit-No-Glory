@@ -9,7 +9,7 @@ import Question from "../models/Question";
 import path from "path";
 import { promises as fs } from "fs";
 
-/** USER S**/
+/** USERS**/
 //Get all users
 export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -27,6 +27,7 @@ export const getUserById = async (req: AuthRequest, res: Response): Promise<void
     const user = await User.findById(userId).populate("role");
     if (!user) {
       res.status(404).json({ message: "Používateľ nebol nájdený" });
+      return;
     }
     res.status(200).json(user);
   } catch (error) {
@@ -48,6 +49,7 @@ export const editUserDetails = async (req: AuthRequest, res: Response): Promise<
 
     if (!updatedUser) {
       res.status(404).json({ message: "Používateľ nebol nájdený alebo sa nepodarilo aktualizovať" });
+      return;
     }
 
     res.status(200).json({
@@ -81,6 +83,7 @@ export const getCategoryById = async (req: AuthRequest, res: Response): Promise<
     const category = await Category.findById(categoryId);
     if (!category) {
       res.status(404).json({ message: "Kategória nebola nájdená" });
+      return;
     }
     res.status(200).json(category);
   } catch (error) {
@@ -136,6 +139,7 @@ export const deleteCategory = async (req: AuthRequest, res: Response): Promise<v
     const deletedCategory = await Category.findByIdAndDelete(categoryId);
     if (!deletedCategory) {
       res.status(404).json({ message: 'Kategória nebola nájdená' });
+      return;
     }
 
     res.status(200).json({ message: 'Kategória bola úspešne vymazaná', category: deletedCategory });
@@ -187,7 +191,7 @@ export const createConference = async (req: AuthRequest, res: Response): Promise
     await newConference.save();
 
     // Create directory for the conference
-    const uploadPath =  path.resolve(__dirname, `./../uploads/docs/${newConference._id}`);
+    const uploadPath =  path.resolve(__dirname, `../uploads/docs/${newConference._id}`);
     await fs.mkdir(uploadPath, { recursive: true });
 
     res.status(201).json({ message: 'Konferencia bola úspešne vytvorená', conference: newConference });
@@ -202,13 +206,13 @@ export const getConferenceById = async (req: Request, res: Response): Promise<vo
     const { id } = req.params;
     const conference = await Conference.findById(id);
     if (!conference) {
-      res.status(404).json({ message: "Conference not found." });
+      res.status(404).json({ message: "Konferencia sa nenašla." });
       return;
     }
     res.status(200).json(conference);
   } catch (error) {
     console.error("Error fetching conference:", error);
-    res.status(500).json({ error: "Failed to fetch conference." });
+    res.status(500).json({ error: "Nepodarilo sa načítať konferenciu." });
   }
 };
 
@@ -315,6 +319,7 @@ export const deleteQuestion = async (req: AuthRequest, res: Response): Promise<v
     const result = await Question.findByIdAndDelete(questionId);
     if (!result) {
       res.status(404).json({ message: 'Otázka sa nenašla.' });
+      return;
     }
     res.status(200).json({ message: 'Otázka bola úspešne odstránená.' });
   } catch (error) {
@@ -336,6 +341,7 @@ export const updateQuestion = async (req: AuthRequest, res: Response): Promise<v
 
     if (!updatedQuestion) {
       res.status(404).json({ message: "Nepodarilo sa nájsť otázku" });
+      return;
     }
 
     res.status(200).json({
@@ -406,12 +412,14 @@ export const getPaperById = async (req: AuthRequest, res: Response): Promise<voi
 
     if (!paper) {
       res.status(404).json({ message: "Nepodarilo sa nájsť prácu." });
+      return;
     }
 
     res.status(200).json(paper);
   } catch (error) {
     console.error("Error fetching paper:", error);
     res.status(500).json({ message: "Failed to fetch paper.", error });
+    return;
   }
 };
 
@@ -423,6 +431,7 @@ export const changeSubmissionDeadline = async (req: AuthRequest, res: Response):
 
     if (!newDeadline) {
       res.status(400).json({ message: 'Je potrebný nový termín' });
+      return;
     }
     const updatedPaper = await Paper.findByIdAndUpdate(
       paperId,
@@ -431,6 +440,7 @@ export const changeSubmissionDeadline = async (req: AuthRequest, res: Response):
     );
     if (!updatedPaper) {
       res.status(404).json({ message: 'Nepodarilo sa nájsť prácu' });
+      return;
     }
 
     res.status(200).json({ message: 'Termín odovzdania bol úspešne aktualizovaný', paper: updatedPaper });
@@ -464,6 +474,7 @@ export const assignReviewer = async (req: AuthRequest, res: Response): Promise<v
 
     if (!updatedPaper) {
       res.status(404).json({ message: "Nepodarilo sa nájsť prácu" });
+      return;
     }
 
     res.status(200).json({
@@ -486,26 +497,30 @@ export const downloadPapersByConference = async (req: AuthRequest, res: Response
     }
 
     //Path where papers are stored
-    const conferenceUploadPath = path.resolve(__dirname, '../../uploads/docs', conferenceId);
+    const conferenceUploadPath = path.resolve(__dirname, '../uploads/docs', conferenceId);
 
     //Check if the conference folder exists
     try {
       await fs.access(conferenceUploadPath);
     } catch (err) {
-      //Folder does not exist, create it
       try {
-        await fs.mkdir(conferenceUploadPath, { recursive: true });
-        console.log(`Folder created: ${conferenceUploadPath}`);
+        const uploadPath = path.resolve(__dirname, `./../uploads/docs/${conferenceId}`);
+        await fs.mkdir(uploadPath, { recursive: true });
+        console.log(`Folder created: ${uploadPath}`);
+        res.status(404).json({ message: "No files available for this conference yet." });
+        return;
       } catch (mkdirErr) {
         console.error("Error creating the folder:", mkdirErr);
         res.status(500).json({ message: "Nepodarilo sa vytvoriť priečinok pre túto konferenciu.", error: mkdirErr });
+        return;
       }
     }
 
     //Read all files in the directory
     const files = await fs.readdir(conferenceUploadPath);
-    if (files.length === 0) {
+    if (!files || files.length === 0) {
       res.status(404).json({ message: "Pre túto konferenciu neboli nájdené žiadne dokumenty." });
+      return;
     }
 
     //Create ZIP archive
@@ -528,6 +543,7 @@ export const downloadPapersByConference = async (req: AuthRequest, res: Response
   }
 };
 
+/** OTHER **/
 //Admin Reports Controller
 export const getAdminReports = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {

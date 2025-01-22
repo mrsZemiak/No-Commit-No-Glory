@@ -92,7 +92,7 @@ export const validateSubmitPaper = [
       .withMessage('Vyžaduje sa aspoň jeden autor')
       .custom(authors =>
         authors.every(
-          (author: { first_name: string; last_name: string }) =>
+          (author: { firstName: string; lastName: string }) =>
             true
         )
       )

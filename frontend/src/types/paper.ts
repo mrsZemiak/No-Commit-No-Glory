@@ -17,10 +17,8 @@ export interface Paper {
     first_name: string;
     last_name: string;
   };
-  category: {
-    name: string;
-  };
-  conference: {year: number, location: string, date: Date}
+  category: { name: string; };
+  conference: {_id: string, year: number, location: string, date: Date};
   abstract: string;
   keywords: string[];
   authors: { firstName: string; lastName: string }[];
@@ -57,4 +55,22 @@ export interface AdminPaper {
   authors: { firstName: string; lastName: string }[];
   isFinal: boolean;
   awarded?: boolean;
+}
+
+export interface ReviewerPaper {
+  _id: string;
+  title: string;
+  status: string;
+  category: {
+    name: string;
+  };
+  conference: {
+    _id: string;
+    year: number;
+    location: string;
+  };
+  file_link: File;
+  reviewer: string;
+  abstract: string;
+  keywords: string[];
 }

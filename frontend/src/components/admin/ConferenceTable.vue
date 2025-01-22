@@ -26,7 +26,7 @@ export default defineComponent({
     const isDialogOpen = ref(false)
     const isDeleteDialogOpen = ref(false)
     const dialogMode = ref<'add' | 'edit' | 'view'>('add')
-    const currentConference = reactive({
+    const currentConference = reactive<Partial<ConferenceAdmin>>({
       _id: '',
       status: '',
       year: new Date().getFullYear(),
@@ -36,7 +36,7 @@ export default defineComponent({
       start_date: new Date(),
       end_date: new Date(),
       deadline_submission: new Date(),
-    })
+    });
 
     const statusOptions = ['Nadchádzajúca', 'Aktuálna', 'Ukončená', 'Zrušená']
 
@@ -55,7 +55,7 @@ export default defineComponent({
     const openDialog = (mode: 'add' | 'edit' | 'view', conference: Partial<ConferenceAdmin> = {}) => {
       dialogMode.value = mode;
 
-      // Convert date fields to Date objects if they are strings
+      //Convert date fields to Date objects if they are strings
       Object.assign(currentConference, {
         ...conference,
         date: conference.date ? new Date(conference.date) : new Date(),
@@ -300,7 +300,6 @@ export default defineComponent({
           v-for="conference in items"
           :key="conference._id"
           class="custom-row"
-          @click="openDialog('view', conference)"
         >
           <td>
             <v-icon
@@ -391,7 +390,7 @@ export default defineComponent({
                   <template v-slot:activator="{ props }">
                     <v-text-field
                       v-model="formattedDialogForm.date"
-                      label="Začiatok konferencie"
+                      label="Dátum konferencie"
                       readonly
                       dense
                       outlined

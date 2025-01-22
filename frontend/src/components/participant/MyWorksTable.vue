@@ -7,9 +7,15 @@ import { format } from 'date-fns';
 import { type Paper, PaperStatus } from '@/types/paper.ts'
 import type { ActiveCategory, ParticipantConference } from '@/types/conference.ts'
 import { useUserStore } from '@/stores/userStore.ts'
+import axios from 'axios'
 
 export default defineComponent({
   name: 'ParticipantWorks',
+  computed: {
+    PaperStatus() {
+      return PaperStatus
+    }
+  },
   setup() {
     const showSnackbar = inject('showSnackbar') as (options: { message: string; color?: string }) => void;
 
@@ -22,6 +28,8 @@ export default defineComponent({
     const categoryStore = useCategoryStore();
     const menuConfOpen = ref(false);
     const menuCatOpen = ref(false);
+    const isDeleteDialogOpen = ref(false);
+    const paperToDelete = ref<Paper | null>(null);
 
     const filters = reactive({
       selectedConference: '',
@@ -44,6 +52,21 @@ export default defineComponent({
       [PaperStatus.AcceptedWithChanges]:'primary',
       [PaperStatus.Rejected]: 'red',
     }
+
+    const currentPaper = reactive<Partial<Paper & { file_link: File | null }>>({
+      user: { first_name: '', last_name: '' },
+      status: '',
+      title: '',
+      category: undefined as ActiveCategory | undefined,
+      conference: undefined as ParticipantConference | undefined,
+      abstract: '',
+      keywords: [],
+      authors: [] as Array<{ firstName: string; lastName: string }>,
+      submission_date: '',
+      file_link: undefined,
+      deadline_date: '',
+      isFinal: false
+    });
 
     const canEditPaper = (paper: Paper) => {
       //Allow editing only if the paper is in Draft status
@@ -84,22 +107,9 @@ export default defineComponent({
     const user = userStore.userProfile;
     const isDialogOpen = ref(false);
     const dialogMode = ref<'add' | 'edit' | 'view'>('add');
-    const currentPaper = reactive<Partial<Paper & { file_link: File | null }>>({
-      user: { first_name: '', last_name: '' },
-      status: '',
-      title: '',
-      category: undefined as ActiveCategory | undefined,
-      conference: undefined as ParticipantConference | undefined,
-      abstract: '',
-      keywords: [],
-      authors: [] as Array<{ firstName: string; lastName: string }>,
-      submission_date: '',
-      file_link: undefined,
-      deadline_date: '',
-      isFinal: false
-    });
 
     const tableHeaders = [
+      { title: '', key: 'delete' },
       { title: 'Status', key: 'status' },
       { title: 'Konferencia', key: 'conference.year' },
       { title: 'Názov práce', key: 'title' },
@@ -125,6 +135,11 @@ export default defineComponent({
           paperStore.getMyPapers(),
           userStore.fetchUserProfile(),
         ]);
+
+        paperStore.participantPapers = paperStore.participantPapers.map((paper) => ({
+          ...paper,
+          conference: paper.conference || { year: 'Unknown', date: new Date(), location: "Unkonwn" },
+        }));
 
         // Fetch the logged-in user's data
         const user = userStore.userProfile;
@@ -176,7 +191,7 @@ export default defineComponent({
       filters.selectedStatus = [] as PaperStatus[];
     };
 
-    const openDialog = (mode: 'add' | 'edit' | 'view', paper: any = {}) => {
+    const openDialog = (mode: 'add' | 'edit', paper: any = {}) => {
       dialogMode.value = mode;
 
       if (mode === 'add') {
@@ -184,8 +199,8 @@ export default defineComponent({
           user: { first_name: '', last_name: '' },
           status: '',
           title: '',
-          category: { name: '' },
-          conference: undefined,
+          category: '',
+          conference: '',
           abstract: '',
           keywords: [],
           authors: userStore.userProfile
@@ -202,7 +217,7 @@ export default defineComponent({
           isFinal: false,
         });
       } else {
-        //Use the existing paper's data
+        //Use the existing data
         Object.assign(currentPaper, paper);
       }
 
@@ -216,19 +231,32 @@ export default defineComponent({
 
     const savePaper = async () => {
       try {
+        // Validate the file_link
         if (!currentPaper.file_link) {
-          showSnackbar?.({ message: 'Na uloženie práce je potrebný súbor.', color: 'error' });
+          showSnackbar?.({ message: 'Súbor je povinný pre uloženie práce.', color: 'error' });
           return;
         }
 
         const payload = {
-          ...currentPaper,
+          title: currentPaper.title,
+          abstract: currentPaper.abstract,
+          keywords: currentPaper.keywords,
+          isFinal: currentPaper.isFinal,
+          status: currentPaper.status,
           conference: currentPaper.conference && '_id' in currentPaper.conference ? currentPaper.conference._id : undefined,
           category: currentPaper.category && '_id' in currentPaper.category ? currentPaper.category._id : undefined,
         };
 
-        await paperStore.createPaper(payload, currentPaper.file_link, false);
-        showSnackbar?.({ message: 'Práca uložená ako koncept.', color: 'success' });
+        if (dialogMode.value === 'edit' && currentPaper._id) {
+          // Update existing paper
+          await paperStore.updatePaper(currentPaper._id, payload, currentPaper.file_link);
+          showSnackbar?.({ message: 'Práca bola úspešne upravená.', color: 'success' });
+        } else {
+          //Create new paper
+          await paperStore.createPaper(payload, currentPaper.file_link, currentPaper.isFinal);
+          showSnackbar?.({ message: 'Práca uložená ako koncept.', color: 'success' });
+        }
+
         closeDialog();
       } catch (err) {
         console.error(err);
@@ -238,22 +266,62 @@ export default defineComponent({
 
     const submitPaper = async () => {
       try {
-        if (!currentPaper.file_link) {
-          showSnackbar?.({ message: 'Na uloženie práce je potrebný súbor.', color: 'error' });
+        if (!currentPaper._id) {
+          showSnackbar?.({ message: 'Práca nemá ID. Uložiť ju najprv ako koncept.', color: 'error' });
           return;
         }
-        await paperStore.createPaper(currentPaper, currentPaper.file_link, true);
+
+        const payload = { status: PaperStatus.Submitted }; // Only updating the status
+        await paperStore.updatePaper(currentPaper._id, payload);
+
         showSnackbar?.({ message: 'Práca bola úspešne odoslaná.', color: 'success' });
         closeDialog();
       } catch (err) {
         console.error(err);
-        showSnackbar?.({ message: 'Nepodarilo sa odoslať príspevok.', color: 'error' });
-
+        showSnackbar?.({ message: 'Nepodarilo sa odoslať prácu.', color: 'error' });
       }
     };
 
     const viewReview = (paper: any) => {
       console.log('View review for', paper);
+    };
+
+    //Deletion of paper
+    const confirmDeletePaper = (paper: Paper) => {
+      paperToDelete.value = paper;
+      isDeleteDialogOpen.value = true;
+    };
+
+    const deletePaper = async () => {
+      if (!paperToDelete.value) return;
+
+      if (paperToDelete.value.status !== PaperStatus.Draft) {
+        showSnackbar?.({
+          message: 'Len koncepty môžu byť vymazané.',
+          color: 'error',
+        });
+        return;
+      }
+
+      try {
+        await paperStore.deletePaper(paperToDelete.value._id);
+        showSnackbar?.({
+          message: 'Práca bola úspešne vymazaná.',
+          color: 'success',
+        });
+
+        // Refresh the list of papers after deletion
+        await paperStore.getMyPapers();
+      } catch (err) {
+        console.error('Failed to delete paper:', err);
+        showSnackbar?.({
+          message: 'Nepodarilo sa vymazať prácu.',
+          color: 'error',
+        });
+      } finally {
+        isDeleteDialogOpen.value = false;
+        paperToDelete.value = null;
+      }
     };
 
     const formatDate = (date: Date | string) => format(new Date(date), 'dd.MM.yyyy');
@@ -280,6 +348,7 @@ export default defineComponent({
       conferences,
       selectedCategory,
       user,
+      isDeleteDialogOpen,
       canEditPaper,
       canViewReview,
       isDeadlineEditable,
@@ -294,6 +363,8 @@ export default defineComponent({
       submitPaper,
       viewReview,
       resetFilters,
+      confirmDeletePaper,
+      deletePaper,
       formatDate,
     };
   },
@@ -352,6 +423,16 @@ export default defineComponent({
       <template v-slot:body="{ items }">
         <tr v-for="paper in items" :key="paper._id">
           <td>
+            <v-icon size="24"
+                    color="#BC463A"
+                    @click="confirmDeletePaper(paper)"
+                    style="cursor: pointer"
+                    v-if="paper.status == PaperStatus.Draft">
+            >
+              mdi-delete
+            </v-icon>
+          </td>
+          <td>
             <v-chip
               :color="statusColors[paper.status as keyof typeof statusColors]"
               outlined
@@ -361,7 +442,9 @@ export default defineComponent({
               {{ paper.status }}
             </v-chip>
           </td>
-          <td>{{ paper.conference.year }} - {{ formatDate(paper.conference.date) }}</td>
+          <td>
+            {{ paper.conference ? `${paper.conference.year} - ${formatDate(paper.conference.date)}` : 'N/A' }}
+          </td>
           <td>{{ paper.title }}</td>
           <td>{{ formatDate(paper.submission_date) }}</td>
           <td class="d-flex justify-end align-center">
@@ -402,6 +485,7 @@ export default defineComponent({
               :rules="[required]"
               outlined
               dense
+              class="large-text-field"
             />
             <v-menu
               v-model="menuCatOpen"
@@ -418,6 +502,7 @@ export default defineComponent({
                   dense
                   readonly
                   append-inner-icon="mdi-chevron-down"
+                  class="large-text-field"
                 />
               </template>
               <v-list>
@@ -447,6 +532,7 @@ export default defineComponent({
                   dense
                   readonly
                   append-inner-icon="mdi-chevron-down"
+                  class="large-text-field"
                 />
               </template>
               <v-list>
@@ -469,6 +555,7 @@ export default defineComponent({
               outlined
               dense
               required
+              class="large-text-field"
             />
             <v-row>
               <v-col cols="12" v-for="(author, index) in currentPaper.authors" :key="index">
@@ -479,7 +566,7 @@ export default defineComponent({
                       label="Meno"
                       outlined
                       dense
-                      class="flex-grow-1"
+                      class="flex-grow-1 large-text-field"
                       :disabled="dialogMode === 'view'"
                     />
                   </v-col>
@@ -489,21 +576,20 @@ export default defineComponent({
                       label="Priezvisko"
                       outlined
                       dense
-                      class="flex-grow-1"
+                      class="flex-grow-1 large-text-field"
                       :disabled="dialogMode === 'view'"
                     />
                   </v-col>
                   <v-col cols="2" md="1" class="d-flex justify-end">
-                    <v-btn color="error" @click="removeAuthor(index)" :disabled="dialogMode === 'view'">
+                    <v-btn color="#BC463A" @click="removeAuthor(index)">
                       <v-icon>mdi-delete</v-icon>
                     </v-btn>
                   </v-col>
                 </v-row>
               </v-col>
               <v-col cols="12" class="d-flex justify-start author">
-              <v-btn color="primary" @click="addAuthor" :disabled="dialogMode === 'view'">
-                <v-icon icon="mdi-plus-circle" start></v-icon>Ďalší autor
-              </v-btn>
+              <v-btn color="primary" @click="addAuthor">
+                <v-icon icon="mdi-plus-circle" start></v-icon>Ďalší autor</v-btn>
               </v-col>
             </v-row>
             <!-- Abstract -->
@@ -513,6 +599,7 @@ export default defineComponent({
               outlined
               dense
               required
+              class="large-text-field"
             />
             <v-file-input
               v-model="currentPaper.file_link"
@@ -521,18 +608,38 @@ export default defineComponent({
               outlined
               dense
               :disabled="dialogMode === 'view'"
-            />
+              class="large-text-field"
+            ></v-file-input>
             <v-checkbox
               v-model="currentPaper.isFinal"
+              color="red"
               label="Je toto finálna verzia? (Pre odovzdanie práce by malo byť zaškrtnuté)"
-
             />
           </v-form>
         </v-card-text>
         <v-card-actions>
           <v-btn @click="closeDialog">Zrušiť</v-btn>
-          <v-btn v-if="dialogMode !== 'view'" @click="savePaper" color="primary">Uložiť</v-btn>
-          <v-btn v-if="dialogMode !== 'view' && currentPaper.isFinal" @click="submitPaper" color="error" tonal >Odoslať</v-btn>
+          <v-btn @click="savePaper" color="primary">Uložiť</v-btn>
+          <v-btn
+            v-if="currentPaper.isFinal"
+            @click="submitPaper"
+            color="red"
+            :disabled="currentPaper.status === PaperStatus.Submitted">Odoslať</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <!-- Deletion dialog -->
+    <v-dialog v-model="isDeleteDialogOpen" max-width="500px">
+      <v-card>
+        <v-card-title class="headline">Potvrdenie vymazania</v-card-title>
+        <v-card-text>
+          Ste si istý/istá, že chcete vymazať túto prácu? Táto akcia je
+          nevratná.
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" @click="isDeleteDialogOpen = false">Zrušiť</v-btn>
+          <v-btn color="error" @click="deletePaper">Vymazať</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

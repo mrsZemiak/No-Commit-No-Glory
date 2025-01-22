@@ -64,6 +64,11 @@ export default defineComponent({
     //Provide showSnackbar to child components
     provide('showSnackbar', showSnackbar);
 
+    watch(snackbar, (newVal) => {
+      console.log('Snackbar state:', newVal);
+    });
+
+
     //Handle logout
     const logout = () => {
       authStore.logout()
@@ -100,6 +105,7 @@ export default defineComponent({
   <v-main>
     <v-container class="main-container" fluid>
       <!-- Snackbar Component -->
+      <router-view :key="$route.fullPath" />
       <v-snackbar
         v-model="snackbar.show"
         :color="snackbar.color"
@@ -111,7 +117,6 @@ export default defineComponent({
           <v-btn @click="snackbar.show = false">Zrušiť</v-btn>
         </template>
       </v-snackbar>
-      <router-view :key="$route.fullPath" />
     </v-container>
   </v-main>
 

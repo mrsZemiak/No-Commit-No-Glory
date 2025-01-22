@@ -18,7 +18,7 @@ import {
   deleteCategory,
   getConferenceById,
   getQuestionById,
-  getAdminReports, getReviewers, getPaperById, deleteQuestion, getUserById
+  getAdminReports, getReviewers, getPaperById, deleteQuestion, getUserById, getCategoryById
 } from '../controllers/admin.controller'
 import { authenticateToken } from '../middleware/authenticateToken';
 
@@ -34,6 +34,7 @@ router.get('/reviewers', getReviewers)
 
 //Categories
 router.get('/categories', getAllCategories);
+router.get('/categories/categoryId',getCategoryById)
 router.post('/categories', createCategory);
 router.patch('/categories/:categoryId', updateCategory);
 router.delete('/categories/:categoryId', deleteCategory);

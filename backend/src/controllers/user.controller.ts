@@ -151,7 +151,7 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
 //Set up Multer for avatar uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.resolve(__dirname, '../../uploads/avatars'); // Resolve relative to the current file
+    const uploadPath = path.resolve(__dirname, '../uploads/avatars'); // Resolve relative to the current file
     console.log('Resolved Upload Directory:', uploadPath);
 
     //Create the directory if it doesn't exist
@@ -208,7 +208,7 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
       delete updates.newPassword;
     }
 
-    //Handle avatar upload
+    //Handle avatar upload only if a file is provided
     if (req.file) {
       updates.avatar = `/uploads/avatars/${req.file.filename}`;
 
@@ -233,12 +233,12 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
     //Update the user
     const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true }).select('-password -refreshToken');
     res.status(200).json({
-      message: 'Profile updated successfully.',
+      message: 'Profil bol úspešne aktualizovaný.',
       user: updatedUser,
     });
   } catch (error) {
     console.error('Error updating profile:', error);
-    res.status(500).json({ message: 'Failed to update profile.', error });
+    res.status(500).json({ message: 'Aktualizácia profilu zlyhala.', error });
   }
 };
 

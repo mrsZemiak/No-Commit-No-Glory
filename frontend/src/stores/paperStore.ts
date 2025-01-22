@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import axiosInstance from '@/config/axiosConfig'
+import type { Paper } from '@/types/paper.ts'
 
 export const usePaperStore = defineStore('papers', () => {
   //Reactive state
@@ -13,7 +14,7 @@ export const usePaperStore = defineStore('papers', () => {
 
   //Actions
   /** Participant Actions **/
-  const createPaper = async (paper: any, file: File | null, isFinal: boolean) => {
+  const createPaper = async (paper: any, file: File, isFinal: boolean) => {
     try {
       const formData = new FormData();
 
@@ -90,41 +91,47 @@ export const usePaperStore = defineStore('papers', () => {
     }
   }
 
-  const updatePaper = async (id: string, updates: any, file?: File) => {
+  const updatePaper = async (id: string, updates: any, file?:File) => {
     try {
       const formData = new FormData();
 
       Object.keys(updates).forEach((key) => {
-        const value = updates[key];
-        if (value !== undefined && value !== null && key !== "file") {
-          if (typeof value === 'object' && value._id) {
-            formData.append(key, value._id);
-          } else {
+        const value = updates[key as keyof Paper];
+        if (value !== undefined && value !== null) {
+          if (key === "authors" && Array.isArray(value)) {
+            formData.append(key, JSON.stringify(value));
+          } else if (key === "file_link" && value instanceof File) {
             formData.append(key, value);
+          } else {
+            formData.append(key, value as string);
           }
         }
       });
 
-      if (file && file instanceof File) {
-        formData.append('file_link', file);
-      }
-      console.log("FormData contents before sending:");
       const response = await axiosInstance.patch(`/auth/participant/papers/${id}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
       const index = participantPapers.value.findIndex((p) => p._id === id);
       if (index !== -1) {
-        participantPapers.value[index] = {
-          ...participantPapers.value[index],
-          ...updates,
-        };
+        participantPapers.value[index] = { ...participantPapers.value[index], ...updates };
       }
 
       return response.data;
-    } catch (err: any) {
-      console.error('Failed to update paper:', err.response?.data || err.message);
+    } catch (err) {
+      console.error('Failed to update paper:', err);
       throw err;
+    }
+  };
+
+  const deletePaper = async (paperId: string) => {
+    try {
+      await axiosInstance.delete(`/auth/participant/papers/${paperId}`);
+      participantPapers.value = participantPapers.value.filter((p) => p._id !== paperId); //Remove from local state
+      console.log('Paper deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete paper:', error);
+      throw error;
     }
   };
 
@@ -134,7 +141,7 @@ export const usePaperStore = defineStore('papers', () => {
     error.value = null
     try {
       const response = await axiosInstance.get('/auth/reviewer/papers')
-      reviewerPapers.value = response.data // Fetch all assigned papers
+      reviewerPapers.value = response.data
     } catch (err) {
       error.value = 'Failed to fetch assigned papers.'
       console.error(err)
@@ -225,13 +232,13 @@ export const usePaperStore = defineStore('papers', () => {
       link.click();
     } catch (error) {
       console.error("Error downloading paper:", error);
+      throw error;
     }
   };
 
   const downloadAllPapersInConference = async (conferenceId: string | undefined) => {
     if (!conferenceId) {
       console.error('Conference ID is undefined');
-      alert('Chyba: Neznáma konferencia. Skúste to znova.');
       return;
     }
 
@@ -251,7 +258,6 @@ export const usePaperStore = defineStore('papers', () => {
       link.click();
     } catch (err) {
       console.error('Failed to download papers for conference:', err);
-      alert('Nepodarilo sa stiahnuť práce. Skúste to znova.');
       throw err;
     }
   };
@@ -270,6 +276,7 @@ export const usePaperStore = defineStore('papers', () => {
     getMyPapers,
     fetchPaperById,
     updatePaper,
+    deletePaper,
 
     //Reviewer Actions
     getAssignedPapers,

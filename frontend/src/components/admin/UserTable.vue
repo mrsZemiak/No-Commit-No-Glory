@@ -53,6 +53,7 @@ export default defineComponent({
       { title: "Meno", value: "first_name" },
       { title: "Email", value: "email" },
       { title: "Univerzita", value: "university" },
+      { title: "Fakulta", value: "faculty" },
       { title: "Role", value: "role" },
       { title: "", value: "actions", sortable: false },
     ];
@@ -237,6 +238,7 @@ export default defineComponent({
           <td>{{ user.first_name }}</td>
           <td>{{ user.email }}</td>
           <td>{{ user.university }}</td>
+          <td>{{ user.faculty }}</td>
           <td>
             <v-chip
               :color="roleColors[user.role as keyof typeof roleColors]"
@@ -298,6 +300,6 @@ export default defineComponent({
   </v-dialog>
 </template>
 
-<style scoped>
+<style>
 
 </style>

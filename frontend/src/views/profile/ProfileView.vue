@@ -19,27 +19,28 @@ export default defineComponent({
       newPassword: '',
     });
 
-    const profile = computed(() => userStore.userProfile|| {});
+    const userProfile = computed(() => userStore.userProfile);
     const isLoading = ref(false);
 
     const toggleEditMode = () => {
       editMode.value = !editMode.value;
       if (editMode.value) {
-        Object.assign(profileData, { ...profile.value, avatar: null });
+        Object.assign(profileData, { ...userProfile.value });
+        profileData.avatar = null;
+      } else {
+        profileData.avatar = userProfile.value.avatar;
       }
     };
 
     const saveProfile = async () => {
       isLoading.value = true;
       try {
-        console.log("Profile Data before sending:", profileData);
-
-        const updatedProfile = await userStore.updateUserProfile(
+        await userStore.updateUserProfile(
           profileData,
           profileData.avatar instanceof File ? profileData.avatar : undefined
         );
 
-        userStore.setUserProfile(updatedProfile);
+        await userStore.fetchUserProfile();
         toggleEditMode();
       } catch (error) {
         console.error("Failed to save profile:", error);
@@ -56,20 +57,25 @@ export default defineComponent({
       }
     });
 
+    watch(userProfile, (newProfile) => {
+      console.log("User Profile Updated:", newProfile);
+    });
+
     const avatarUrl = computed(() =>
       profileData.avatar instanceof File
         ? URL.createObjectURL(profileData.avatar)
-        : profile.value.avatar
-          ? `${import.meta.env.VITE_API_URL}${profile.value.avatar}`
+        : userProfile.value?.avatar
+          ? `${import.meta.env.VITE_API_URL}${userProfile.value.avatar}`
           : defaultAvatar
     );
 
     onMounted(async () => {
-        await userStore.fetchUserProfile();
+      await userStore.fetchUserProfile();
+      console.log("Fetched User Profile:", userStore.userProfile);
     });
 
     return {
-      profile,
+      userProfile,
       profileData,
       editMode,
       isLoading,
@@ -95,11 +101,13 @@ export default defineComponent({
 
         <!-- Profile Info -->
         <v-col cols="12" md="3">
-          <h3>{{ profile?.first_name }} {{ profile?.last_name }}</h3>
-          <p>{{ profile?.university }}, {{ profile?.faculty }}</p>
+          <h3>{{ userProfile?.first_name }} {{ userProfile?.last_name }}</h3>
+          <p>{{ userProfile?.faculty }}</p>
+          <p class="uni">{{ userProfile?.university }}</p>
+
         </v-col>
         <v-col cols="12" md="4">
-          <p>{{ profile?.about }}</p>
+          <p class="about">{{ userProfile?.about }}</p>
         </v-col>
 
         <!-- Edit Button -->
@@ -216,9 +224,16 @@ export default defineComponent({
     color: #116466;
   }
 
-  p {
+  .uni {
+  font-weight: bold;
+  }
+ p {
+   font-size: 1.2rem;
+ }
+  .about {
     color: #2c3531;
     font-style: oblique;
+    font-size: 1rem;
   }
 }
 

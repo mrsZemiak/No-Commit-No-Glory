@@ -3,34 +3,34 @@ import { ref } from 'vue'
 import axiosInstance from '@/config/axiosConfig'
 
 export const useReviewStore = defineStore('reviews', () => {
-  // Reactive state
+  //Reactive state
   const reviewerReviews = ref<Array<any>>([]) // Reviews submitted by the reviewer
   const participantReviews = ref<Array<any>>([]) // Reviews visible to participants
   const loading = ref(false)
   const error = ref<string | null>(null)
 
-  // Actions
-
-  // Reviewer: Submit a new review
+  //Actions
+  //Save and submit a new review
   const submitReview = async (review: {
-    paperId: string
-    reviewerId: string
-    responses: Array<any>
-    recommendation: 'Publikovať' | 'Publikovať_so_zmenami' | 'Odmietnuť'
+    paperId: string;
+    reviewerId: string;
+    responses: Array<{ question: string; answer: string | number | null }>;
+    recommendation: 'Publikovať' | 'Publikovať_so_zmenami' | 'Odmietnuť';
+    isDraft: boolean; // Added parameter to differentiate draft vs submission
   }) => {
     try {
-      const response = await axiosInstance.post(
-        '/auth/reviewer/reviews',
-        review,
-      )
-      return response.data
+      const response = await axiosInstance.post('/auth/reviewer/reviews', {
+        ...review,
+        isDraft: review.isDraft, //Pass the draft state
+      });
+      return response.data;
     } catch (err) {
-      console.error('Failed to submit review:', err)
-      throw err
+      console.error('Failed to submit review:', err);
+      throw err;
     }
-  }
+  };
 
-  // Reviewer: Fetch all own reviews
+  //Fetch all own reviews
   const getReviewerReviews = async () => {
     loading.value = true
     error.value = null

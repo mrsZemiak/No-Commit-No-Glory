@@ -12,6 +12,7 @@ export interface IReview extends Document {
   comments?: string; // additional comments
   recommendation: 'Publikovať' | 'Publikovať_so_zmenami' | 'Odmietnuť';
   created_at: Date;
+  isDraft: boolean;
 }
 
 const ReviewSchema: Schema = new Schema({
@@ -30,6 +31,7 @@ const ReviewSchema: Schema = new Schema({
     required: true,
   },
   created_at: { type: Date, default: Date.now },
+  isDraft: { type: Boolean, default: false },
 },{ collection: 'reviews' });
 
 export default mongoose.model<IReview>('Review', ReviewSchema);

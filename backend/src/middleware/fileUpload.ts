@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
         return;
       }
 
-      const uploadPath = path.resolve(__dirname, `../../uploads/docs/${conferenceId}`);
+      const uploadPath = path.resolve(__dirname, `../uploads/docs/${conferenceId}`);
 
       // Ensure the directory exists
       await fs.mkdir(uploadPath, { recursive: true });

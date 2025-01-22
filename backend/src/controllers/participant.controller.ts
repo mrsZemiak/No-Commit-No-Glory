@@ -5,15 +5,12 @@ import Category from '../models/Category'
 import Conference from '../models/Conference'
 import { sendEmail } from '../utils/emailService'
 import User from '../models/User'
-import paperUpload from '../middleware/fileUpload'
 import path from 'path'
 import fs from 'fs'
 
 
 // Submit a new paper
-export const submitPaper = [
-  paperUpload.single("paper"), // Middleware for handling file uploads
-  async (req: AuthRequest, res: Response): Promise<void> => {
+export const createPaper= async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.user?.userId;
       if (!userId) {
@@ -70,8 +67,7 @@ export const submitPaper = [
       console.error("Error submitting paper:", error);
       res.status(500).json({ message: "Nepodarilo sa odoslať prácu.", error });
     }
-  },
-];
+  };
 
 
 //View all papers submitted by the user
@@ -108,9 +104,6 @@ export const getPaperById = async (req: AuthRequest, res: Response): Promise<voi
       return;
     }
 
-    // Dynamically calculate if resubmission is allowed
-    const resubmissionAllowed = paper.deadline_date ? new Date() <= paper.deadline_date : false;
-
     res.status(200).json(paper);
   } catch (error) {
     console.error("Error fetching paper by ID:", error);
@@ -118,15 +111,13 @@ export const getPaperById = async (req: AuthRequest, res: Response): Promise<voi
   }
 };
 
-export const editPaper = [
-  paperUpload.single("paper"),
-  async (req: AuthRequest, res: Response): Promise<void> => {
+export const editPaper = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
       const userId = req.user?.userId;
       const { paperId } = req.params;
       const updates = req.body;
 
-      // Ensure the paper belongs to the user
+      //Ensure the paper belongs to the user
       const paper = await Paper.findOne({ _id: paperId, user: userId });
       if (!paper) {
         res.status(404).json({ message: "Práca nebola nájdená alebo nemáte oprávnenie na jej úpravu." });
@@ -134,7 +125,6 @@ export const editPaper = [
       }
 
       // Remove restricted fields from updates
-      delete updates.status;
       delete updates.user;
       delete updates.deadline_date;
       delete updates.reviewer;
@@ -154,22 +144,18 @@ export const editPaper = [
             console.warn("Failed to delete old file:", err);
           }
         }
-
-        // Update the file path
         paper.file_link = newFilePath;
       }
 
-      // Update other fields
       Object.assign(paper, updates);
-
-      // Automatically set status to "Draft" if `isFinal` is not true
+    /*
       if (!updates.isFinal) {
         paper.status = PaperStatus.Draft;
       } else {
         paper.status = PaperStatus.Submitted;
       }
+     */
 
-      // Set default deadline_date if not provided
       if (!paper.deadline_date) {
         const conference = await Conference.findById(paper.conference);
         if (conference) {
@@ -187,10 +173,9 @@ export const editPaper = [
       console.error("Error editing paper:", error);
       res.status(500).json({ message: "Nepodarilo sa aktualizovať prácu.", error });
     }
-  },
-];
+  };
 
-//Get Conferences (only with statusAktuálna)
+//Get Conferences (only with status Aktuálna)
 export const getConferences = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     const currentDate = new Date();
@@ -205,6 +190,31 @@ export const getConferences = async (_req: AuthRequest, res: Response): Promise<
   }
 };
 
+export const deletePaper = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { paperId } = req.params;
+    const paper = await Paper.findById(paperId);
+
+    if (!paper) {
+      res.status(404).json({ message: 'Práca nebola nájdená.' });
+      return;
+    }
+
+    if (paper.status !== 'Draft') {
+     res
+        .status(400)
+        .json({ message: 'Len koncepty môžu byť vymazané.' });
+      return;
+    }
+
+    await Paper.findByIdAndDelete(paperId);
+    res.status(200).json({ message: 'Práca bola úspešne vymazaná.' });
+  } catch (error) {
+    console.error('Error deleting paper:', error);
+    res.status(500).json({ message: 'Nepodarilo sa vymazať prácu.' });
+  }
+}
+
 //Get Categories (only active)
 export const getCategories = async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -216,7 +226,7 @@ export const getCategories = async (_req: AuthRequest, res: Response): Promise<v
   }
 };
 
-// Notify participant about status or review
+//Notify participant about status or review
 export const notifyParticipant = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { userId, paperId, newStatus } = req.body;

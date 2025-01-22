@@ -1,10 +1,11 @@
 <script lang="ts">
-import { defineComponent, onMounted, ref, computed, reactive } from 'vue'
+import { defineComponent, onMounted, ref, computed, reactive, inject } from 'vue'
 import { usePaperStore } from "@/stores/paperStore";
 import { format } from "date-fns";
 import { sk } from "date-fns/locale";
 import { useUserStore } from '@/stores/userStore.ts'
 import { type AdminPaper, PaperStatus } from '@/types/paper'
+import axios from 'axios'
 
 export default defineComponent({
   name: "ConferencePapers",
@@ -16,25 +17,43 @@ export default defineComponent({
   setup() {
     const paperStore = usePaperStore();
     const userStore = useUserStore();
-
-    //Track which conference is expanded
     const expandedConferenceId = ref<string | null>(null);
+    const isPaperViewDialogOpen = ref(false);
+    const isAssignReviewerDialogOpen = ref(false);
+    const isDropdownOpen = ref(false);
+    const selectedPaper = ref<AdminPaper | null>(null);
+    const selectedReviewer = ref<any>(null);
 
-    //Filters for conferences
+    //Table headers for papers
+    const tableHeaders = [
+      { title: "", value: "view", sortable: false },
+      { title: "Status", value: "status" },
+      { title: "Autor", value: "user" },
+      { title: "Sekcia", value: "category" },
+      { title: "Recenzent", value: "reviewer" },
+      { title: "Deadline", value: "deadline_date" },
+      { title: "", value: "actions", sortable: false },
+    ];
+
+    /** Global showSnackbar function **/
+    const showSnackbar = inject("showSnackbar") as ({ message, color, }: {
+      message: string;
+      color?: string;
+    }) => void;
+
+    if (!showSnackbar) {
+      console.error("showSnackbar is not provided");
+    }
+
+    /** Filters for conferences and pagination **/
+    const itemsPerPage = 5; // Maximum conferences per page
+    const currentPage = ref(1);
+
     const conferenceFilters = reactive({
       year: null,
       location: "",
     });
 
-    const itemsPerPage = 5; // Maximum conferences per page
-    const currentPage = ref(1);
-
-    //Filters for papers
-    const paperFilters = reactive({
-      selectedStatus: null as PaperStatus | null,
-    });
-
-    //Filtered conferences
     const filteredConferences = computed(() => {
       return groupedPapers.value.filter((conference) => {
         return (
@@ -56,48 +75,88 @@ export default defineComponent({
       return filteredConferences.value.slice(start, end);
     });
 
-    //Filtered papers for selected conference
-    const filteredPapers = computed(() => {
-      return paperStore.adminPapers.filter((paper) => {
-        // Ensure the paper belongs to the expanded conference
-        const belongsToConference =
-          expandedConferenceId.value === paper.conference?._id;
+    //Toggle visibility of papers for a conference
+    const toggleConference = (conferenceId: string | null) => {
+      expandedConferenceId.value =
+        expandedConferenceId.value === conferenceId ? null : conferenceId;
+    };
 
-        // Check if the paper matches the selected status filter
-        const matchesStatus =
-          !paperFilters.selectedStatus ||
-          paper.status === paperFilters.selectedStatus;
+    const downloadAllPapers = async (conferenceId: string) => {
+      if (!conferenceId) {
+        console.error("Conference ID is missing");
+        showSnackbar?.({
+          message: "Chýba ID konferencie.",
+          color: "error",
+        });
+        return;
+      }
 
-        // Include the paper if it belongs to the conference and matches the filter
-        return belongsToConference && matchesStatus;
-      }) .sort((a, b) => {
-        // Sort by submission_date, newest first
-        const dateA = new Date(a.submission_date).getTime();
-        const dateB = new Date(b.submission_date).getTime();
-        return dateB - dateA; // Newest papers on top
-      });
+      try {
+        console.log("Downloading all papers for conference ID:", conferenceId);
+        await paperStore.downloadAllPapersInConference(conferenceId);
+        console.log("Download successful");
+        showSnackbar?.({
+          message: "Stiahnutie prác bolo úspešné.",
+          color: "success",
+        });
+      } catch (error) {
+        console.error("Failed to download papers:", error);
+        if (axios.isAxiosError(error)) {
+          const errorMessage =
+            error.response?.data?.message || "Nepodarilo sa stiahnuť práce.";
+          showSnackbar?.({
+            message: errorMessage,
+            color: "error",
+          });
+        } else {
+          showSnackbar?.({
+            message: "Neočakávaná chyba pri sťahovaní.",
+            color: "error",
+          });
+        }
+      }
+    };
+
+    /** Filters for papers **/
+    const paperFilters = reactive({
+      selectedStatus: null as PaperStatus | null,
     });
 
-    //Reset filters
+    //Filtered papers for selected conference
+    const filteredPapers = computed(() => {
+      return paperStore.adminPapers
+        .filter((paper) => paper.status !== PaperStatus.Draft) // Exclude drafts
+        .filter((paper) => {
+          // Ensure the paper belongs to the expanded conference
+          const belongsToConference =
+            expandedConferenceId.value === paper.conference?._id;
+
+          // Check if the paper matches the selected status filter
+          const matchesStatus =
+            !paperFilters.selectedStatus ||
+            paper.status === paperFilters.selectedStatus;
+
+          // Include the paper if it belongs to the conference and matches the filter
+          return belongsToConference && matchesStatus;
+        })
+        .sort((a, b) => {
+          // Sort by submission_date, newest first
+          const dateA = new Date(a.submission_date).getTime();
+          const dateB = new Date(b.submission_date).getTime();
+          return dateB - dateA; // Newest papers on top
+        });
+    });
+
     const resetFilters = () => {
       paperFilters.selectedStatus = null;
     };
 
-    //Table headers for papers
-    const tableHeaders = [
-      { title: "", value: "view", sortable: false },
-      { title: "Status", value: "status" },
-      { title: "Autor", value: "user" },
-      { title: "Sekcia", value: "category" },
-      { title: "Recenzent", value: "reviewer" },
-      { title: "Deadline", value: "deadline_date" },
-      { title: "", value: "actions", sortable: false },
-    ];
-
     //Group papers by conference
     const groupedPapers = computed(() => {
       const groups: { [key: string]: any } = {};
-      paperStore.adminPapers.forEach((paper) => {
+      paperStore.adminPapers
+        .filter((paper) => paper.status !== PaperStatus.Draft)
+        .forEach((paper) => {
         const { conference } = paper;
         if (!conference || !conference._id) return;
         if (!groups[conference._id]) {
@@ -115,32 +174,30 @@ export default defineComponent({
       );
     });
 
-    const isPaperViewDialogOpen = ref(false);
-    const isAssignReviewerDialogOpen = ref(false);
-    const isDropdownOpen = ref(false);
-    const selectedPaper = ref<AdminPaper | null>(null);
-    const selectedReviewer = ref<any>(null);
-
-    //Preprocess reviewers to include fullName
-    const availableReviewers = computed(() =>
-      userStore.reviewers.map((user) => ({
-        ...user,
-        fullName: `${user.first_name} ${user.last_name}`,
-      }))
-    );
-
+    //Show paper details
     const viewPaper = async (paper: AdminPaper) => {
       try {
         selectedPaper.value = await paperStore.getPaperById(paper._id);
         isPaperViewDialogOpen.value = true;
       } catch (error) {
         console.error("Error fetching paper details:", error);
+        showSnackbar?.({
+          message: "Nepodarilo sa načítať podrobnosti o práci.",
+          color: "error",
+        });
       }
     };
 
-    //Deadline changes
+    /** Deadline changes **/
     const isDeadlineDialogOpen = ref(false);
     const newDeadline = ref<Date | null>(null);
+
+    const isDeadlineDisabled = (conference: any) => {
+      if (!conference.date) return true; // if no date, disable the deadline button
+      const currentDate = new Date();
+      const conferenceEndDate = new Date(conference.date);
+      return currentDate > conferenceEndDate; // disable if the conference has ended
+    };
 
     const openDeadlineDialog = (paper: AdminPaper) => {
       selectedPaper.value = paper;
@@ -155,26 +212,34 @@ export default defineComponent({
         await paperStore.updateDeadline(selectedPaper.value._id, newDeadline.value); // Send Date object directly
         console.log("Deadline updated successfully!");
         isDeadlineDialogOpen.value = false;
+        showSnackbar?.({
+          message: "Deadline bol úspešne aktualizovaný.",
+          color: "success",
+        });
       } catch (error) {
         console.error("Error updating deadline:", error);
+        showSnackbar?.({
+          message: "Nepodarilo sa aktualizovať deadline.",
+          color: "error",
+        });
       }
     };
 
+    /** Dialog for assigning a reviewer**/
+    //Preprocess reviewers to include fullName
+    const availableReviewers = computed(() =>
+      userStore.reviewers.map((user) => ({
+        ...user,
+        fullName: `${user.first_name} ${user.last_name}`,
+      }))
+    );
+
     const isReviewerDisabled = (paper: AdminPaper) => {
-      return !!paper.reviewer; // Disable if reviewer exists
+      return !!paper.reviewer; // disable if reviewer exists
     };
 
-    const isDeadlineDisabled = (conference: any) => {
-      if (!conference.date) return true; // If no date, disable the deadline button
-      const currentDate = new Date();
-      const conferenceEndDate = new Date(conference.date);
-      return currentDate > conferenceEndDate; // Disable if the conference has ended
-    };
-
-    //Open dialog for assigning a reviewer
     const openAssignReviewerDialog = (paper: AdminPaper) => {
       selectedPaper.value = paper;
-      // Fetch reviewers if not already fetched
       if (!userStore.reviewers.length) {
         userStore.fetchReviewers();
       }
@@ -193,10 +258,6 @@ export default defineComponent({
       isDropdownOpen.value = false; // Close dropdown after selection
     };
 
-    const closeAssignReviewerDialog = () => {
-      isAssignReviewerDialogOpen.value = false;
-    };
-
     //Assign reviewer to the selected paper
     const assignReviewer = async () => {
       if (!selectedPaper.value || !selectedReviewer.value) return;
@@ -208,15 +269,21 @@ export default defineComponent({
         );
         closeAssignReviewerDialog();
         console.log("Reviewer assigned successfully!");
+        showSnackbar?.({
+          message: "Recenzent bol úspešne priradený.",
+          color: "success",
+        });
       } catch (error) {
         console.error("Error assigning reviewer:", error);
+        showSnackbar?.({
+          message: "Nepodarilo sa priradiť recenzenta.",
+          color: "error",
+        });
       }
     };
 
-    //Toggle visibility of papers for a conference
-    const toggleConference = (conferenceId: string | null) => {
-      expandedConferenceId.value =
-        expandedConferenceId.value === conferenceId ? null : conferenceId;
+    const closeAssignReviewerDialog = () => {
+      isAssignReviewerDialogOpen.value = false;
     };
 
     //Format dates as dd.MM.yyyy
@@ -228,22 +295,7 @@ export default defineComponent({
         : format(parsedDate, "dd.MM.yyyy", { locale: sk });
     };
 
-    const downloadAllPapers = async (conferenceId: string) => {
-      if (!conferenceId) {
-        console.error("Conference ID is missing");
-        return;
-      }
-
-      try {
-        console.log("Downloading all papers for conference ID:", conferenceId);
-        await paperStore.downloadAllPapersInConference(conferenceId);
-        console.log("Download successful");
-      } catch (error) {
-        console.error("Failed to download papers:", error);
-      }
-    };
-
-    //Fetch admin papers on mount
+    //Fetch admin papers and reviewers
     onMounted(() => {
       paperStore.getAllPapers().then(() => {
         console.log("Papers from API:", paperStore.adminPapers);
@@ -309,7 +361,7 @@ export default defineComponent({
         <v-col cols="6" md="3">
           <v-text-field
             v-model="conferenceFilters.year"
-            label="Filter by Year"
+            label="Filtrovať podľa roku"
             type="number"
             outlined
             dense
@@ -318,7 +370,7 @@ export default defineComponent({
         <v-col cols="6" md="3">
           <v-text-field
             v-model="conferenceFilters.location"
-            label="Filter by Location"
+            label="Filtrovať podľa miesta"
             outlined
             dense
           />
@@ -383,7 +435,7 @@ export default defineComponent({
                       />
                     </v-col>
                     <v-col cols="4" md="2">
-                      <v-btn color="primary" @click="resetFilters" small>Zrušiť filter</v-btn>
+                      <v-btn color="primary" small @click="resetFilters">Zrušiť filter</v-btn>
                     </v-col>
                   </v-row>
                 </v-card-subtitle>
@@ -439,7 +491,9 @@ export default defineComponent({
                         {{ paper.user?.first_name }} {{ paper.user?.last_name }}
                       </td>
                       <td>{{ paper.category?.name }}</td>
-                      <td>{{ paper.reviewer?.email || "potrebné priradiť" }}</td>
+                      <td :class="{ 'text-red': !paper.reviewer }">
+                        {{ paper.reviewer?.email || "potrebné priradiť" }}
+                      </td>
                       <td>{{ formatDate(paper.deadline_date) }}</td>
                       <td class="d-flex justify-end align-center">
                         <!-- Assign Reviewer -->
