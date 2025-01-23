@@ -1,12 +1,13 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
+import { IUser } from './User'
 
 export enum PaperStatus {
-  Draft = 'Draft',
-  Submitted = 'Odovzdaná',
-  UnderReview = 'Posudzovanie',
-  Accepted = 'Prijatá',
-  AcceptedWithChanges = 'Prijatá_so_zmenami',
-  Rejected = 'Odmietnutá',
+  Draft = "Draft",
+  Submitted = "Odovzdaná",
+  UnderReview = "Posudzovanie",
+  Accepted = "Prijatá",
+  AcceptedWithChanges = "Prijatá_so_zmenami",
+  Rejected = "Odmietnutá",
 }
 
 export interface IPaper extends Document {
@@ -21,9 +22,9 @@ export interface IPaper extends Document {
   authors: { firstName: string; lastName: string }[];
   file_link: string;
   isFinal: boolean;
-  deadline_date?: Date;
-  reviewer?: mongoose.Schema.Types.ObjectId;
-  review?: mongoose.Types.ObjectId;
+  deadline_date: Date;
+  reviewer: mongoose.Schema.Types.ObjectId | IUser;
+  review: mongoose.Types.ObjectId;
 }
 
 const PaperSchema: Schema = new Schema({
@@ -35,21 +36,35 @@ const PaperSchema: Schema = new Schema({
     default: PaperStatus.Draft,
   },
   submission_date: { type: Date, required: true },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
-  conference: { type: mongoose.Schema.Types.ObjectId, ref: 'Conference', required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  category: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+    required: true,
+  },
+  conference: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Conference",
+    required: true,
+  },
   abstract: { type: String, required: true },
   keywords: { type: [String], required: true },
-  authors: [{
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true }
-  }],
+  authors: [
+    {
+      firstName: { type: String, required: true },
+      lastName: { type: String, required: true },
+    },
+  ],
   file_link: { type: String, required: true },
   isFinal: { type: Boolean, default: false },
   deadline_date: { type: Date, required: false },
-  reviewer: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
-  review: { type: Schema.Types.ObjectId, ref: "Review" },
-  awarded: { type: Boolean, default: false }
+  reviewer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: false,
+  },
+  review: { type: Schema.Types.ObjectId, ref: "Review", required: false  },
+  awarded: { type: Boolean, default: false },
 });
 
-export default mongoose.model<IPaper>('Paper', PaperSchema);
+export default mongoose.model<IPaper>("Paper", PaperSchema);

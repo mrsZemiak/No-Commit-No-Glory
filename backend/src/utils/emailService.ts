@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
-import { config } from '../config'
-import path from 'path'
+import { config } from "../config";
+import path from "path";
 
 interface EmailOptions {
   to: string;
@@ -24,7 +24,6 @@ const transporter = nodemailer.createTransport({
     pass: config.emailPass,
   },
 } as nodemailer.TransportOptions);
-
 
 //Sends an email with the given options.
 export const sendEmail = async (options: EmailOptions) => {
@@ -53,8 +52,7 @@ export const sendEmail = async (options: EmailOptions) => {
   }
 };
 
-
- //Generates a verification email template
+//Generates a verification email template
 export const generateVerificationEmail = (verificationUrl: string): string => `
     <div style="position: relative; font-family: Arial, sans-serif; line-height: 1.6; color: #2C3531; background-color: #F7F7F7; padding: 20px; border: 1px solid #DDD; border-radius: 8px; max-width: 600px; margin: auto;">
         <div style="text-align: center; margin: 0; padding: 0;">
@@ -71,4 +69,3 @@ export const generateVerificationEmail = (verificationUrl: string): string => `
         <hr style="border: none; border-top: 1px solid #DDD; margin: 20px 0;">
         <p style="font-size: 12px; color: #888; text-align: center;">Ak ste si účet nevytvorili, môžete tento e-mail ignorovať.</p>
     </div>`;
-

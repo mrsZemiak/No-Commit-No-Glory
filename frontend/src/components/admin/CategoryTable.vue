@@ -6,13 +6,16 @@ export default defineComponent({
   name: 'CategoryTable',
   setup() {
     //Access the global showSnackbar function
-    const showSnackbar = inject("showSnackbar") as ({ message, color, }: {
-      message: string;
-      color?: string;
-    }) => void;
+    const showSnackbar = inject('showSnackbar') as ({
+      message,
+      color,
+    }: {
+      message: string
+      color?: string
+    }) => void
 
     if (!showSnackbar) {
-      console.error("showSnackbar is not provided");
+      console.error('showSnackbar is not provided')
     }
 
     const categoryStore = useCategoryStore()
@@ -52,28 +55,28 @@ export default defineComponent({
           await categoryStore.addCategory({
             name: currentCategory.name,
             isActive: currentCategory.isActive,
-          });
+          })
           showSnackbar?.({
-            message: "Kategória bola úspešne pridaná.",
-            color: "success",
-          });
+            message: 'Kategória bola úspešne pridaná.',
+            color: 'success',
+          })
         } else {
           await categoryStore.updateCategory(currentCategory._id, {
             name: currentCategory.name,
             isActive: currentCategory.isActive,
-          });
+          })
           showSnackbar?.({
-            message: "Kategória bola úspešne aktualizovaná.",
-            color: "success",
-          });
+            message: 'Kategória bola úspešne aktualizovaná.',
+            color: 'success',
+          })
         }
         closeDialog()
       } catch (error) {
-        console.error('Error saving category:', error);
+        console.error('Error saving category:', error)
         showSnackbar?.({
-          message: "Nepodarilo sa uložiť kategóriu.",
-          color: "error",
-        });
+          message: 'Nepodarilo sa uložiť kategóriu.',
+          color: 'error',
+        })
       }
     }
 
@@ -93,17 +96,17 @@ export default defineComponent({
 
     const deleteCategory = async () => {
       try {
-        await categoryStore.deleteCategory(currentCategory._id);
+        await categoryStore.deleteCategory(currentCategory._id)
         showSnackbar?.({
-          message: "Kategória bola úspešne odstránená.",
-          color: "success",
-        });
+          message: 'Kategória bola úspešne odstránená.',
+          color: 'success',
+        })
       } catch (error) {
-        console.error('Error deleting category:', error);
+        console.error('Error deleting category:', error)
         showSnackbar?.({
-          message: "Nepodarilo sa odstrániť kategóriu.",
-          color: "error",
-        });
+          message: 'Nepodarilo sa odstrániť kategóriu.',
+          color: 'error',
+        })
       } finally {
         closeDeleteDialog()
       }
@@ -140,7 +143,8 @@ export default defineComponent({
       <div class="d-flex justify-space-between align-center w-100">
         <h3>Správa kategórií</h3>
         <v-btn color="primary" class="add_new" @click="openDialog('add')"
-        ><v-icon left class="add_icon">mdi-plus-circle-outline</v-icon>Pridať kategóriu</v-btn
+          ><v-icon left class="add_icon">mdi-plus-circle-outline</v-icon>Pridať
+          kategóriu</v-btn
         >
       </div>
     </v-card-title>

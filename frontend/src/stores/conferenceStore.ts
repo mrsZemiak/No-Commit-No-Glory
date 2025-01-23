@@ -6,7 +6,7 @@ import type { ParticipantConference } from '@/types/conference.ts'
 export const useConferenceStore = defineStore('conferences', () => {
   //Reactive state
   const adminConferences = ref<Array<any>>([])
-  const participantConferences = ref<ParticipantConference[]>([]);
+  const participantConferences = ref<ParticipantConference[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
   const filters = ref({
@@ -112,7 +112,7 @@ export const useConferenceStore = defineStore('conferences', () => {
     error.value = null
     try {
       const response = await axiosInstance.get('/auth/participant/conferences')
-      participantConferences.value = response.data as ParticipantConference[];
+      participantConferences.value = response.data as ParticipantConference[]
     } catch (err) {
       error.value = 'Failed to fetch participant conferences.'
       console.error(err)

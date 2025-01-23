@@ -1,17 +1,21 @@
-import { Request, Response } from 'express';
-import argon2 from 'argon2';
-import jwt from 'jsonwebtoken';
-import multer from 'multer';
-import { config } from '../config';
-import { AuthRequest } from '../middleware/authenticateToken';
-import User, { UserStatus } from '../models/User'
-import { generateVerificationEmail, sendEmail } from '../utils/emailService'
-import fs from 'fs';
-import path from 'path';
+import { Request, Response } from "express";
+import argon2 from "argon2";
+import jwt from "jsonwebtoken";
+import multer from "multer";
+import { config } from "../config";
+import { AuthRequest } from "../middleware/authenticateToken";
+import User, { UserStatus } from "../models/User";
+import { generateVerificationEmail, sendEmail } from "../utils/emailService";
+import fs from "fs";
+import path from "path";
 
-export const registerUser = async (req: Request, res: Response): Promise<void> => {
+export const registerUser = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
-    const { first_name, last_name, email, password, university, role } = req.body;
+    const { first_name, last_name, email, password, university, role } =
+      req.body;
 
     // Check if the user already exists
     const existingUser = await User.findOne({ email });
@@ -39,7 +43,11 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
     });
 
     // Generate JWT for email verification
-    const verificationToken = jwt.sign({ userId: newUser._id }, config.jwtSecret, { expiresIn: "1h" });
+    const verificationToken = jwt.sign(
+      { userId: newUser._id },
+      config.jwtSecret,
+      { expiresIn: "1h" },
+    );
 
     newUser.verificationToken = verificationToken;
 
@@ -53,19 +61,32 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       html: generateVerificationEmail(verificationUrl),
     });
 
-    res.status(201).json({ message: "User registered successfully. Check your email for verification." });
+    res
+      .status(201)
+      .json({
+        message:
+          "User registered successfully. Check your email for verification.",
+      });
   } catch (error) {
     console.error("Error registering user:", error);
     res.status(500).json({ message: "Failed to register user.", error });
   }
 };
 
-export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
+export const verifyEmail = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { token } = req.query;
 
-    const decoded = jwt.verify(token as string, config.jwtSecret) as { userId: string };
-    const user = await User.findOne({ _id: decoded.userId, verificationToken: token });
+    const decoded = jwt.verify(token as string, config.jwtSecret) as {
+      userId: string;
+    };
+    const user = await User.findOne({
+      _id: decoded.userId,
+      verificationToken: token,
+    });
 
     if (!user) {
       return res.redirect(`${config.baseFrontendUrl}/email-verified-failure`);
@@ -77,22 +98,23 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
 
     // Update user verification status
     user.isVerified = true;
-    user.status = user.role !== "admin" ? UserStatus.Active : UserStatus.Pending;
+    user.status =
+      user.role !== "admin" ? UserStatus.Active : UserStatus.Pending;
     user.verificationToken = null; // Clear the token
     await user.save();
 
     res.redirect(`${config.baseFrontendUrl}/email-verified-success`);
   } catch (error) {
-    if (error === 'TokenExpiredError') {
+    if (error === "TokenExpiredError") {
       // Token expired, suggest requesting a new verification link
       res.status(400).json({
-        message: 'Email verification failed',
+        message: "Email verification failed",
         error: error,
-        suggestion: 'Request a new email verification link.',
+        suggestion: "Request a new email verification link.",
       });
       return;
     }
-    console.error('Error verifying email:', error);
+    console.error("Error verifying email:", error);
     //res.status(500).json({ message: 'Email verification failed', error });
     res.redirect(`${config.baseFrontendUrl}/email-verified-failure`);
   }
@@ -130,7 +152,10 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
 */
 
 //User profile data
-export const getUserProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getUserProfile = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const userId = req.user?.userId;
 
@@ -147,12 +172,11 @@ export const getUserProfile = async (req: AuthRequest, res: Response): Promise<v
   }
 };
 
-
 //Set up Multer for avatar uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.resolve(__dirname, '../uploads/avatars'); // Resolve relative to the current file
-    console.log('Resolved Upload Directory:', uploadPath);
+    const uploadPath = path.resolve(__dirname, '../upload/avatars'); // Resolve relative to the current file
+    console.log("Resolved Upload Directory:", uploadPath);
 
     //Create the directory if it doesn't exist
     if (!fs.existsSync(uploadPath)) {
@@ -169,20 +193,25 @@ const storage = multer.diskStorage({
 export const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png/;
-    const isAllowed = allowedTypes.test(file.mimetype) && allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const allowedTypes = /jpeg|jpg|png|gif/;
+    const isAllowed =
+      allowedTypes.test(file.mimetype) &&
+      allowedTypes.test(path.extname(file.originalname).toLowerCase());
     if (isAllowed) {
       cb(null, true);
     } else {
-      cb(new Error('Only JPEG, JPG, and PNG files are allowed.'));
+      cb(new Error("Only JPEG, JPG, GIF and PNG files are allowed."));
     }
   },
 });
 
 //Profile update
-export const updateUserProfile = async (req: AuthRequest, res: Response): Promise<void> => {
-  console.log('Request body:', req.body);
-  console.log('Uploaded file:', req.file);
+export const updateUserProfile = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
+  console.log("Request body:", req.body);
+  console.log("Uploaded file:", req.file);
   try {
     const userId = req.user?.userId;
 
@@ -197,7 +226,10 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
 
     // Handle password change
     if (updates.currentPassword && updates.newPassword) {
-      const isMatch = await argon2.verify(user.password, updates.currentPassword);
+      const isMatch = await argon2.verify(
+        user.password,
+        updates.currentPassword,
+      );
       if (!isMatch) {
         res.status(400).json({ message: "Incorrect current password." });
         return;
@@ -231,14 +263,15 @@ export const updateUserProfile = async (req: AuthRequest, res: Response): Promis
     delete updates.role;
 
     //Update the user
-    const updatedUser = await User.findByIdAndUpdate(userId, updates, { new: true }).select('-password -refreshToken');
+    const updatedUser = await User.findByIdAndUpdate(userId, updates, {
+      new: true,
+    }).select("-password -refreshToken");
     res.status(200).json({
-      message: 'Profil bol úspešne aktualizovaný.',
+      message: "Profil bol úspešne aktualizovaný.",
       user: updatedUser,
     });
   } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).json({ message: 'Aktualizácia profilu zlyhala.', error });
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "Aktualizácia profilu zlyhala.", error });
   }
 };
-

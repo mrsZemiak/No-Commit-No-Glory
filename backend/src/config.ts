@@ -6,4 +6,5 @@ export const config = {
   emailPass: process.env.EMAIL_PASS!,
   baseUrl: process.env.BASE_URL,
   baseFrontendUrl: process.env.BASE_FRONTEND_URL!,
+  prodFrontendUrl: process.env.PROD_FRONTEND_URL!,
 };

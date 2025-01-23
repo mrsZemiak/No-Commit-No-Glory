@@ -44,7 +44,8 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('refreshToken', response.data.refreshToken)
       console.log('Received refresh token:', response.data.refreshToken)
       //Set Authorization header for future requests
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
+      axiosInstance.defaults.headers.common['Authorization'] =
+        `Bearer ${token.value}`
     } catch (error) {
       console.error('Login failed:', error)
       throw error
@@ -52,32 +53,35 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const refreshAccessToken = async () => {
-    const refreshToken = localStorage.getItem('refreshToken');
-    console.log('Retrieved refresh token:', refreshToken);
+    const refreshToken = localStorage.getItem('refreshToken')
+    console.log('Retrieved refresh token:', refreshToken)
     if (!refreshToken) {
-      console.warn('No refresh token found, user needs to reauthenticate');
-      isTokenExpired.value = true; // Trigger modal or redirect logic
-      return;
+      console.warn('No refresh token found, user needs to reauthenticate')
+      isTokenExpired.value = true // Trigger modal or redirect logic
+      return
     }
 
     try {
-      console.log('Attempting to refresh token...');
-      const response = await axiosInstance.post('/refresh-token', { refreshToken });
+      console.log('Attempting to refresh token...')
+      const response = await axiosInstance.post('/refresh-token', {
+        refreshToken,
+      })
 
-      token.value = response.data.token; // Store new access token
-      localStorage.setItem('authToken', token.value || ''); // Update localStorage
-      axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token.value}`;
-      isTokenExpired.value = false; // Reset token expiry status
+      token.value = response.data.token // Store new access token
+      localStorage.setItem('authToken', token.value || '') // Update localStorage
+      axiosInstance.defaults.headers.common['Authorization'] =
+        `Bearer ${token.value}`
+      isTokenExpired.value = false // Reset token expiry status
 
-      console.log('Token refreshed successfully');
+      console.log('Token refreshed successfully')
     } catch (error) {
-      console.error('Failed to refresh token:', error);
-      isTokenExpired.value = true; // Mark token as expired
+      console.error('Failed to refresh token:', error)
+      isTokenExpired.value = true // Mark token as expired
 
       // Optionally log the user out if the refresh fails
-      await logout();
+      await logout()
     }
-  };
+  }
 
   const logout = async () => {
     user.value = null
@@ -116,7 +120,6 @@ export const useAuthStore = defineStore('auth', () => {
       isAuthenticated.value = true
       axiosInstance.defaults.headers.common['Authorization'] =
         `Bearer ${authToken}`
-
     } else if (refreshToken) {
       //If no access token, try to refresh using the refresh token
       try {

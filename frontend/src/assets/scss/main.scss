@@ -52,7 +52,7 @@ $border-radius-8: 8px;
 }
 
 .v-dialog {
-  max-width: 800px !important;
+  max-width: 1000px !important;
 
   .v-card {
     padding: 16px;
@@ -77,20 +77,22 @@ $border-radius-8: 8px;
 }
 
 .large-text-field input {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
+  color: $primary;
 }
 
 .large-text-field label {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   color: $primary;
 }
 
 .large-text-field select {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
 }
 
+
 .large-text-field .v-input__control {
-  font-size: 1.3rem;
+  font-size: 1.1rem;
 }
 
 .large-text-field.v-input--disabled {

@@ -43,7 +43,7 @@ export const useQuestionStore = defineStore('questions', () => {
         '/auth/admin/questions',
         question,
       )
-      adminQuestions.value = [...adminQuestions.value];
+      adminQuestions.value = [...adminQuestions.value]
     } catch (err) {
       console.error('Failed to add question:', err)
       throw err
@@ -90,14 +90,6 @@ export const useQuestionStore = defineStore('questions', () => {
     }
   }
 
-  //Computed properties
-  const reviewerQuestionsWithOptions = computed(() => {
-    return reviewerQuestions.value.map(question => ({
-      text: question.text,
-      options: question.options,
-    }))
-  })
-
   return {
     // State
     adminQuestions,
@@ -112,8 +104,5 @@ export const useQuestionStore = defineStore('questions', () => {
     updateQuestion,
     deleteQuestion,
     fetchReviewerQuestions,
-
-    // Computed
-    reviewerQuestionsWithOptions,
   }
 })

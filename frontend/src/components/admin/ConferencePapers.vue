@@ -1,309 +1,329 @@
 <script lang="ts">
-import { defineComponent, onMounted, ref, computed, reactive, inject } from 'vue'
-import { usePaperStore } from "@/stores/paperStore";
-import { format } from "date-fns";
-import { sk } from "date-fns/locale";
+import {
+  defineComponent,
+  onMounted,
+  ref,
+  computed,
+  reactive,
+  inject,
+} from 'vue'
+import { usePaperStore } from '@/stores/paperStore'
+import { format } from 'date-fns'
+import { sk } from 'date-fns/locale'
 import { useUserStore } from '@/stores/userStore.ts'
 import { type AdminPaper, PaperStatus } from '@/types/paper'
 import axios from 'axios'
 
 export default defineComponent({
-  name: "ConferencePapers",
+  name: 'ConferencePapers',
   computed: {
     PaperStatus() {
       return PaperStatus
-    }
+    },
   },
   setup() {
-    const paperStore = usePaperStore();
-    const userStore = useUserStore();
-    const expandedConferenceId = ref<string | null>(null);
-    const isPaperViewDialogOpen = ref(false);
-    const isAssignReviewerDialogOpen = ref(false);
-    const isDropdownOpen = ref(false);
-    const selectedPaper = ref<AdminPaper | null>(null);
-    const selectedReviewer = ref<any>(null);
+    const paperStore = usePaperStore()
+    const userStore = useUserStore()
+    const expandedConferenceId = ref<string | null>(null)
+    const isPaperViewDialogOpen = ref(false)
+    const isAssignReviewerDialogOpen = ref(false)
+    const isDropdownOpen = ref(false)
+    const selectedPaper = ref<AdminPaper | null>(null)
+    const selectedReviewer = ref<any>(null)
 
     //Table headers for papers
     const tableHeaders = [
-      { title: "", value: "view", sortable: false },
-      { title: "Status", value: "status" },
-      { title: "Autor", value: "user" },
-      { title: "Sekcia", value: "category" },
-      { title: "Recenzent", value: "reviewer" },
-      { title: "Deadline", value: "deadline_date" },
-      { title: "", value: "actions", sortable: false },
-    ];
+      { title: '', value: 'view', sortable: false },
+      { title: 'Status', value: 'status' },
+      { title: 'Autor', value: 'user' },
+      { title: 'Názov', value: 'status' },
+      { title: 'Sekcia', value: 'category' },
+      { title: 'Recenzent', value: 'reviewer' },
+      { title: 'Deadline', value: 'deadline_date' },
+      { title: '', value: 'actions', sortable: false },
+    ]
 
     /** Global showSnackbar function **/
-    const showSnackbar = inject("showSnackbar") as ({ message, color, }: {
-      message: string;
-      color?: string;
-    }) => void;
+    const showSnackbar = inject('showSnackbar') as ({
+      message,
+      color,
+    }: {
+      message: string
+      color?: string
+    }) => void
 
     if (!showSnackbar) {
-      console.error("showSnackbar is not provided");
+      console.error('showSnackbar is not provided')
     }
 
     /** Filters for conferences and pagination **/
-    const itemsPerPage = 5; // Maximum conferences per page
-    const currentPage = ref(1);
+    const itemsPerPage = 5 // Maximum conferences per page
+    const currentPage = ref(1)
 
     const conferenceFilters = reactive({
       year: null,
-      location: "",
-    });
+      location: '',
+    })
 
     const filteredConferences = computed(() => {
-      return groupedPapers.value.filter((conference) => {
+      return groupedPapers.value.filter(conference => {
         return (
-          (!conferenceFilters.year || conference.year == conferenceFilters.year) &&
+          (!conferenceFilters.year ||
+            conference.year == conferenceFilters.year) &&
           (!conferenceFilters.location ||
-            conference.location.toLowerCase().includes(conferenceFilters.location.toLowerCase()))
-        );
-      });
-    });
+            conference.location
+              .toLowerCase()
+              .includes(conferenceFilters.location.toLowerCase()))
+        )
+      })
+    })
 
     const resetConferenceFilters = () => {
-      conferenceFilters.year = null;
-      conferenceFilters.location = "";
-    };
+      conferenceFilters.year = null
+      conferenceFilters.location = ''
+    }
 
     const paginatedConferences = computed(() => {
-      const start = (currentPage.value - 1) * itemsPerPage;
-      const end = start + itemsPerPage;
-      return filteredConferences.value.slice(start, end);
-    });
+      const start = (currentPage.value - 1) * itemsPerPage
+      const end = start + itemsPerPage
+      return filteredConferences.value.slice(start, end)
+    })
 
     //Toggle visibility of papers for a conference
     const toggleConference = (conferenceId: string | null) => {
       expandedConferenceId.value =
-        expandedConferenceId.value === conferenceId ? null : conferenceId;
-    };
+        expandedConferenceId.value === conferenceId ? null : conferenceId
+    }
 
     const downloadAllPapers = async (conferenceId: string) => {
       if (!conferenceId) {
-        console.error("Conference ID is missing");
+        console.error('Conference ID is missing')
         showSnackbar?.({
-          message: "Chýba ID konferencie.",
-          color: "error",
-        });
-        return;
+          message: 'Chýba ID konferencie.',
+          color: 'error',
+        })
+        return
       }
 
       try {
-        console.log("Downloading all papers for conference ID:", conferenceId);
-        await paperStore.downloadAllPapersInConference(conferenceId);
-        console.log("Download successful");
+        console.log('Downloading all papers for conference ID:', conferenceId)
+        await paperStore.downloadAllPapersInConference(conferenceId)
+        console.log('Download successful')
         showSnackbar?.({
-          message: "Stiahnutie prác bolo úspešné.",
-          color: "success",
-        });
+          message: 'Stiahnutie prác bolo úspešné.',
+          color: 'success',
+        })
       } catch (error) {
-        console.error("Failed to download papers:", error);
+        console.error('Failed to download papers:', error)
         if (axios.isAxiosError(error)) {
           const errorMessage =
-            error.response?.data?.message || "Nepodarilo sa stiahnuť práce.";
+            error.response?.data?.message || 'Nepodarilo sa stiahnuť práce.'
           showSnackbar?.({
             message: errorMessage,
-            color: "error",
-          });
+            color: 'error',
+          })
         } else {
           showSnackbar?.({
-            message: "Neočakávaná chyba pri sťahovaní.",
-            color: "error",
-          });
+            message: 'Neočakávaná chyba pri sťahovaní.',
+            color: 'error',
+          })
         }
       }
-    };
+    }
 
     /** Filters for papers **/
     const paperFilters = reactive({
       selectedStatus: null as PaperStatus | null,
-    });
+    })
 
     //Filtered papers for selected conference
     const filteredPapers = computed(() => {
       return paperStore.adminPapers
-        .filter((paper) => paper.status !== PaperStatus.Draft) // Exclude drafts
-        .filter((paper) => {
+        .filter(paper => paper.status !== PaperStatus.Draft) // Exclude drafts
+        .filter(paper => {
           // Ensure the paper belongs to the expanded conference
           const belongsToConference =
-            expandedConferenceId.value === paper.conference?._id;
+            expandedConferenceId.value === paper.conference?._id
 
           // Check if the paper matches the selected status filter
           const matchesStatus =
             !paperFilters.selectedStatus ||
-            paper.status === paperFilters.selectedStatus;
+            paper.status === paperFilters.selectedStatus
 
           // Include the paper if it belongs to the conference and matches the filter
-          return belongsToConference && matchesStatus;
+          return belongsToConference && matchesStatus
         })
         .sort((a, b) => {
           // Sort by submission_date, newest first
-          const dateA = new Date(a.submission_date).getTime();
-          const dateB = new Date(b.submission_date).getTime();
-          return dateB - dateA; // Newest papers on top
-        });
-    });
+          const dateA = new Date(a.submission_date).getTime()
+          const dateB = new Date(b.submission_date).getTime()
+          return dateB - dateA // Newest papers on top
+        })
+    })
 
     const resetFilters = () => {
-      paperFilters.selectedStatus = null;
-    };
+      paperFilters.selectedStatus = null
+    }
 
     //Group papers by conference
     const groupedPapers = computed(() => {
-      const groups: { [key: string]: any } = {};
+      const groups: { [key: string]: any } = {}
       paperStore.adminPapers
-        .filter((paper) => paper.status !== PaperStatus.Draft)
-        .forEach((paper) => {
-        const { conference } = paper;
-        if (!conference || !conference._id) return;
-        if (!groups[conference._id]) {
-          groups[conference._id] = { ...conference, papers: [] };
-        }
-        groups[conference._id].papers.push(paper);
-      });
-      return Object.values(groups);
-    });
+        .filter(paper => paper.status !== PaperStatus.Draft)
+        .forEach(paper => {
+          const { conference } = paper
+          if (!conference || !conference._id) return
+          if (!groups[conference._id]) {
+            groups[conference._id] = { ...conference, papers: [] }
+          }
+          groups[conference._id].papers.push(paper)
+        })
+      return Object.values(groups)
+    })
 
     const papersForConference = computed(() => {
-      if (!expandedConferenceId.value) return [];
+      if (!expandedConferenceId.value) return []
       return paperStore.adminPapers.filter(
-        (paper) => paper.conference?._id === expandedConferenceId.value
-      );
-    });
+        paper => paper.conference?._id === expandedConferenceId.value,
+      )
+    })
 
     //Show paper details
     const viewPaper = async (paper: AdminPaper) => {
       try {
-        selectedPaper.value = await paperStore.getPaperById(paper._id);
-        isPaperViewDialogOpen.value = true;
+        selectedPaper.value = await paperStore.getPaperById(paper._id)
+        isPaperViewDialogOpen.value = true
       } catch (error) {
-        console.error("Error fetching paper details:", error);
+        console.error('Error fetching paper details:', error)
         showSnackbar?.({
-          message: "Nepodarilo sa načítať podrobnosti o práci.",
-          color: "error",
-        });
+          message: 'Nepodarilo sa načítať podrobnosti o práci.',
+          color: 'error',
+        })
       }
-    };
+    }
 
     /** Deadline changes **/
-    const isDeadlineDialogOpen = ref(false);
-    const newDeadline = ref<Date | null>(null);
+    const isDeadlineDialogOpen = ref(false)
+    const newDeadline = ref<Date | null>(null)
 
     const isDeadlineDisabled = (conference: any) => {
-      if (!conference.date) return true; // if no date, disable the deadline button
-      const currentDate = new Date();
-      const conferenceEndDate = new Date(conference.date);
-      return currentDate > conferenceEndDate; // disable if the conference has ended
-    };
+      if (!conference.date) return true // if no date, disable the deadline button
+      const currentDate = new Date()
+      const conferenceEndDate = new Date(conference.date)
+      return currentDate > conferenceEndDate // disable if the conference has ended
+    }
 
     const openDeadlineDialog = (paper: AdminPaper) => {
-      selectedPaper.value = paper;
-      newDeadline.value = paper.deadline_date ? new Date(paper.deadline_date) : new Date();
-      isDeadlineDialogOpen.value = true;
-    };
+      selectedPaper.value = paper
+      newDeadline.value = paper.deadline_date
+        ? new Date(paper.deadline_date)
+        : new Date()
+      isDeadlineDialogOpen.value = true
+    }
 
     const changeDeadline = async () => {
-      if (!selectedPaper.value || !newDeadline.value) return;
+      if (!selectedPaper.value || !newDeadline.value) return
 
       try {
-        await paperStore.updateDeadline(selectedPaper.value._id, newDeadline.value); // Send Date object directly
-        console.log("Deadline updated successfully!");
-        isDeadlineDialogOpen.value = false;
+        await paperStore.updateDeadline(
+          selectedPaper.value._id,
+          newDeadline.value,
+        ) // Send Date object directly
+        console.log('Deadline updated successfully!')
+        isDeadlineDialogOpen.value = false
         showSnackbar?.({
-          message: "Deadline bol úspešne aktualizovaný.",
-          color: "success",
-        });
+          message: 'Deadline bol úspešne aktualizovaný.',
+          color: 'success',
+        })
       } catch (error) {
-        console.error("Error updating deadline:", error);
+        console.error('Error updating deadline:', error)
         showSnackbar?.({
-          message: "Nepodarilo sa aktualizovať deadline.",
-          color: "error",
-        });
+          message: 'Nepodarilo sa aktualizovať deadline.',
+          color: 'error',
+        })
       }
-    };
+    }
 
     /** Dialog for assigning a reviewer**/
     //Preprocess reviewers to include fullName
     const availableReviewers = computed(() =>
-      userStore.reviewers.map((user) => ({
+      userStore.reviewers.map(user => ({
         ...user,
         fullName: `${user.first_name} ${user.last_name}`,
-      }))
-    );
+      })),
+    )
 
     const isReviewerDisabled = (paper: AdminPaper) => {
-      return !!paper.reviewer; // disable if reviewer exists
-    };
+      return !!paper.reviewer // disable if reviewer exists
+    }
 
     const openAssignReviewerDialog = (paper: AdminPaper) => {
-      selectedPaper.value = paper;
+      selectedPaper.value = paper
       if (!userStore.reviewers.length) {
-        userStore.fetchReviewers();
+        userStore.fetchReviewers()
       }
 
-      console.log("Available reviewers:", availableReviewers.value);
-      selectedReviewer.value = paper.reviewer || null;
-      isAssignReviewerDialogOpen.value = true;
-    };
+      console.log('Available reviewers:', availableReviewers.value)
+      selectedReviewer.value = paper.reviewer || null
+      isAssignReviewerDialogOpen.value = true
+    }
 
     const toggleDropdown = () => {
-      isDropdownOpen.value = !isDropdownOpen.value;
-    };
+      isDropdownOpen.value = !isDropdownOpen.value
+    }
 
     const selectReviewer = (reviewer: any) => {
-      selectedReviewer.value = reviewer;
-      isDropdownOpen.value = false; // Close dropdown after selection
-    };
+      selectedReviewer.value = reviewer
+      isDropdownOpen.value = false
+    }
 
     //Assign reviewer to the selected paper
     const assignReviewer = async () => {
-      if (!selectedPaper.value || !selectedReviewer.value) return;
+      if (!selectedPaper.value || !selectedReviewer.value) return
 
       try {
         await paperStore.assignReviewerToPaper(
           selectedPaper.value._id,
-          selectedReviewer.value
-        );
-        closeAssignReviewerDialog();
-        console.log("Reviewer assigned successfully!");
+          selectedReviewer.value,
+        )
+
+        closeAssignReviewerDialog()
+        console.log('Reviewer assigned successfully!')
         showSnackbar?.({
-          message: "Recenzent bol úspešne priradený.",
-          color: "success",
-        });
+          message: 'Recenzent bol úspešne priradený.',
+          color: 'success',
+        })
       } catch (error) {
-        console.error("Error assigning reviewer:", error);
+        console.error('Error assigning reviewer:', error)
         showSnackbar?.({
-          message: "Nepodarilo sa priradiť recenzenta.",
-          color: "error",
-        });
+          message: 'Nepodarilo sa priradiť recenzenta.',
+          color: 'error',
+        })
       }
-    };
+    }
 
     const closeAssignReviewerDialog = () => {
-      isAssignReviewerDialogOpen.value = false;
-    };
+      isAssignReviewerDialogOpen.value = false
+    }
 
     //Format dates as dd.MM.yyyy
     const formatDate = (date: string | Date | null): string => {
-      if (!date) return "N/A";
-      const parsedDate = new Date(date);
+      if (!date) return 'N/A'
+      const parsedDate = new Date(date)
       return isNaN(parsedDate.getTime())
-        ? "Invalid Date"
-        : format(parsedDate, "dd.MM.yyyy", { locale: sk });
-    };
+        ? 'Invalid Date'
+        : format(parsedDate, 'dd.MM.yyyy', { locale: sk })
+    }
 
     //Fetch admin papers and reviewers
     onMounted(() => {
       paperStore.getAllPapers().then(() => {
-        console.log("Papers from API:", paperStore.adminPapers);
-      });
+        console.log('Papers from API:', paperStore.adminPapers)
+      })
       userStore.fetchReviewers().then(() => {
-        console.log("Reviewers:", userStore.reviewers);
-      });
-    });
+        console.log('Reviewers:', userStore.reviewers)
+      })
+    })
 
     return {
       paperStore,
@@ -343,9 +363,9 @@ export default defineComponent({
       toggleConference,
       formatDate,
       downloadAllPapers,
-    };
+    }
   },
-});
+})
 </script>
 
 <template>
@@ -376,253 +396,289 @@ export default defineComponent({
           />
         </v-col>
         <v-col cols="12" md="2">
-          <v-btn color="primary" small @click="resetConferenceFilters">Zrušiť filter</v-btn>
+          <v-btn color="primary" small @click="resetConferenceFilters"
+            >Zrušiť filter</v-btn
+          >
         </v-col>
       </v-row>
-      </v-card-subtitle>
+    </v-card-subtitle>
 
-      <!-- Loop through grouped conferences -->
-      <v-row>
-        <v-col
-          cols="12"
-          v-for="conference in filteredConferences"
-          :key="conference._id"
-        >
-          <v-card outlined class="mb-3 inner-card">
-            <v-card-title>
-              <v-row class="align-center">
-                <!-- Conference Title Section -->
-                <v-col cols="9">
-                  <h4>{{ conference.year }} - {{ conference.location }}</h4>
-                  <p>Dátum: {{ formatDate(conference.date) }}</p>
-                  <p class="green">Počet prác: {{ conference.papers.length }}</p>
-                </v-col>
+    <!-- Loop through grouped conferences -->
+    <v-row>
+      <v-col
+        cols="12"
+        v-for="conference in filteredConferences"
+        :key="conference._id"
+      >
+        <v-card outlined class="mb-3 inner-card">
+          <v-card-title>
+            <v-row class="align-center">
+              <!-- Conference Title Section -->
+              <v-col cols="9">
+                <h4>{{ conference.year }} - {{ conference.location }}</h4>
+                <p>Dátum: {{ formatDate(conference.date) }}</p>
+                <p class="green">Počet prác: {{ conference.papers.length }}</p>
+              </v-col>
 
-                <!-- Actions Section -->
-                <v-col cols="3" class="d-flex justify-end align-center">
-                  <v-btn
-                    color="primary"
-                    @click="toggleConference(conference._id)"
-                  >
-                    <v-icon left class="conf-icon">
-                      {{ expandedConferenceId === conference._id ? "mdi-eye-off" : "mdi-eye" }}
-                    </v-icon>
-                    {{ expandedConferenceId === conference._id ? "Skryť" : "Zobraziť" }} Práce
-                  </v-btn>
-                  <v-btn
-                    color="tertiary"
-                    class="mr-2"
-                    @click="paperStore.downloadAllPapersInConference(conference._id)"
-                  >
-                    <v-icon left class="conf-icon">mdi-download</v-icon>Stiahnuť všetko
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </v-card-title>
-
-            <!-- Toggleable section for papers -->
-            <v-expand-transition>
-              <div v-if="expandedConferenceId === conference._id">
-                <v-card-subtitle>
-                  <v-row>
-                    <v-col ols="6" md="4">
-                      <v-select
-                        v-model="paperFilters.selectedStatus"
-                        :items="Object.values(PaperStatus)"
-                        label="Zvolte status"
-                        outlined
-                        dense
-                      />
-                    </v-col>
-                    <v-col cols="4" md="2">
-                      <v-btn color="primary" small @click="resetFilters">Zrušiť filter</v-btn>
-                    </v-col>
-                  </v-row>
-                </v-card-subtitle>
-                <v-data-table
-                  :headers="tableHeaders"
-                  :items="filteredPapers"
-                  :items-per-page="10"
-                  :pageText="'{0}-{1} z {2}'"
-                  items-per-page-text="Práce na stránku"
-                  item-value="_id"
-                  dense
-                  class="custom-table"
+              <!-- Actions Section -->
+              <v-col cols="3" class="d-flex justify-end align-center">
+                <v-btn
+                  color="primary"
+                  @click="toggleConference(conference._id)"
                 >
-                  <template v-slot:body="{ items }">
-                    <tr
-                      v-for="paper in items"
-                      :key="paper._id"
-                      class="custom-row"
+                  <v-icon left class="conf-icon">
+                    {{
+                      expandedConferenceId === conference._id
+                        ? 'mdi-eye-off'
+                        : 'mdi-eye'
+                    }}
+                  </v-icon>
+                  {{
+                    expandedConferenceId === conference._id
+                      ? 'Skryť'
+                      : 'Zobraziť'
+                  }}
+                  Práce
+                </v-btn>
+                <v-btn
+                  color="tertiary"
+                  class="mr-2"
+                  @click="
+                    paperStore.downloadAllPapersInConference(conference._id)
+                  "
+                >
+                  <v-icon left class="conf-icon">mdi-download</v-icon>Stiahnuť
+                  všetko
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-card-title>
+
+          <!-- Toggleable section for papers -->
+          <v-expand-transition>
+            <div v-if="expandedConferenceId === conference._id">
+              <v-card-subtitle>
+                <v-row>
+                  <v-col ols="6" md="4">
+                    <v-select
+                      v-model="paperFilters.selectedStatus"
+                      :items="Object.values(PaperStatus)"
+                      label="Zvolte status"
+                      outlined
+                      dense
+                    />
+                  </v-col>
+                  <v-col cols="4" md="2">
+                    <v-btn color="primary" small @click="resetFilters"
+                      >Zrušiť filter</v-btn
                     >
-                      <td>
-                        <v-icon
-                          size="24"
-                          color="primary"
-                          @click="viewPaper(paper)"
-                          style="cursor: pointer"
-                          title="View details"
-                        >
-                          mdi-eye
-                        </v-icon>
-                      </td>
-                      <!-- Status -->
-                      <td>
-                        <v-chip
-                          :color="paper.status === PaperStatus.Accepted
-                           ? 'green'
-                           : paper.status === PaperStatus.Rejected
-                           ? 'red'
-                           : paper.status === PaperStatus.AcceptedWithChanges
-                           ? '#2c3531'
-                           : paper.status === PaperStatus.UnderReview
-                           ? '#E7B500'
-                           : paper.status === PaperStatus.Submitted
-                           ? 'blue'
-                           : 'grey'"
-                          outlined
-                          small
-                          class="d-flex justify-center custom-chip rounded"
-                        >
-                          {{ paper.status }}
-                        </v-chip>
-                      </td>
-                      <td>
-                        {{ paper.user?.first_name }} {{ paper.user?.last_name }}
-                      </td>
-                      <td>{{ paper.category?.name }}</td>
-                      <td :class="{ 'text-red': !paper.reviewer }">
-                        {{ paper.reviewer?.email || "potrebné priradiť" }}
-                      </td>
-                      <td>{{ formatDate(paper.deadline_date) }}</td>
-                      <td class="d-flex justify-end align-center">
-                        <!-- Assign Reviewer -->
-                        <v-btn
-                          :disabled="isReviewerDisabled(paper)"
-                          color="#3C888C"
-                          title="Assign Reviewer"
-                          @click="openAssignReviewerDialog(paper)"
-                        >
-                          <v-icon size="24">mdi-account-plus</v-icon>
-                        </v-btn>
-                        <v-btn
-                          :disabled="isDeadlineDisabled(paper.conference)"
-                          color="#FFCD16"
-                          @click="openDeadlineDialog(paper)"
-                          title="Edit Deadline"
-                        >
-                          <v-icon size="24">mdi-timer-edit</v-icon>
-                        </v-btn>
-                      </td>
-                    </tr>
-                  </template>
-                </v-data-table>
-              </div>
-            </v-expand-transition>
-            <v-dialog v-model="isAssignReviewerDialogOpen" max-width="600px" >
-              <v-card>
-                <v-card-title>Priradiť recenzenta</v-card-title>
-                <v-card-text>
-                  <div class="custom-select">
-                    <div class="select-input" @click="toggleDropdown">
-                      <span>{{ selectedReviewer?.fullName || "Vyberte recenzenta zo zoznamu" }}</span>
-                      <v-icon>mdi-chevron-down</v-icon>
-                    </div>
-                    <div v-if="isDropdownOpen" class="dropdown-menu">
-                      <div
-                        v-for="reviewer in availableReviewers"
-                        :key="reviewer._id"
-                        class="dropdown-item"
-                        @click="selectReviewer(reviewer)"
+                  </v-col>
+                </v-row>
+              </v-card-subtitle>
+              <v-data-table
+                :headers="tableHeaders"
+                :items="filteredPapers"
+                :items-per-page="10"
+                :pageText="'{0}-{1} z {2}'"
+                items-per-page-text="Práce na stránku"
+                item-value="_id"
+                dense
+                class="custom-table"
+              >
+                <template v-slot:body="{ items }">
+                  <tr
+                    v-for="paper in items"
+                    :key="paper._id"
+                    class="custom-row"
+                  >
+                    <td>
+                      <v-icon
+                        size="24"
+                        color="primary"
+                        @click="viewPaper(paper)"
+                        style="cursor: pointer"
+                        title="View details"
                       >
-                        {{ reviewer.fullName }}, {{reviewer.university}} ({{ reviewer.email }})
-                      </div>
+                        mdi-eye
+                      </v-icon>
+                    </td>
+                    <!-- Status -->
+                    <td>
+                      <v-chip
+                        :color="
+                          paper.status === PaperStatus.Accepted
+                            ? 'green'
+                            : paper.status === PaperStatus.Rejected
+                              ? 'red'
+                              : paper.status === PaperStatus.AcceptedWithChanges
+                                ? '#2c3531'
+                                : paper.status === PaperStatus.UnderReview
+                                  ? '#E7B500'
+                                  : paper.status === PaperStatus.Submitted
+                                    ? 'blue'
+                                    : 'grey'
+                        "
+                        outlined
+                        small
+                        class="d-flex justify-center custom-chip rounded"
+                      >
+                        {{ paper.status }}
+                      </v-chip>
+                    </td>
+                    <td>
+                      {{ paper.user?.first_name }} {{ paper.user?.last_name }}
+                    </td>
+                    <td>{{ paper.title }}</td>
+                    <td>{{ paper.category?.name }}</td>
+                    <td :class="{ 'text-red': !paper.reviewer }">
+                      {{ paper.reviewer?.email || 'potrebné priradiť' }}
+                    </td>
+                    <td>{{ formatDate(paper.deadline_date) }}</td>
+                    <td class="d-flex justify-end align-center">
+                      <!-- Assign Reviewer -->
+                      <v-btn
+                        :disabled="isReviewerDisabled(paper)"
+                        color="#3C888C"
+                        title="Assign Reviewer"
+                        @click="openAssignReviewerDialog(paper)"
+                      >
+                        <v-icon size="24">mdi-account-plus</v-icon>
+                      </v-btn>
+                      <v-btn
+                        :disabled="isDeadlineDisabled(paper.conference)"
+                        color="#FFCD16"
+                        @click="openDeadlineDialog(paper)"
+                        title="Edit Deadline"
+                      >
+                        <v-icon size="24">mdi-timer-edit</v-icon>
+                      </v-btn>
+                    </td>
+                  </tr>
+                </template>
+              </v-data-table>
+            </div>
+          </v-expand-transition>
+          <v-dialog v-model="isAssignReviewerDialogOpen" max-width="600px">
+            <v-card>
+              <v-card-title>Priradiť recenzenta</v-card-title>
+              <v-card-text>
+                <div class="custom-select">
+                  <div class="select-input" @click="toggleDropdown">
+                    <span>{{
+                      selectedReviewer?.fullName ||
+                      'Vyberte recenzenta zo zoznamu'
+                    }}</span>
+                    <v-icon>mdi-chevron-down</v-icon>
+                  </div>
+                  <div v-if="isDropdownOpen" class="dropdown-menu">
+                    <div
+                      v-for="reviewer in availableReviewers"
+                      :key="reviewer._id"
+                      class="dropdown-item"
+                      @click="selectReviewer(reviewer)"
+                    >
+                      {{ reviewer.fullName }}, {{ reviewer.university }} ({{
+                        reviewer.email
+                      }})
                     </div>
                   </div>
-                </v-card-text>
-                <v-card-actions>
-                  <v-btn color="secondary" @click="closeAssignReviewerDialog">Zrušiť</v-btn>
-                  <v-btn color="primary" @click="assignReviewer">Priradiť</v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-            <v-dialog v-model="isPaperViewDialogOpen" max-width="900px">
-              <v-card>
-                <v-card-title>Detaily práce</v-card-title>
-                <v-card-text>
-                  <v-row>
-                    <v-col cols="12">
-                      <v-table dense class="paperInfo">
-                          <tbody>
-                          <tr class="spaced-row">
-                            <td><strong>Užívateľ:</strong></td>
-                            <td>{{ selectedPaper?.user?.first_name }} {{ selectedPaper?.user?.last_name }}</td>
-                          </tr>
-                          <tr class="spaced-row">
-                            <td><strong>Názov:</strong></td>
-                            <td>{{ selectedPaper?.title }}</td>
-                          </tr>
-                          <tr class="spaced-row">
-                            <td><strong>Kľúčové slová:</strong></td>
-                            <td>{{ selectedPaper?.keywords?.join(", ") }}</td>
-                          </tr>
-                          <tr class="spaced-row">
-                            <td><strong>Autory:</strong></td>
-                            <td>
-                              {{ selectedPaper?.authors
-                              ?.map(
-                                (author) => `${author.firstName} ${author.lastName}`
-                              )
-                              .join(", ") }}
-                            </td>
-                          </tr>
-                          <tr class="spaced-row">
-                            <td><strong>Sekcia:</strong></td>
-                            <td>{{ selectedPaper?.category?.name }}</td>
-                          </tr>
-                          <tr class="spaced-row">
-                            <td><strong>Deadline:</strong></td>
-                            <td>{{ selectedPaper?.deadline_date ? formatDate(selectedPaper.deadline_date) : 'N/A' }}</td>
-                          </tr>
-                          <tr class="spaced-row">
-                            <td><strong>Abstrakt:</strong></td>
-                            <td><em>{{ selectedPaper?.abstract }}</em></td>
-                          </tr>
-                          </tbody>
-                      </v-table>
-                    </v-col>
-                  </v-row>
-                </v-card-text>
-                <v-card-actions>
-                  <v-btn
-                    color="primary"
-                    @click=""
-                    title="Edit Deadline"
-                  >
-                    <v-icon size="36">mdi-download-box</v-icon>
-                    Stiahnuť
-                  </v-btn>
-                  <v-btn color="tertiary" @click="isPaperViewDialogOpen = false">Zrušiť</v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-            <v-dialog v-model="isDeadlineDialogOpen" max-width="400px">
-              <v-card>
-                <v-card-title>Zmena termínu</v-card-title>
-                <v-card-text>
-                  <v-date-picker
-                    v-model="newDeadline"
-                  ></v-date-picker>
-                </v-card-text>
-                <v-card-actions>
-                  <v-btn @click="isDeadlineDialogOpen = false">Zrušiť</v-btn>
-                  <v-btn color="primary" @click="changeDeadline">Uložiť</v-btn>
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-          </v-card>
-        </v-col>
-      </v-row>
+                </div>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn color="secondary" @click="closeAssignReviewerDialog"
+                  >Zrušiť</v-btn
+                >
+                <v-btn color="primary" @click="assignReviewer">Priradiť</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="isPaperViewDialogOpen" max-width="900px">
+            <v-card>
+              <v-card-title>Detaily práce</v-card-title>
+              <v-card-text>
+                <v-row>
+                  <v-col cols="12">
+                    <v-table dense class="paperInfo">
+                      <tbody>
+                        <tr class="spaced-row">
+                          <td><strong>Užívateľ:</strong></td>
+                          <td>
+                            {{ selectedPaper?.user?.first_name }}
+                            {{ selectedPaper?.user?.last_name }}
+                          </td>
+                        </tr>
+                        <tr class="spaced-row">
+                          <td><strong>Názov:</strong></td>
+                          <td>{{ selectedPaper?.title }}</td>
+                        </tr>
+                        <tr class="spaced-row">
+                          <td><strong>Kľúčové slová:</strong></td>
+                          <td>{{ selectedPaper?.keywords?.join(', ') }}</td>
+                        </tr>
+                        <tr class="spaced-row">
+                          <td><strong>Autory:</strong></td>
+                          <td>
+                            {{
+                              selectedPaper?.authors
+                                ?.map(
+                                  author =>
+                                    `${author.firstName} ${author.lastName}`,
+                                )
+                                .join(', ')
+                            }}
+                          </td>
+                        </tr>
+                        <tr class="spaced-row">
+                          <td><strong>Sekcia:</strong></td>
+                          <td>{{ selectedPaper?.category?.name }}</td>
+                        </tr>
+                        <tr class="spaced-row">
+                          <td><strong>Deadline:</strong></td>
+                          <td>
+                            {{
+                              selectedPaper?.deadline_date
+                                ? formatDate(selectedPaper.deadline_date)
+                                : 'N/A'
+                            }}
+                          </td>
+                        </tr>
+                        <tr class="spaced-row">
+                          <td><strong>Abstrakt:</strong></td>
+                          <td>
+                            <em>{{ selectedPaper?.abstract }}</em>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </v-table>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn color="primary" @click="" title="Edit Deadline">
+                  <v-icon size="36">mdi-download-box</v-icon>
+                  Stiahnuť
+                </v-btn>
+                <v-btn color="tertiary" @click="isPaperViewDialogOpen = false"
+                  >Zrušiť</v-btn
+                >
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-dialog v-model="isDeadlineDialogOpen" max-width="400px">
+            <v-card>
+              <v-card-title>Zmena termínu</v-card-title>
+              <v-card-text>
+                <v-date-picker v-model="newDeadline"></v-date-picker>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn @click="isDeadlineDialogOpen = false">Zrušiť</v-btn>
+                <v-btn color="primary" @click="changeDeadline">Uložiť</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-card>
+      </v-col>
+    </v-row>
     <v-pagination
       v-model="currentPage"
       :length="Math.ceil(filteredConferences.length / itemsPerPage)"
@@ -641,7 +697,7 @@ p {
   color: #2c3531;
 }
 
-.green{
+.green {
   color: #116466;
 }
 
@@ -705,5 +761,4 @@ p {
   display: flex;
   font-size: 1.2rem;
 }
-
 </style>

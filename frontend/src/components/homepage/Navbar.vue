@@ -57,9 +57,9 @@ export default defineComponent({
     }
 
     const showSnackbar = ({
-                            message,
-                            color = 'error',
-                          }: {
+      message,
+      color = 'error',
+    }: {
       message: string
       color?: string
     }) => {

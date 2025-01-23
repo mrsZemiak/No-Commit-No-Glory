@@ -87,7 +87,7 @@ export const useCategoryStore = defineStore('categories', () => {
     error.value = null
     try {
       const response = await axiosInstance.get('/auth/participant/categories')
-      participantCategories.value = response.data as ActiveCategory[];
+      participantCategories.value = response.data as ActiveCategory[]
     } catch (err) {
       error.value = 'Failed to fetch participant categories.'
       console.error(err)
@@ -110,6 +110,5 @@ export const useCategoryStore = defineStore('categories', () => {
     updateCategory,
     deleteCategory,
     fetchParticipantCategories,
-
   }
 })

@@ -105,23 +105,17 @@ const routes = [
         path: 'reviewer',
         meta: { role: 'reviewer' },
         children: [
-          { path: '', redirect: { name: 'ReviewTable' } },
+          { path: '', redirect: { name: 'AssignedPapersTable' } },
           {
             path: 'papers',
-            name: 'ReviewTable',
-            component: () => import('@/components/reviewer/ReviewTable.vue'),
+            name: 'AssignedPapersTable',
+            component: () => import('@/components/reviewer/AssignedPapersTable.vue'),
           },
           {
             path: 'reviews',
             name: 'ReviewTable',
             component: () => import('@/components/reviewer/ReviewTable.vue'),
-          },
-          {
-            path: 'review',
-            name: 'ReviewForm',
-            component: () => import('@/components/reviewer/ReviewForm.vue'),
-            props: true,
-          },
+          }
         ],
       },
     ],

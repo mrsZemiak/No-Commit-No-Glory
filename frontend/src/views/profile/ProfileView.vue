@@ -1,13 +1,13 @@
 <script lang="ts">
 import { defineComponent, ref, reactive, computed, onMounted, watch } from 'vue'
-import { useUserStore } from "@/stores/userStore";
-import defaultAvatar from "@/assets/images/unknown_person.jpg";
+import { useUserStore } from '@/stores/userStore'
+import defaultAvatar from '@/assets/images/unknown_person.jpg'
 
 export default defineComponent({
   name: 'ProfileView',
   setup() {
-    const userStore = useUserStore();
-    const editMode = ref(false);
+    const userStore = useUserStore()
+    const editMode = ref(false)
     const profileData = reactive({
       first_name: '',
       last_name: '',
@@ -17,62 +17,65 @@ export default defineComponent({
       avatar: null as File | null,
       currentPassword: '',
       newPassword: '',
-    });
+    })
 
-    const userProfile = computed(() => userStore.userProfile);
-    const isLoading = ref(false);
+    const userProfile = computed(() => userStore.userProfile)
+    const isLoading = ref(false)
 
     const toggleEditMode = () => {
-      editMode.value = !editMode.value;
+      editMode.value = !editMode.value
       if (editMode.value) {
-        Object.assign(profileData, { ...userProfile.value });
-        profileData.avatar = null;
+        Object.assign(profileData, { ...userProfile.value })
+        profileData.avatar = null
       } else {
-        profileData.avatar = userProfile.value.avatar;
+        profileData.avatar = userProfile.value.avatar
       }
-    };
+    }
 
     const saveProfile = async () => {
-      isLoading.value = true;
+      isLoading.value = true
       try {
         await userStore.updateUserProfile(
           profileData,
-          profileData.avatar instanceof File ? profileData.avatar : undefined
-        );
+          profileData.avatar instanceof File ? profileData.avatar : undefined,
+        )
 
-        await userStore.fetchUserProfile();
-        toggleEditMode();
+        await userStore.fetchUserProfile()
+        toggleEditMode()
       } catch (error) {
-        console.error("Failed to save profile:", error);
+        console.error('Failed to save profile:', error)
       } finally {
-        isLoading.value = false;
+        isLoading.value = false
       }
-    };
+    }
 
-    watch(() => profileData.avatar, (newAvatar) => {
-      if (newAvatar instanceof File) {
-        console.log("Avatar updated to file:", newAvatar);
-      } else {
-        console.log("No file selected. Avatar reset to null.");
-      }
-    });
+    watch(
+      () => profileData.avatar,
+      newAvatar => {
+        if (newAvatar instanceof File) {
+          console.log('Avatar updated to file:', newAvatar)
+        } else {
+          console.log('No file selected. Avatar reset to null.')
+        }
+      },
+    )
 
-    watch(userProfile, (newProfile) => {
-      console.log("User Profile Updated:", newProfile);
-    });
+    watch(userProfile, newProfile => {
+      console.log('User Profile Updated:', newProfile)
+    })
 
     const avatarUrl = computed(() =>
       profileData.avatar instanceof File
         ? URL.createObjectURL(profileData.avatar)
         : userProfile.value?.avatar
           ? `${import.meta.env.VITE_API_URL}${userProfile.value.avatar}`
-          : defaultAvatar
-    );
+          : defaultAvatar,
+    )
 
     onMounted(async () => {
-      await userStore.fetchUserProfile();
-      console.log("Fetched User Profile:", userStore.userProfile);
-    });
+      await userStore.fetchUserProfile()
+      console.log('Fetched User Profile:', userStore.userProfile)
+    })
 
     return {
       userProfile,
@@ -82,9 +85,9 @@ export default defineComponent({
       avatarUrl,
       toggleEditMode,
       saveProfile,
-    };
+    }
   },
-});
+})
 </script>
 
 <template>
@@ -104,7 +107,6 @@ export default defineComponent({
           <h3>{{ userProfile?.first_name }} {{ userProfile?.last_name }}</h3>
           <p>{{ userProfile?.faculty }}</p>
           <p class="uni">{{ userProfile?.university }}</p>
-
         </v-col>
         <v-col cols="12" md="4">
           <p class="about">{{ userProfile?.about }}</p>
@@ -170,7 +172,12 @@ export default defineComponent({
               label="Aktuálne heslo"
               type="password"
               outlined
-              :rules="[v => (!v && !profileData.newPassword) || !!v || 'Aktuálne heslo je povinné pri zmene hesla']"
+              :rules="[
+                v =>
+                  (!v && !profileData.newPassword) ||
+                  !!v ||
+                  'Aktuálne heslo je povinné pri zmene hesla',
+              ]"
             ></v-text-field>
           </v-col>
           <v-col cols="12" md="6">
@@ -179,7 +186,12 @@ export default defineComponent({
               label="Nové heslo"
               type="password"
               outlined
-              :rules="[v => (!v && !profileData.currentPassword) || !!v || 'Nové heslo je povinné pri zmene hesla']"
+              :rules="[
+                v =>
+                  (!v && !profileData.currentPassword) ||
+                  !!v ||
+                  'Nové heslo je povinné pri zmene hesla',
+              ]"
             ></v-text-field>
           </v-col>
           <v-col cols="12">
@@ -197,9 +209,7 @@ export default defineComponent({
         <v-row>
           <v-col cols="12" class="d-flex justify-end">
             <v-btn color="secondary" @click="toggleEditMode">Zrušiť</v-btn>
-            <v-btn color="primary" @click="saveProfile"
-            >Uložiť</v-btn
-            >
+            <v-btn color="primary" @click="saveProfile">Uložiť</v-btn>
           </v-col>
         </v-row>
       </v-form>
@@ -225,11 +235,11 @@ export default defineComponent({
   }
 
   .uni {
-  font-weight: bold;
+    font-weight: bold;
   }
- p {
-   font-size: 1.2rem;
- }
+  p {
+    font-size: 1.2rem;
+  }
   .about {
     color: #2c3531;
     font-style: oblique;

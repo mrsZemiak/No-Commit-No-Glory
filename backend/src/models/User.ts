@@ -1,11 +1,11 @@
-import mongoose, { Schema, Document } from 'mongoose';
-import { IRole } from './Role';
+import mongoose, { Schema, Document } from "mongoose";
+import { IRole } from "./Role";
 
 export enum UserStatus {
-  Pending = 'Čakajúci',
-  Active = 'Aktívny',
-  Suspended = 'Pozastavený',
-  Inactive = 'Neaktívny'
+  Pending = "Čakajúci",
+  Active = "Aktívny",
+  Suspended = "Pozastavený",
+  Inactive = "Neaktívny",
 }
 
 export interface IUser extends Document {
@@ -37,7 +37,7 @@ const UserSchema: Schema = new Schema(
       enum: Object.values(UserStatus),
       default: UserStatus.Inactive,
     },
-    role: { type: String, required: true, },
+    role: { type: String, required: true },
     created_at: { type: Date, default: Date.now },
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String, required: false },
@@ -46,17 +46,17 @@ const UserSchema: Schema = new Schema(
     about: { type: String, default: "" },
     avatar: { type: String, default: null },
   },
-  { collection: 'users' }
+  { collection: "users" },
 );
 
 // Middleware to validate and set role name from the Role model
-UserSchema.pre<IUser>('save', async function (next) {
-    const RoleModel = mongoose.model<IRole>('Role');
-    const role = await RoleModel.findOne({ name: this.role });
-    if (!role) {
-        throw new Error(`Role "${this.role}" does not exist`);
-    }
-    next();
+UserSchema.pre<IUser>("save", async function (next) {
+  const RoleModel = mongoose.model<IRole>("Role");
+  const role = await RoleModel.findOne({ name: this.role });
+  if (!role) {
+    throw new Error(`Role "${this.role}" does not exist`);
+  }
+  next();
 });
 
-export default mongoose.model<IUser>('User', UserSchema);
+export default mongoose.model<IUser>("User", UserSchema);

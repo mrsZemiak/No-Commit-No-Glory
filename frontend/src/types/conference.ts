@@ -9,7 +9,7 @@ export interface ConferenceAdmin {
   end_date: Date
   deadline_submission: Date
   deadline_review?: Date
-  [key: string]: any;
+  [key: string]: any
 }
 
 export interface ActiveCategory {
@@ -28,5 +28,3 @@ export interface ParticipantConference {
   start_date: Date
   end_date: Date
 }
-
-

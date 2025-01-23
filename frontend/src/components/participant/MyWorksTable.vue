@@ -1,11 +1,21 @@
 <script lang="ts">
-import { defineComponent, reactive, computed, ref, onMounted, inject } from 'vue'
-import { usePaperStore } from '@/stores/paperStore';
-import { useConferenceStore } from '@/stores/conferenceStore';
-import { useCategoryStore } from '@/stores/categoryStore';
-import { format } from 'date-fns';
+import {
+  defineComponent,
+  reactive,
+  computed,
+  ref,
+  onMounted,
+  inject,
+} from 'vue'
+import { usePaperStore } from '@/stores/paperStore'
+import { useConferenceStore } from '@/stores/conferenceStore'
+import { useCategoryStore } from '@/stores/categoryStore'
+import { format } from 'date-fns'
 import { type Paper, PaperStatus } from '@/types/paper.ts'
-import type { ActiveCategory, ParticipantConference } from '@/types/conference.ts'
+import type {
+  ActiveCategory,
+  ParticipantConference,
+} from '@/types/conference.ts'
 import { useUserStore } from '@/stores/userStore.ts'
 import axios from 'axios'
 
@@ -14,27 +24,32 @@ export default defineComponent({
   computed: {
     PaperStatus() {
       return PaperStatus
-    }
+    },
   },
   setup() {
-    const showSnackbar = inject('showSnackbar') as (options: { message: string; color?: string }) => void;
+    const showSnackbar = inject('showSnackbar') as (options: {
+      message: string
+      color?: string
+    }) => void
 
     if (!showSnackbar) {
-      console.error('Snackbar injection failed. Please ensure it is provided in the AuthenticatedLayout.');
+      console.error(
+        'Snackbar injection failed. Please ensure it is provided in the AuthenticatedLayout.',
+      )
     }
-    const paperStore = usePaperStore();
-    const conferenceStore = useConferenceStore();
-    const userStore = useUserStore();
-    const categoryStore = useCategoryStore();
-    const menuConfOpen = ref(false);
-    const menuCatOpen = ref(false);
-    const isDeleteDialogOpen = ref(false);
-    const paperToDelete = ref<Paper | null>(null);
+    const paperStore = usePaperStore()
+    const conferenceStore = useConferenceStore()
+    const userStore = useUserStore()
+    const categoryStore = useCategoryStore()
+    const menuConfOpen = ref(false)
+    const menuCatOpen = ref(false)
+    const isDeleteDialogOpen = ref(false)
+    const paperToDelete = ref<Paper | null>(null)
 
     const filters = reactive({
       selectedConference: '',
       selectedStatus: [] as readonly PaperStatus[],
-    });
+    })
 
     const statusOptions = [
       PaperStatus.Draft,
@@ -42,14 +57,15 @@ export default defineComponent({
       PaperStatus.UnderReview,
       PaperStatus.Accepted,
       PaperStatus.AcceptedWithChanges,
-      PaperStatus.Rejected];
+      PaperStatus.Rejected,
+    ]
 
-    const statusColors ={
+    const statusColors = {
       [PaperStatus.Draft]: 'grey',
       [PaperStatus.Submitted]: 'blue',
       [PaperStatus.UnderReview]: 'orange',
       [PaperStatus.Accepted]: 'green',
-      [PaperStatus.AcceptedWithChanges]:'primary',
+      [PaperStatus.AcceptedWithChanges]: 'primary',
       [PaperStatus.Rejected]: 'red',
     }
 
@@ -65,48 +81,46 @@ export default defineComponent({
       submission_date: '',
       file_link: undefined,
       deadline_date: '',
-      isFinal: false
-    });
+      isFinal: false,
+    })
 
     const canEditPaper = (paper: Paper) => {
       //Allow editing only if the paper is in Draft status
-      return paper.status === PaperStatus.Draft;
-    };
+      return paper.status === PaperStatus.Draft
+    }
 
     const canViewReview = (paper: Paper) => {
       //Allow viewing review only if the paper has a review and is not in Draft
-      return !!paper.review && paper.status !== PaperStatus.Draft;
-    };
+      return !!paper.review && paper.status !== PaperStatus.Draft
+    }
 
     const isDeadlineEditable = (conference: ParticipantConference) => {
       //Disable the deadline edit button if the conference end_date has passed
-      const now = new Date();
-      const conferenceEndDate = new Date(conference.end_date || now); // Assuming conference.end_date exists
-      return conferenceEndDate > now;
-    };
+      const now = new Date()
+      const conferenceEndDate = new Date(conference.end_date || now) // Assuming conference.end_date exists
+      return conferenceEndDate > now
+    }
 
     const conferences = computed(() => {
-      return conferenceStore.participantConferences.map((conference) => ({
+      return conferenceStore.participantConferences.map(conference => ({
         ...conference,
         displayName: `${conference.year} - ${conference.location}: ${formatDate(conference.date)}`,
-      }));
-    });
+      }))
+    })
 
     const selectedConference = computed(() =>
       currentPaper.conference
         ? `${currentPaper.conference.year} - ${currentPaper.conference.location}: ${formatDate(currentPaper.conference.date)}`
-        : ''
-    );
+        : '',
+    )
 
     const selectedCategory = computed(() =>
-      currentPaper.category
-        ? `${currentPaper.category.name}`
-        : ''
-    );
+      currentPaper.category ? `${currentPaper.category.name}` : '',
+    )
 
-    const user = userStore.userProfile;
-    const isDialogOpen = ref(false);
-    const dialogMode = ref<'add' | 'edit' | 'view'>('add');
+    const user = userStore.userProfile
+    const isDialogOpen = ref(false)
+    const dialogMode = ref<'add' | 'edit' | 'view'>('add')
 
     const tableHeaders = [
       { title: '', key: 'delete' },
@@ -115,17 +129,19 @@ export default defineComponent({
       { title: 'Názov práce', key: 'title' },
       { title: 'Vytvorenie', key: 'submission_date' },
       { title: '', key: 'actions', sortable: false },
-    ];
+    ]
 
-    const required = (v: string | null) => !!v || 'Field is required';
-
+    const required = (v: string | null) => !!v || 'Field is required'
 
     const filteredPapers = computed(() =>
-      paperStore.participantPapers.filter((paper) =>
-        (!filters.selectedConference || paper.conference._id === filters.selectedConference) &&
-        (!filters.selectedStatus.length || filters.selectedStatus.includes(paper.status))
-      )
-    );
+      paperStore.participantPapers.filter(
+        paper =>
+          (!filters.selectedConference ||
+            paper.conference._id === filters.selectedConference) &&
+          (!filters.selectedStatus.length ||
+            filters.selectedStatus.includes(paper.status)),
+      ),
+    )
 
     const fetchDependencies = async () => {
       try {
@@ -134,65 +150,70 @@ export default defineComponent({
           categoryStore.fetchParticipantCategories(),
           paperStore.getMyPapers(),
           userStore.fetchUserProfile(),
-        ]);
+        ])
 
-        paperStore.participantPapers = paperStore.participantPapers.map((paper) => ({
-          ...paper,
-          conference: paper.conference || { year: 'Unknown', date: new Date(), location: "Unkonwn" },
-        }));
+        paperStore.participantPapers = paperStore.participantPapers.map(
+          paper => ({
+            ...paper,
+            conference: paper.conference || {
+              year: 'Unknown',
+              date: new Date(),
+              location: 'Unkonwn',
+            },
+          }),
+        )
 
         // Fetch the logged-in user's data
-        const user = userStore.userProfile;
+        const user = userStore.userProfile
         if (user) {
           currentPaper.authors = [
             {
               firstName: user.first_name,
               lastName: user.last_name,
             },
-          ];
+          ]
         } else {
-          console.warn('Logged-in user profile is empty.');
+          console.warn('Logged-in user profile is empty.')
         }
       } catch (error) {
-        console.error('Failed to fetch dependencies:', error);
+        console.error('Failed to fetch dependencies:', error)
       }
-    };
+    }
 
     const addAuthor = () => {
       if (!currentPaper.authors) {
-        currentPaper.authors = [];
+        currentPaper.authors = []
       }
-      currentPaper.authors.push({ firstName: '', lastName: '' });
-    };
+      currentPaper.authors.push({ firstName: '', lastName: '' })
+    }
 
     const removeAuthor = (index: number) => {
       if (currentPaper.authors) {
-        currentPaper.authors.splice(index, 1);
+        currentPaper.authors.splice(index, 1)
       }
-    };
+    }
 
     const selectConference = (conference: ParticipantConference) => {
       if (conference) {
-        currentPaper.conference = conference;
-        menuConfOpen.value = false;
+        currentPaper.conference = conference
+        menuConfOpen.value = false
       } else {
-        console.error("Invalid conference selected");
+        console.error('Invalid conference selected')
       }
-    };
+    }
 
     const selectCategory = (category: ActiveCategory) => {
-      currentPaper.category = category;
-      menuCatOpen.value = false;
-    };
-
+      currentPaper.category = category
+      menuCatOpen.value = false
+    }
 
     const resetFilters = () => {
-      filters.selectedConference = '';
-      filters.selectedStatus = [] as PaperStatus[];
-    };
+      filters.selectedConference = ''
+      filters.selectedStatus = [] as PaperStatus[]
+    }
 
     const openDialog = (mode: 'add' | 'edit', paper: any = {}) => {
-      dialogMode.value = mode;
+      dialogMode.value = mode
 
       if (mode === 'add') {
         Object.assign(currentPaper, {
@@ -205,36 +226,45 @@ export default defineComponent({
           keywords: [],
           authors: userStore.userProfile
             ? [
-              {
-                firstName: userStore.userProfile.first_name,
-                lastName: userStore.userProfile.last_name,
-              },
-            ]
+                {
+                  firstName: userStore.userProfile.first_name,
+                  lastName: userStore.userProfile.last_name,
+                },
+              ]
             : [],
           submission_date: '',
           file_link: undefined,
           deadline_date: '',
           isFinal: false,
-        });
+        })
       } else {
         //Use the existing data
-        Object.assign(currentPaper, paper);
+        Object.assign(currentPaper, paper)
       }
 
-      isDialogOpen.value = true;
-    };
+      isDialogOpen.value = true
+    }
 
     const closeDialog = () => {
-      isDialogOpen.value = false;
-      Object.assign(currentPaper, { title: '', category: '', conference: '', file_link: undefined, isFinal: false });
-    };
+      isDialogOpen.value = false
+      Object.assign(currentPaper, {
+        title: '',
+        category: '',
+        conference: '',
+        file_link: undefined,
+        isFinal: false,
+      })
+    }
 
     const savePaper = async () => {
       try {
         // Validate the file_link
         if (!currentPaper.file_link) {
-          showSnackbar?.({ message: 'Súbor je povinný pre uloženie práce.', color: 'error' });
-          return;
+          showSnackbar?.({
+            message: 'Súbor je povinný pre uloženie práce.',
+            color: 'error',
+          })
+          return
         }
 
         const payload = {
@@ -243,92 +273,118 @@ export default defineComponent({
           keywords: currentPaper.keywords,
           isFinal: currentPaper.isFinal,
           status: currentPaper.status,
-          conference: currentPaper.conference && '_id' in currentPaper.conference ? currentPaper.conference._id : undefined,
-          category: currentPaper.category && '_id' in currentPaper.category ? currentPaper.category._id : undefined,
-        };
+          conference:
+            currentPaper.conference && '_id' in currentPaper.conference
+              ? currentPaper.conference._id
+              : undefined,
+          category:
+            currentPaper.category && '_id' in currentPaper.category
+              ? currentPaper.category._id
+              : undefined,
+        }
 
         if (dialogMode.value === 'edit' && currentPaper._id) {
           // Update existing paper
-          await paperStore.updatePaper(currentPaper._id, payload, currentPaper.file_link);
-          showSnackbar?.({ message: 'Práca bola úspešne upravená.', color: 'success' });
+          await paperStore.updatePaper(
+            currentPaper._id,
+            payload,
+            currentPaper.file_link,
+          )
+          showSnackbar?.({
+            message: 'Práca bola úspešne upravená.',
+            color: 'success',
+          })
         } else {
           //Create new paper
-          await paperStore.createPaper(payload, currentPaper.file_link);
-          showSnackbar?.({ message: 'Práca uložená ako koncept.', color: 'success' });
+          await paperStore.createPaper(payload, currentPaper.file_link)
+          showSnackbar?.({
+            message: 'Práca uložená ako koncept.',
+            color: 'success',
+          })
         }
 
-        closeDialog();
+        closeDialog()
       } catch (err) {
-        console.error(err);
-        showSnackbar?.({ message: 'Uloženie práce zlyhalo.', color: 'error' });
+        console.error(err)
+        showSnackbar?.({ message: 'Uloženie práce zlyhalo.', color: 'error' })
       }
-    };
+    }
 
     const submitPaper = async () => {
       try {
         if (!currentPaper._id) {
-          showSnackbar?.({ message: 'Práca nemá ID. Uložiť ju najprv ako koncept.', color: 'error' });
-          return;
+          showSnackbar?.({
+            message: 'Práca nemá ID. Uložiť ju najprv ako koncept.',
+            color: 'error',
+          })
+          return
         }
 
-        const payload = { status: PaperStatus.Submitted }; // Only updating the status
-        await paperStore.updatePaper(currentPaper._id, payload);
+        const payload = { status: PaperStatus.Submitted } // Only updating the status
+        await paperStore.updatePaper(currentPaper._id, payload)
 
-        showSnackbar?.({ message: 'Práca bola úspešne odoslaná.', color: 'success' });
-        closeDialog();
+        showSnackbar?.({
+          message: 'Práca bola úspešne odoslaná.',
+          color: 'success',
+        })
+        closeDialog()
       } catch (err) {
-        console.error(err);
-        showSnackbar?.({ message: 'Nepodarilo sa odoslať prácu.', color: 'error' });
+        console.error(err)
+        showSnackbar?.({
+          message: 'Nepodarilo sa odoslať prácu.',
+          color: 'error',
+        })
       }
-    };
+    }
 
     const viewReview = (paper: any) => {
-      console.log('View review for', paper);
-    };
+      console.log('View review for', paper)
+    }
 
     //Deletion of paper
     const confirmDeletePaper = (paper: Paper) => {
-      paperToDelete.value = paper;
-      isDeleteDialogOpen.value = true;
-    };
+      paperToDelete.value = paper
+      isDeleteDialogOpen.value = true
+    }
 
     const deletePaper = async () => {
-      if (!paperToDelete.value) return;
+      if (!paperToDelete.value) return
 
       if (paperToDelete.value.status !== PaperStatus.Draft) {
         showSnackbar?.({
           message: 'Len koncepty môžu byť vymazané.',
           color: 'error',
-        });
-        return;
+        })
+        return
       }
 
       try {
-        await paperStore.deletePaper(paperToDelete.value._id);
+        await paperStore.deletePaper(paperToDelete.value._id)
         showSnackbar?.({
           message: 'Práca bola úspešne vymazaná.',
           color: 'success',
-        });
+        })
 
         // Refresh the list of papers after deletion
-        await paperStore.getMyPapers();
+        await paperStore.getMyPapers()
       } catch (err) {
-        console.error('Failed to delete paper:', err);
+        console.error('Failed to delete paper:', err)
         showSnackbar?.({
           message: 'Nepodarilo sa vymazať prácu.',
           color: 'error',
-        });
+        })
       } finally {
-        isDeleteDialogOpen.value = false;
-        paperToDelete.value = null;
+        isDeleteDialogOpen.value = false
+        paperToDelete.value = null
       }
-    };
+    }
 
-    const formatDate = (date: Date | string) => format(new Date(date), 'dd.MM.yyyy');
+    const formatDate = (date: Date | string) =>
+      format(new Date(date), 'dd.MM.yyyy')
 
     onMounted(() => {
       fetchDependencies()
-    });
+    })
 
     return {
       filters,
@@ -366,9 +422,9 @@ export default defineComponent({
       confirmDeletePaper,
       deletePaper,
       formatDate,
-    };
+    }
   },
-});
+})
 </script>
 
 <template>
@@ -378,7 +434,8 @@ export default defineComponent({
       <div class="d-flex justify-space-between align-center w-100">
         <h3>Moje práce</h3>
         <v-btn color="primary" @click="openDialog('add')">
-          <v-icon left class="add_icon">mdi-plus-circle-outline</v-icon> Pridať novú prácu
+          <v-icon left class="add_icon">mdi-plus-circle-outline</v-icon> Pridať
+          novú prácu
         </v-btn>
       </div>
     </v-card-title>
@@ -406,7 +463,9 @@ export default defineComponent({
           />
         </v-col>
         <v-col cols="8" md="3">
-          <v-btn color="primary" small @click="resetFilters">Zrušiť filter</v-btn>
+          <v-btn color="primary" small @click="resetFilters"
+            >Zrušiť filter</v-btn
+          >
         </v-col>
       </v-row>
     </v-card-subtitle>
@@ -423,13 +482,14 @@ export default defineComponent({
       <template v-slot:body="{ items }">
         <tr v-for="paper in items" :key="paper._id">
           <td>
-            <v-icon size="24"
-                    color="#BC463A"
-                    @click="confirmDeletePaper(paper)"
-                    style="cursor: pointer"
-                    v-if="paper.status == PaperStatus.Draft">
+            <v-icon
+              size="24"
+              color="#BC463A"
+              @click="confirmDeletePaper(paper)"
+              style="cursor: pointer"
+              v-if="paper.status == PaperStatus.Draft"
             >
-              mdi-delete
+              > mdi-delete
             </v-icon>
           </td>
           <td>
@@ -443,21 +503,29 @@ export default defineComponent({
             </v-chip>
           </td>
           <td>
-            {{ paper.conference ? `${paper.conference.year} - ${formatDate(paper.conference.date)}` : 'N/A' }}
+            {{
+              paper.conference
+                ? `${paper.conference.year} - ${formatDate(paper.conference.date)}`
+                : 'N/A'
+            }}
           </td>
           <td>{{ paper.title }}</td>
           <td>{{ formatDate(paper.submission_date) }}</td>
           <td class="d-flex justify-end align-center">
-            <v-btn :disabled="!canEditPaper(paper)"
-                   color="#FFCD16"
-                   @click="openDialog('edit', paper)"
-                   title="Upraviť">
+            <v-btn
+              :disabled="!canEditPaper(paper)"
+              color="#FFCD16"
+              @click="openDialog('edit', paper)"
+              title="Upraviť"
+            >
               <v-icon size="24">mdi-pencil</v-icon>
             </v-btn>
-            <v-btn :disabled="!canViewReview(paper)"
-                   color="success"
-                   @click="viewReview"
-                   title="Ukazať recenziu">
+            <v-btn
+              :disabled="!canViewReview(paper)"
+              color="success"
+              @click="viewReview"
+              title="Ukazať recenziu"
+            >
               <v-icon size="24" color="black">mdi-account-alert</v-icon>
             </v-btn>
           </td>
@@ -542,7 +610,8 @@ export default defineComponent({
                   @click="selectConference(conference)"
                 >
                   <v-list-item-title>
-                    {{ conference.year }} - {{ conference.location }}: {{ formatDate(conference.date) }}
+                    {{ conference.year }} - {{ conference.location }}:
+                    {{ formatDate(conference.date) }}
                   </v-list-item-title>
                 </v-list-item>
               </v-list>
@@ -558,7 +627,11 @@ export default defineComponent({
               class="large-text-field"
             />
             <v-row>
-              <v-col cols="12" v-for="(author, index) in currentPaper.authors" :key="index">
+              <v-col
+                cols="12"
+                v-for="(author, index) in currentPaper.authors"
+                :key="index"
+              >
                 <v-row class="row_height">
                   <v-col cols="5" md="5">
                     <v-text-field
@@ -588,8 +661,10 @@ export default defineComponent({
                 </v-row>
               </v-col>
               <v-col cols="12" class="d-flex justify-start author">
-              <v-btn color="primary" @click="addAuthor">
-                <v-icon icon="mdi-plus-circle" start></v-icon>Ďalší autor</v-btn>
+                <v-btn color="primary" @click="addAuthor">
+                  <v-icon icon="mdi-plus-circle" start></v-icon>Ďalší
+                  autor</v-btn
+                >
               </v-col>
             </v-row>
             <!-- Abstract -->
@@ -618,13 +693,15 @@ export default defineComponent({
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-btn @click="closeDialog">Zrušiť</v-btn>
+          <v-btn @click="closeDialog" color="red">Zrušiť</v-btn>
           <v-btn @click="savePaper" color="primary">Uložiť</v-btn>
           <v-btn
             v-if="currentPaper.isFinal"
             @click="submitPaper"
             color="red"
-            :disabled="currentPaper.status === PaperStatus.Submitted">Odoslať</v-btn>
+            :disabled="currentPaper.status === PaperStatus.Submitted"
+            >Odoslať</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -638,8 +715,10 @@ export default defineComponent({
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" @click="isDeleteDialogOpen = false">Zrušiť</v-btn>
-          <v-btn color="error" @click="deletePaper">Vymazať</v-btn>
+          <v-btn color="primary" @click="isDeleteDialogOpen = false"
+            >Zrušiť</v-btn
+          >
+          <v-btn color="red" @click="deletePaper">Vymazať</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

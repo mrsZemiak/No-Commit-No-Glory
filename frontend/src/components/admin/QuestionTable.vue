@@ -1,36 +1,51 @@
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, inject, reactive } from 'vue'
-import { useQuestionStore } from "@/stores/questionStore";
+import {
+  defineComponent,
+  ref,
+  computed,
+  onMounted,
+  inject,
+  reactive,
+} from 'vue'
+import { useQuestionStore } from '@/stores/questionStore'
 import type { Question } from '@/types/question.ts'
 
 export default defineComponent({
-  name: "QuestionTable",
+  name: 'QuestionTable',
   setup() {
     //Access the global showSnackbar function
-    const showSnackbar = inject("showSnackbar") as ({ message, color, }: {
-      message: string;
-      color?: string;
-    }) => void;
+    const showSnackbar = inject('showSnackbar') as ({
+      message,
+      color,
+    }: {
+      message: string
+      color?: string
+    }) => void
 
     if (!showSnackbar) {
-      console.error("showSnackbar is not provided");
+      console.error('showSnackbar is not provided')
     }
 
-    const questionStore = useQuestionStore();
-    const currentQuestion = reactive({ _id: '', text: '', type: '', category: '' })
-    const isDeleteDialogOpen = ref(false);
+    const questionStore = useQuestionStore()
+    const currentQuestion = reactive({
+      _id: '',
+      text: '',
+      type: '',
+      category: '',
+    })
+    const isDeleteDialogOpen = ref(false)
 
     //State for filters and dialog
     const filters = ref({
-      text: "",
+      text: '',
       type: [] as string[],
       category: [] as string[],
-    });
+    })
 
-    const currentPage = ref(1);
-    const perPage = ref(10);
-    const dialogVisible = ref(false);
-    const dialogMode = ref<"add" | "edit">("add");
+    const currentPage = ref(1)
+    const perPage = ref(10)
+    const dialogVisible = ref(false)
+    const dialogMode = ref<'add' | 'edit'>('add')
     const dialogForm = ref<Question>({
       _id: '',
       text: '',
@@ -43,81 +58,99 @@ export default defineComponent({
     })
 
     const typeOptions = [
-      { text: "Textová otázka", value: "text" },
-      { text: "Hodnotenie", value: "rating" },
-      { text: "Áno/Nie", value: "yes_no" },
-    ];
+      { text: 'Textová otázka', value: 'text' },
+      { text: 'Hodnotenie', value: 'rating' },
+      { text: 'Áno/Nie', value: 'yes_no' },
+    ]
 
     const categoryOptions = [
-      { text: "Dodržiavanie pravidiel", value: "Dodržiavanie pravidiel" },
-      { text: "Hodnotenie", value: "Hodnotenie" },
-      { text: "Obsah práce", value: "Obsah práce" },
-      { text: "Štruktúra práce", value: "Štruktúra práce" },
-    ];
+      { text: 'Dodržiavanie pravidiel', value: 'Dodržiavanie pravidiel' },
+      { text: 'Hodnotenie', value: 'Hodnotenie' },
+      { text: 'Obsah práce', value: 'Obsah práce' },
+      { text: 'Štruktúra práce', value: 'Štruktúra práce' },
+    ]
 
     const questionLabels = {
-      rating: "Hodnotenie",
-      text: "Text",
-      yes_no: "Áno/Nie",
-    };
+      rating: 'Hodnotenie',
+      text: 'Text',
+      yes_no: 'Áno/Nie',
+    }
 
     const tableHeaders = [
-      { title: "Text", value: "text" },
-      { title: "Typ", value: "type" },
-      { title: "Kategória", value: "category" },
-      { title: "", value: "actions" },
-    ];
+      { title: 'Text', value: 'text' },
+      { title: 'Typ', value: 'type' },
+      { title: 'Kategória', value: 'category' },
+      { title: '', value: 'actions' },
+    ]
 
     //Computed filtered questions
     const filteredQuestions = computed(() =>
-      questionStore.adminQuestions.filter((question) => {
-        const matchesText = !filters.value.text || question.text.toLowerCase().includes(filters.value.text.toLowerCase());
-        const matchesType = !filters.value.type.length || filters.value.type.includes(question.type);
-        const matchesCategory = !filters.value.category.length || filters.value.category.includes(question.category);
-        return matchesText && matchesType && matchesCategory;
-      })
-    );
+      questionStore.adminQuestions.filter(question => {
+        const matchesText =
+          !filters.value.text ||
+          question.text.toLowerCase().includes(filters.value.text.toLowerCase())
+        const matchesType =
+          !filters.value.type.length ||
+          filters.value.type.includes(question.type)
+        const matchesCategory =
+          !filters.value.category.length ||
+          filters.value.category.includes(question.category)
+        return matchesText && matchesType && matchesCategory
+      }),
+    )
 
     //Dialog handling
-    const openDialog = (mode: "add" | "edit", question: any = null) => {
-      dialogMode.value = mode;
-      dialogVisible.value = true;
+    const openDialog = (mode: 'add' | 'edit', question: any = null) => {
+      dialogMode.value = mode
+      dialogVisible.value = true
 
-      if (mode === "add") {
+      if (mode === 'add') {
         dialogForm.value = {
-          _id: "",
-          text: "",
-          type: "text",
-          category: "",
-        };
+          _id: '',
+          text: '',
+          type: 'text',
+          category: '',
+        }
       } else if (question) {
-        dialogForm.value = { ...question };
+        dialogForm.value = { ...question }
       }
-    };
+    }
 
     const closeDialog = () => {
-      dialogVisible.value = false;
-    };
+      dialogVisible.value = false
+    }
 
     const submitDialogForm = async () => {
       try {
-        if (dialogMode.value === "add") {
-          await questionStore.addQuestion(dialogForm.value);
-          showSnackbar?.({ message: "Otázka bola úspešne pridaná.", color: "success" });
+        if (dialogMode.value === 'add') {
+          await questionStore.addQuestion(dialogForm.value)
+          showSnackbar?.({
+            message: 'Otázka bola úspešne pridaná.',
+            color: 'success',
+          })
         } else {
-          await questionStore.updateQuestion(dialogForm.value._id, dialogForm.value);
-          showSnackbar?.({ message: "Otázka bola úspešne upravená.", color: "success" });
+          await questionStore.updateQuestion(
+            dialogForm.value._id,
+            dialogForm.value,
+          )
+          showSnackbar?.({
+            message: 'Otázka bola úspešne upravená.',
+            color: 'success',
+          })
         }
-        closeDialog();
+        closeDialog()
       } catch (error) {
-        console.error("Error saving question:", error);
-        showSnackbar?.({ message: "Nepodarilo sa uložiť otázku.", color: "error" });
+        console.error('Error saving question:', error)
+        showSnackbar?.({
+          message: 'Nepodarilo sa uložiť otázku.',
+          color: 'error',
+        })
       }
-    };
+    }
 
     const resetFilters = () => {
-      filters.value = { text: "", type: [], category: [] };
-    };
+      filters.value = { text: '', type: [], category: [] }
+    }
 
     // Delete confirmation handling
     const confirmDelete = (question: {
@@ -136,17 +169,17 @@ export default defineComponent({
 
     const deleteQuestion = async () => {
       try {
-        await questionStore.deleteQuestion(currentQuestion._id);
+        await questionStore.deleteQuestion(currentQuestion._id)
         showSnackbar?.({
-          message: "Otázka bola úspešne odstránená.",
-          color: "success",
-        });
+          message: 'Otázka bola úspešne odstránená.',
+          color: 'success',
+        })
       } catch (error) {
-        console.error('Error deleting question:', error);
+        console.error('Error deleting question:', error)
         showSnackbar?.({
-          message: "Nepodarilo sa odstrániť otázku.",
-          color: "error",
-        });
+          message: 'Nepodarilo sa odstrániť otázku.',
+          color: 'error',
+        })
       } finally {
         closeDeleteDialog()
       }
@@ -154,11 +187,14 @@ export default defineComponent({
 
     // Fetch questions on mount
     onMounted(() => {
-      questionStore.fetchAllQuestions().catch((error) => {
-        console.error("Error fetching questions:", error);
-        showSnackbar?.({ message: "Nepodarilo sa načítať otázky.", color: "error" });
-      });
-    });
+      questionStore.fetchAllQuestions().catch(error => {
+        console.error('Error fetching questions:', error)
+        showSnackbar?.({
+          message: 'Nepodarilo sa načítať otázky.',
+          color: 'error',
+        })
+      })
+    })
 
     return {
       filters,
@@ -180,9 +216,9 @@ export default defineComponent({
       closeDialog,
       submitDialogForm,
       resetFilters,
-    };
+    }
   },
-});
+})
 </script>
 
 <template>
@@ -224,7 +260,9 @@ export default defineComponent({
           />
         </v-col>
         <v-col cols="12" md="3">
-          <v-btn color="primary" small @click="resetFilters">Zrušiť filter</v-btn>
+          <v-btn color="primary" small @click="resetFilters"
+            >Zrušiť filter</v-btn
+          >
         </v-col>
       </v-row>
     </v-card-subtitle>
@@ -242,12 +280,28 @@ export default defineComponent({
         <tr v-for="question in items" :key="question._id" class="custom-row">
           <td>{{ question.text }}</td>
           <td>
-            <v-chip color="primary" dark small class="d-flex justify-center custom-chip rounded">
-              <td>{{ questionLabels[question.type as keyof typeof questionLabels] || "Neznámy typ" }}</td>
+            <v-chip
+              color="primary"
+              dark
+              small
+              class="d-flex justify-center custom-chip rounded"
+            >
+              <td>
+                {{
+                  questionLabels[
+                    question.type as keyof typeof questionLabels
+                  ] || 'Neznámy typ'
+                }}
+              </td>
             </v-chip>
           </td>
           <td>
-            <v-chip color="brown" dark small class="d-flex justify-center custom-chip rounded">
+            <v-chip
+              color="brown"
+              dark
+              small
+              class="d-flex justify-center custom-chip rounded"
+            >
               {{ question.category || 'N/A' }}
             </v-chip>
           </td>
@@ -310,9 +364,7 @@ export default defineComponent({
       <v-card>
         <v-card-title>Potvrdenie odstránenia</v-card-title>
         <v-card-text>
-          <p>
-            Ste si istí, že chcete odstrániť ?
-          </p>
+          <p>Ste si istí, že chcete odstrániť ?</p>
         </v-card-text>
         <v-card-actions>
           <v-btn color="secondary" @click="closeDeleteDialog">Zrušiť</v-btn>
@@ -323,6 +375,4 @@ export default defineComponent({
   </v-card>
 </template>
 
-<style lang="scss">
-
-</style>
+<style lang="scss"></style>

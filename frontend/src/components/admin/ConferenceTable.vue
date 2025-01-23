@@ -1,5 +1,12 @@
 <script lang="ts">
-import { defineComponent, ref, reactive, onMounted, computed, inject } from 'vue'
+import {
+  defineComponent,
+  ref,
+  reactive,
+  onMounted,
+  computed,
+  inject,
+} from 'vue'
 import { useConferenceStore } from '@/stores/conferenceStore'
 import { useRouter } from 'vue-router'
 import { format } from 'date-fns'
@@ -9,13 +16,16 @@ import type { ConferenceAdmin } from '@/types/conference.ts'
 export default defineComponent({
   name: 'ConferenceTable',
   setup() {
-    const showSnackbar = inject("showSnackbar") as ({ message, color, }: {
-      message: string;
-      color?: string;
-    }) => void;
+    const showSnackbar = inject('showSnackbar') as ({
+      message,
+      color,
+    }: {
+      message: string
+      color?: string
+    }) => void
 
     if (!showSnackbar) {
-      console.error("showSnackbar is not provided");
+      console.error('showSnackbar is not provided')
     }
 
     // Initialize the conference store and router
@@ -36,7 +46,7 @@ export default defineComponent({
       start_date: new Date(),
       end_date: new Date(),
       deadline_submission: new Date(),
-    });
+    })
 
     const statusOptions = ['Nadchádzajúca', 'Aktuálna', 'Ukončená', 'Zrušená']
 
@@ -52,25 +62,32 @@ export default defineComponent({
       { title: '', value: 'actions', sortable: false },
     ]
 
-    const openDialog = (mode: 'add' | 'edit' | 'view', conference: Partial<ConferenceAdmin> = {}) => {
-      dialogMode.value = mode;
+    const openDialog = (
+      mode: 'add' | 'edit' | 'view',
+      conference: Partial<ConferenceAdmin> = {},
+    ) => {
+      dialogMode.value = mode
 
       //Convert date fields to Date objects if they are strings
       Object.assign(currentConference, {
         ...conference,
         date: conference.date ? new Date(conference.date) : new Date(),
-        start_date: conference.start_date ? new Date(conference.start_date) : new Date(),
-        end_date: conference.end_date ? new Date(conference.end_date) : new Date(),
+        start_date: conference.start_date
+          ? new Date(conference.start_date)
+          : new Date(),
+        end_date: conference.end_date
+          ? new Date(conference.end_date)
+          : new Date(),
         deadline_submission: conference.deadline_submission
           ? new Date(conference.deadline_submission)
           : new Date(),
-      });
+      })
 
-      isDialogOpen.value = true;
-    };
+      isDialogOpen.value = true
+    }
 
     const closeDialog = () => {
-      isDialogOpen.value = false;
+      isDialogOpen.value = false
 
       if (dialogMode.value === 'add') {
         Object.assign(currentConference, {
@@ -83,50 +100,53 @@ export default defineComponent({
           start_date: '',
           end_date: '',
           deadline_submission: '',
-        });
+        })
       }
-    };
+    }
 
     const saveConference = async () => {
       try {
         if (!currentConference.status || !currentConference.year) {
           showSnackbar?.({
-            message: "Vyplňte všetky povinné polia.",
-            color: "error",
-          });
-          return;
+            message: 'Vyplňte všetky povinné polia.',
+            color: 'error',
+          })
+          return
         }
 
         if (dialogMode.value === 'add') {
-          await conferenceStore.addConference(currentConference);
+          await conferenceStore.addConference(currentConference)
           showSnackbar?.({
-            message: "Konferencia bola úspešne pridaná.",
-            color: "success",
-          });
+            message: 'Konferencia bola úspešne pridaná.',
+            color: 'success',
+          })
         } else if (dialogMode.value === 'edit') {
           if ('_id' in currentConference && currentConference._id) {
-            await conferenceStore.updateConference(currentConference._id, currentConference);
+            await conferenceStore.updateConference(
+              currentConference._id,
+              currentConference,
+            )
             showSnackbar?.({
-              message: "Konferencia bola úspešne upravená.",
-              color: "success",
-            });
+              message: 'Konferencia bola úspešne upravená.',
+              color: 'success',
+            })
           } else {
-            console.error('Conference ID is missing for update.');
+            console.error('Conference ID is missing for update.')
             showSnackbar?.({
-              message: "Pre aktualizáciu chýba ID konferencie.",
-              color: "error",
-            });
+              message: 'Pre aktualizáciu chýba ID konferencie.',
+              color: 'error',
+            })
           }
         }
-        closeDialog();
+        closeDialog()
       } catch (error) {
-        console.error('Error saving conference:', error);
+        console.error('Error saving conference:', error)
         showSnackbar?.({
-          message: "Nepodarilo sa uložiť konferenciu.",
-          color: "error",
-        });
+          message: 'Nepodarilo sa uložiť konferenciu.',
+          color: 'error',
+        })
       }
-    };
+    }
     /*
         // Delete confirmation handling
         const confirmDelete = (conference) => {
@@ -180,8 +200,8 @@ export default defineComponent({
             : '',
           deadline_submission: currentConference.deadline_submission
             ? format(currentConference.deadline_submission, 'dd.MM.yyyy', {
-              locale: sk,
-            })
+                locale: sk,
+              })
             : '',
           start_date: currentConference.start_date
             ? format(currentConference.start_date, 'dd.MM.yyyy', { locale: sk })
@@ -189,7 +209,7 @@ export default defineComponent({
           end_date: currentConference.end_date
             ? format(currentConference.end_date, 'dd.MM.yyyy', { locale: sk })
             : '',
-        };
+        }
       },
       set(newForm) {
         Object.assign(currentConference, {
@@ -202,9 +222,9 @@ export default defineComponent({
             ? new Date(newForm.start_date)
             : new Date(),
           end_date: newForm.end_date ? new Date(newForm.end_date) : new Date(),
-        });
+        })
       },
-    });
+    })
 
     onMounted(() => {
       conferenceStore.fetchAdminConferences().then(() => {
@@ -241,7 +261,8 @@ export default defineComponent({
       <div class="d-flex justify-space-between align-center w-100">
         <h3>Konferencie</h3>
         <v-btn color="primary" class="add_new" @click="openDialog('add')"
-        ><v-icon left class="add_icon">mdi-plus-circle-outline</v-icon>Pridať konferenciu</v-btn
+          ><v-icon left class="add_icon">mdi-plus-circle-outline</v-icon>Pridať
+          konferenciu</v-btn
         >
       </div>
     </v-card-title>
@@ -335,7 +356,11 @@ export default defineComponent({
           <td>{{ formatTimestamp(conference.end_date) }}</td>
           <td>{{ formatTimestamp(conference.deadline_submission) }}</td>
           <td class="d-flex justify-end align-center">
-            <v-btn color="#FFCD16" title="Edit" @click="openDialog('edit', conference)">
+            <v-btn
+              color="#FFCD16"
+              title="Edit"
+              @click="openDialog('edit', conference)"
+            >
               <v-icon size="24">mdi-pencil</v-icon>
             </v-btn>
           </td>
@@ -525,7 +550,12 @@ export default defineComponent({
         </v-card-text>
         <v-card-actions>
           <v-btn color="secondary" @click="closeDialog">Zrušiť</v-btn>
-          <v-btn v-if="dialogMode !== 'view'" color="primary" @click="saveConference">Uložiť</v-btn>
+          <v-btn
+            v-if="dialogMode !== 'view'"
+            color="primary"
+            @click="saveConference"
+            >Uložiť</v-btn
+          >
         </v-card-actions>
       </v-card>
     </v-dialog>

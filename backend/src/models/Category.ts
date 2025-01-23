@@ -1,14 +1,16 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface ICategory extends Document {
-    name: string;
-    isActive: boolean;
+  name: string;
+  isActive: boolean;
 }
 
 const CategorySchema: Schema = new Schema(
   {
-      name: { type: String, required: true, unique: true },
-      isActive: { type: Boolean}, //Boolean field for active/inactive status
-  }, { collection: 'categories' });
+    name: { type: String, required: true, unique: true },
+    isActive: { type: Boolean }, //Boolean field for active/inactive status
+  },
+  { collection: "categories" },
+);
 
-export default mongoose.model<ICategory>('Category', CategorySchema);
+export default mongoose.model<ICategory>("Category", CategorySchema);

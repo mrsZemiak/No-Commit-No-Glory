@@ -10,27 +10,27 @@ export default defineComponent({
   setup() {
     const showModal = ref(false)
     const authStore = useAuthStore()
-    const notificationStore = useNotificationStore();
+    const notificationStore = useNotificationStore()
 
     //Fetch notifications on layout load
     const fetchNotifications = async () => {
       try {
-        await notificationStore.fetchNotifications();
+        await notificationStore.fetchNotifications()
       } catch (error) {
-        console.error("Failed to fetch notifications:", error);
+        console.error('Failed to fetch notifications:', error)
       }
-    };
+    }
 
     //Watch for token expiration
     watch(
       () => authStore.isTokenExpired,
-      (expired) => {
+      expired => {
         if (expired) {
-          console.log("Token expired, showing modal");
-          showModal.value = true;
+          console.log('Token expired, showing modal')
+          showModal.value = true
         }
       },
-    );
+    )
 
     //Handle token refresh
     const refreshToken = async () => {
@@ -54,7 +54,10 @@ export default defineComponent({
       timeout: 5000,
     })
 
-    const showSnackbar = ({ message, color = 'error'}: {
+    const showSnackbar = ({
+      message,
+      color = 'error',
+    }: {
       message: string
       color?: string
     }) => {
@@ -62,12 +65,11 @@ export default defineComponent({
     }
 
     //Provide showSnackbar to child components
-    provide('showSnackbar', showSnackbar);
+    provide('showSnackbar', showSnackbar)
 
-    watch(snackbar, (newVal) => {
-      console.log('Snackbar state:', newVal);
-    });
-
+    watch(snackbar, newVal => {
+      console.log('Snackbar state:', newVal)
+    })
 
     //Handle logout
     const logout = () => {
@@ -76,7 +78,7 @@ export default defineComponent({
       window.location.href = '/'
     }
 
-    onMounted(fetchNotifications);
+    onMounted(fetchNotifications)
 
     return {
       showModal,
@@ -85,7 +87,6 @@ export default defineComponent({
       showSnackbar,
       refreshToken,
       logout,
-
     }
   },
 })

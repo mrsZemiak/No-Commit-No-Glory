@@ -1,66 +1,66 @@
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted } from "vue";
-import { useUserStore } from "@/stores/userStore";
-import { UserStatus } from "@/types/user";
+import { defineComponent, ref, computed, onMounted } from 'vue'
+import { useUserStore } from '@/stores/userStore'
+import { UserStatus } from '@/types/user'
 
 export default defineComponent({
-  name: "UserTable",
+  name: 'UserTable',
   setup() {
-    const userStore = useUserStore();
+    const userStore = useUserStore()
 
     // Filters for table
     const filters = ref({
-      first_name: "",
-      last_name: "",
-      university: "",
+      first_name: '',
+      last_name: '',
+      university: '',
       selectedStatus: [] as string[],
       selectedRole: [] as string[],
-    });
-    const currentPage = ref(1);
-    const perPage = ref(10);
-    const isDialogOpen = ref(false);
-    const dialogMode = ref<"edit">("edit");
-    const selectedUser = ref<any>({});
+    })
+    const currentPage = ref(1)
+    const perPage = ref(10)
+    const isDialogOpen = ref(false)
+    const dialogMode = ref<'edit'>('edit')
+    const selectedUser = ref<any>({})
 
     // University and status options
     const universityOptions = [
-      "Univerzita Konštantína Filozofa",
-      "Univerzita sv. Cyrila a Metoda",
-      "Univerzita Mateja Bela",
-    ];
-    const statusOptions = ["Aktívny", "Neaktívny", "Čakajúci", "Pozastavený"];
-    const roleOptions = Object.values(userStore.reverseRoleMapping); //Use Slovak roles from store
+      'Univerzita Konštantína Filozofa',
+      'Univerzita sv. Cyrila a Metoda',
+      'Univerzita Mateja Bela',
+    ]
+    const statusOptions = ['Aktívny', 'Neaktívny', 'Čakajúci', 'Pozastavený']
+    const roleOptions = Object.values(userStore.reverseRoleMapping) //Use Slovak roles from store
     const statusColors = {
-      [UserStatus.Active]: "green",
-      [UserStatus.Inactive]: "grey",
-      [UserStatus.Pending]: "blue",
-      [UserStatus.Suspended]: "red",
-    };
+      [UserStatus.Active]: 'green',
+      [UserStatus.Inactive]: 'grey',
+      [UserStatus.Pending]: 'blue',
+      [UserStatus.Suspended]: 'red',
+    }
 
     const roleColors = {
-      'Admin': "pink",
-      'Účastník': "black",
-      'Recenzent': "primary",
-      admin: "pink",
-      participant: "black",
-      reviewer: "primary"
+      Admin: 'pink',
+      Účastník: 'black',
+      Recenzent: 'primary',
+      admin: 'pink',
+      participant: 'black',
+      reviewer: 'primary',
     }
 
     // Table headers
     const tableHeaders = [
-      { title: "Stav", value: "status" },
-      { title: "Priezvisko", value: "last_name" },
-      { title: "Meno", value: "first_name" },
-      { title: "Email", value: "email" },
-      { title: "Univerzita", value: "university" },
-      { title: "Fakulta", value: "faculty" },
-      { title: "Role", value: "role" },
-      { title: "", value: "actions", sortable: false },
-    ];
+      { title: 'Stav', value: 'status' },
+      { title: 'Priezvisko', value: 'last_name' },
+      { title: 'Meno', value: 'first_name' },
+      { title: 'Email', value: 'email' },
+      { title: 'Univerzita', value: 'university' },
+      { title: 'Fakulta', value: 'faculty' },
+      { title: 'Role', value: 'role' },
+      { title: '', value: 'actions', sortable: false },
+    ]
 
     // Filtered users computed property
     const filteredUsers = computed(() =>
-      userStore.adminUsers.filter((user) => {
+      userStore.adminUsers.filter(user => {
         return (
           (!filters.value.first_name ||
             user.first_name
@@ -78,61 +78,63 @@ export default defineComponent({
             filters.value.selectedStatus.includes(user.status)) &&
           (!filters.value.selectedRole.length ||
             filters.value.selectedRole.includes(
-              userStore.reverseRoleMapping[user.role.name] || user.role.name
+              userStore.reverseRoleMapping[user.role.name] || user.role.name,
             ))
-        );
-      })
-    );
+        )
+      }),
+    )
 
     // Reset filters
     const resetFilters = () => {
       filters.value = {
-        first_name: "",
-        last_name: "",
-        university: "",
+        first_name: '',
+        last_name: '',
+        university: '',
         selectedStatus: [],
         selectedRole: [],
-      };
-    };
+      }
+    }
 
     // Open dialog for edit
-    const openDialog = (mode: "edit", user?: any) => {
-      dialogMode.value = mode;
-      if (mode === "edit" && user) {
+    const openDialog = (mode: 'edit', user?: any) => {
+      dialogMode.value = mode
+      if (mode === 'edit' && user) {
         // Populate selected user with Slovak role for UI
         selectedUser.value = {
           ...user,
-          role: userStore.reverseRoleMapping[user.role.name || user.role] || user.role,
-        };
+          role:
+            userStore.reverseRoleMapping[user.role.name || user.role] ||
+            user.role,
+        }
       } else {
-        selectedUser.value = {};
+        selectedUser.value = {}
       }
-      isDialogOpen.value = true;
-    };
+      isDialogOpen.value = true
+    }
 
     // Close dialog
     const closeDialog = () => {
-      isDialogOpen.value = false;
-      selectedUser.value = {};
-    };
+      isDialogOpen.value = false
+      selectedUser.value = {}
+    }
 
     // Save user changes
     const saveUser = async () => {
-      if (dialogMode.value === "edit") {
+      if (dialogMode.value === 'edit') {
         //Map Slovak role back to English before sending to the API
         const updates = {
           ...selectedUser.value,
           role:
             userStore.roleMapping[selectedUser.value.role] ||
             selectedUser.value.role,
-        };
-        await userStore.updateUser(selectedUser.value._id, updates);
+        }
+        await userStore.updateUser(selectedUser.value._id, updates)
       }
-      closeDialog();
-    };
+      closeDialog()
+    }
 
     // Fetch users on component mount
-    onMounted(userStore.fetchAllUsers);
+    onMounted(userStore.fetchAllUsers)
 
     return {
       filters,
@@ -153,9 +155,9 @@ export default defineComponent({
       openDialog,
       closeDialog,
       saveUser,
-    };
+    }
   },
-});
+})
 </script>
 
 <template>
@@ -242,9 +244,16 @@ export default defineComponent({
           <td>
             <v-chip
               :color="roleColors[user.role as keyof typeof roleColors]"
-              dark small prepend-icon="mdi-label"
-              class="d-flex justify-start custom-chip rounded">
-              {{ userStore.reverseRoleMapping[user.role.name] || userStore.reverseRoleMapping[user.role] || user.role }}
+              dark
+              small
+              prepend-icon="mdi-label"
+              class="d-flex justify-start custom-chip rounded"
+            >
+              {{
+                userStore.reverseRoleMapping[user.role.name] ||
+                userStore.reverseRoleMapping[user.role] ||
+                user.role
+              }}
             </v-chip>
           </td>
           <td class="d-flex justify-center align-center">
@@ -300,6 +309,4 @@ export default defineComponent({
   </v-dialog>
 </template>
 
-<style>
-
-</style>
+<style></style>

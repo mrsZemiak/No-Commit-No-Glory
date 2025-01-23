@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import AdmZip from "adm-zip";
-import User from "../models/User";
+import User, { IUser } from '../models/User'
 import Conference, { ConferenceStatus } from "../models/Conference";
 import { AuthRequest } from "../middleware/authenticateToken";
 import Category from "../models/Category";
@@ -8,20 +8,29 @@ import Paper from "../models/Paper";
 import Question from "../models/Question";
 import path from "path";
 import { promises as fs } from "fs";
+import { sendEmail } from '../utils/emailService'
 
 /** USERS**/
 //Get all users
-export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getAllUsers = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const users = await User.find();
     res.status(200).json(users);
   } catch (error) {
-    res.status(500).json({ message: 'Nepodarilo sa načítať používateľov', error });
+    res
+      .status(500)
+      .json({ message: "Nepodarilo sa načítať používateľov", error });
   }
 };
 
 //Get user by ID
-export const getUserById = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getUserById = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { userId } = req.params;
     const user = await User.findById(userId).populate("role");
@@ -32,12 +41,17 @@ export const getUserById = async (req: AuthRequest, res: Response): Promise<void
     res.status(200).json(user);
   } catch (error) {
     console.error("Error fetching user by ID:", error);
-    res.status(500).json({ message: "Nepodarilo sa načítať používateľa", error });
+    res
+      .status(500)
+      .json({ message: "Nepodarilo sa načítať používateľa", error });
   }
 };
 
 //Manage user roles, status and email
-export const editUserDetails = async (req: AuthRequest, res: Response): Promise<void> => {
+export const editUserDetails = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { userId } = req.params;
     const updates = req.body;
@@ -48,7 +62,11 @@ export const editUserDetails = async (req: AuthRequest, res: Response): Promise<
     }).populate("role");
 
     if (!updatedUser) {
-      res.status(404).json({ message: "Používateľ nebol nájdený alebo sa nepodarilo aktualizovať" });
+      res
+        .status(404)
+        .json({
+          message: "Používateľ nebol nájdený alebo sa nepodarilo aktualizovať",
+        });
       return;
     }
 
@@ -58,7 +76,9 @@ export const editUserDetails = async (req: AuthRequest, res: Response): Promise<
     });
   } catch (error) {
     console.error("Error updating user details:", error);
-    res.status(500).json({ message: "Chyba pri aktualizácii údajov používateľa", error });
+    res
+      .status(500)
+      .json({ message: "Chyba pri aktualizácii údajov používateľa", error });
   }
 };
 
@@ -71,13 +91,16 @@ export const getAllCategories = async (req: AuthRequest, res: Response) => {
 
     res.status(200).json({ categories });
   } catch (error) {
-    console.error('Error fetching categories:', error);
-    res.status(500).json({ error: 'Nepodarilo sa načítať kategórie' });
+    console.error("Error fetching categories:", error);
+    res.status(500).json({ error: "Nepodarilo sa načítať kategórie" });
   }
 };
 
 //Get category by ID
-export const getCategoryById = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getCategoryById = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { categoryId } = req.params;
     const category = await Category.findById(categoryId);
@@ -93,76 +116,114 @@ export const getCategoryById = async (req: AuthRequest, res: Response): Promise<
 };
 
 //Create a new category
-export const createCategory = async (req: AuthRequest, res: Response): Promise<void> => {
+export const createCategory = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { name } = req.body;
     const newCategory = new Category({ name });
     await newCategory.save();
-    res.status(201).json({ message: 'Kategória bola úspešne vytvorená', category: newCategory });
+    res
+      .status(201)
+      .json({
+        message: "Kategória bola úspešne vytvorená",
+        category: newCategory,
+      });
   } catch (error) {
-    res.status(500).json({ message: 'Chyba pri vytváraní kategórie', error });
+    res.status(500).json({ message: "Chyba pri vytváraní kategórie", error });
   }
 };
 
 //Update category
-export const updateCategory = async (req: AuthRequest, res: Response): Promise<void> => {
+export const updateCategory = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { categoryId } = req.params;
     const updates = req.body;
 
     if (!categoryId || !updates || Object.keys(updates).length === 0) {
-      res.status(400).json({ message: 'Neplatná požiadavka. Je potrebné zadať ID kategórie a údaje na aktualizáciu.' });
+      res
+        .status(400)
+        .json({
+          message:
+            "Neplatná požiadavka. Je potrebné zadať ID kategórie a údaje na aktualizáciu.",
+        });
       return;
     }
 
-    const updatedCategory = await Category.findByIdAndUpdate(categoryId, updates, { new: true });
+    const updatedCategory = await Category.findByIdAndUpdate(
+      categoryId,
+      updates,
+      { new: true },
+    );
     if (!updatedCategory) {
-      res.status(404).json({ message: 'Kategória nebola nájdená.' });
+      res.status(404).json({ message: "Kategória nebola nájdená." });
       return;
     }
 
     res.status(200).json({
-      message: 'Kategória bola úspešne aktualizovaná',
+      message: "Kategória bola úspešne aktualizovaná",
       category: updatedCategory,
     });
   } catch (error) {
-    console.error('Error updating category:', error);
-    res.status(500).json({ message: 'Nepodarilo sa aktualizovať kategóriu', error });
+    console.error("Error updating category:", error);
+    res
+      .status(500)
+      .json({ message: "Nepodarilo sa aktualizovať kategóriu", error });
   }
 };
 
 //Delete category
-export const deleteCategory = async (req: AuthRequest, res: Response): Promise<void> => {
+export const deleteCategory = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { categoryId } = req.params;
 
     const deletedCategory = await Category.findByIdAndDelete(categoryId);
     if (!deletedCategory) {
-      res.status(404).json({ message: 'Kategória nebola nájdená' });
+      res.status(404).json({ message: "Kategória nebola nájdená" });
       return;
     }
 
-    res.status(200).json({ message: 'Kategória bola úspešne vymazaná', category: deletedCategory });
+    res
+      .status(200)
+      .json({
+        message: "Kategória bola úspešne vymazaná",
+        category: deletedCategory,
+      });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Nepodarilo sa vymazať kategóriu', error });
+    res.status(500).json({ message: "Nepodarilo sa vymazať kategóriu", error });
   }
 };
 
 /** CONFERENCES **/
 //Get all existing conferences
-export const getAllConferences = async (_req: AuthRequest, res: Response): Promise<void> => {
+export const getAllConferences = async (
+  _req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const conferences = await Conference.find();
     res.status(200).json(conferences);
   } catch (error) {
-    console.error('Error fetching conferences:', error);
-    res.status(500).json({ message: 'Nepodarilo sa načítať konferencie', error });
+    console.error("Error fetching conferences:", error);
+    res
+      .status(500)
+      .json({ message: "Nepodarilo sa načítať konferencie", error });
   }
 };
 
 //Create a new conference
-export const createConference = async (req: AuthRequest, res: Response): Promise<void> => {
+export const createConference = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const {
       year,
@@ -191,17 +252,30 @@ export const createConference = async (req: AuthRequest, res: Response): Promise
     await newConference.save();
 
     // Create directory for the conference
-    const uploadPath =  path.resolve(__dirname, `../uploads/docs/${newConference._id}`);
+    const uploadPath = path.resolve(
+      __dirname,
+      `../uploads/docs/${newConference._id}`,
+    );
     await fs.mkdir(uploadPath, { recursive: true });
 
-    res.status(201).json({ message: 'Konferencia bola úspešne vytvorená', conference: newConference });
+    res
+      .status(201)
+      .json({
+        message: "Konferencia bola úspešne vytvorená",
+        conference: newConference,
+      });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Nepodarilo sa vytvoriť konferenciu', error });
+    res
+      .status(500)
+      .json({ message: "Nepodarilo sa vytvoriť konferenciu", error });
   }
 };
 
-export const getConferenceById = async (req: Request, res: Response): Promise<void> => {
+export const getConferenceById = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { id } = req.params;
     const conference = await Conference.findById(id);
@@ -217,25 +291,39 @@ export const getConferenceById = async (req: Request, res: Response): Promise<vo
 };
 
 // Update existing conference (dynamic update)
-export const updateConference = async (req: AuthRequest, res: Response): Promise<void> => {
+export const updateConference = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { conferenceId } = req.params;
     const updates = req.body;
 
-    const updatedConference = await Conference.findByIdAndUpdate(conferenceId, updates, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedConference = await Conference.findByIdAndUpdate(
+      conferenceId,
+      updates,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
     if (!updatedConference) {
       res.status(404).json({ message: "Konferencia nebola nájdená" });
       return;
     }
 
-    res.status(200).json({ message: "Konferencia bola úspešne aktualizovaná", conference: updatedConference });
+    res
+      .status(200)
+      .json({
+        message: "Konferencia bola úspešne aktualizovaná",
+        conference: updatedConference,
+      });
   } catch (error) {
     console.error("Error updating conference:", error);
-    res.status(500).json({ message: "Nepodarilo sa aktualizovať konferenciu", error });
+    res
+      .status(500)
+      .json({ message: "Nepodarilo sa aktualizovať konferenciu", error });
   }
 };
 
@@ -261,18 +349,24 @@ export const deleteConference = async (req: Request, res: Response): Promise<voi
 
 /** QUESTIONS **/
 //Get all questions
-export const getAllQuestions = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getAllQuestions = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
-    const questions = await Question.find()
+    const questions = await Question.find();
     res.status(200).json(questions);
   } catch (error) {
-    console.error('Error retrieving questions:', error);
-    res.status(500).json({ message: 'Nepodarilo sa načítať otázky', error });
+    console.error("Error retrieving questions:", error);
+    res.status(500).json({ message: "Nepodarilo sa načítať otázky", error });
   }
 };
 
 //Get question by ID
-export const getQuestionById = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getQuestionById = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { id } = req.params;
 
@@ -290,12 +384,15 @@ export const getQuestionById = async (req: AuthRequest, res: Response): Promise<
 };
 
 //Create new question
-export const createQuestion = async (req: AuthRequest, res: Response): Promise<void> => {
+export const createQuestion = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { text, type, options, category } = req.body;
 
     if (!text || !type) {
-      res.status(400).json({ message: 'Text a typ sú povinné polia' });
+      res.status(400).json({ message: "Text a typ sú povinné polia" });
       return;
     }
 
@@ -303,41 +400,51 @@ export const createQuestion = async (req: AuthRequest, res: Response): Promise<v
     await newQuestion.save();
 
     res.status(201).json({
-      message: 'Otázka bola úspešne vytvorená',
+      message: "Otázka bola úspešne vytvorená",
       question: newQuestion,
     });
   } catch (error) {
-    console.error('Error creating question:', error);
-    res.status(500).json({ message: 'Nepodarilo sa vytvoriť otázku', error });
+    console.error("Error creating question:", error);
+    res.status(500).json({ message: "Nepodarilo sa vytvoriť otázku", error });
   }
 };
 //Delete existing question
-export const deleteQuestion = async (req: AuthRequest, res: Response): Promise<void> => {
+export const deleteQuestion = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   const { questionId } = req.params;
 
   try {
     const result = await Question.findByIdAndDelete(questionId);
     if (!result) {
-      res.status(404).json({ message: 'Otázka sa nenašla.' });
+      res.status(404).json({ message: "Otázka sa nenašla." });
       return;
     }
-    res.status(200).json({ message: 'Otázka bola úspešne odstránená.' });
+    res.status(200).json({ message: "Otázka bola úspešne odstránená." });
   } catch (error) {
-    console.error('Error deleting question:', error);
-    res.status(500).json({ message: 'Otázku sa nepodarilo odstrániť.' });
+    console.error("Error deleting question:", error);
+    res.status(500).json({ message: "Otázku sa nepodarilo odstrániť." });
   }
 };
 
 // Update question (dynamic update)
-export const updateQuestion = async (req: AuthRequest, res: Response): Promise<void> => {
+export const updateQuestion = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { questionId } = req.params;
     const updates = req.body;
 
-    const updatedQuestion = await Question.findByIdAndUpdate(questionId, updates, {
-      new: true,
-      runValidators: true,
-    });
+    const updatedQuestion = await Question.findByIdAndUpdate(
+      questionId,
+      updates,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
     if (!updatedQuestion) {
       res.status(404).json({ message: "Nepodarilo sa nájsť otázku" });
@@ -350,13 +457,18 @@ export const updateQuestion = async (req: AuthRequest, res: Response): Promise<v
     });
   } catch (error) {
     console.error("Error updating question:", error);
-    res.status(500).json({ message: "Nepodarilo sa aktualizovať otázku", error });
+    res
+      .status(500)
+      .json({ message: "Nepodarilo sa aktualizovať otázku", error });
   }
 };
 
 /** PAPERS **/
 // Get all papers with associated conference details
-export const getAllPapers = async (_req: AuthRequest, res: Response): Promise<void> => {
+export const getAllPapers = async (
+  _req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const papers = await Paper.find()
       .populate({
@@ -376,7 +488,7 @@ export const getAllPapers = async (_req: AuthRequest, res: Response): Promise<vo
         select: "first_name last_name email university",
       })
       .select(
-        "status title submission_date abstract keywords authors category conference file_link final_submission deadline_date "
+        "status title submission_date abstract keywords authors category conference file_link final_submission deadline_date ",
       );
 
     res.status(200).json(papers);
@@ -386,7 +498,10 @@ export const getAllPapers = async (_req: AuthRequest, res: Response): Promise<vo
   }
 };
 
-export const getPaperById = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getPaperById = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { paperId } = req.params;
     const paper = await Paper.findById(paperId)
@@ -407,7 +522,7 @@ export const getPaperById = async (req: AuthRequest, res: Response): Promise<voi
         select: "first_name last_name email university",
       })
       .select(
-        "status title submission_date abstract keywords authors category conference file_link final_submission deadline_date"
+        "status title submission_date abstract keywords authors category conference file_link final_submission deadline_date",
       );
 
     if (!paper) {
@@ -424,52 +539,74 @@ export const getPaperById = async (req: AuthRequest, res: Response): Promise<voi
 };
 
 // Change submission deadline of particular paper
-export const changeSubmissionDeadline = async (req: AuthRequest, res: Response): Promise<void> => {
+export const changeSubmissionDeadline = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { paperId } = req.params;
     const { newDeadline } = req.body;
 
     if (!newDeadline) {
-      res.status(400).json({ message: 'Je potrebný nový termín' });
+      res.status(400).json({ message: "Je potrebný nový termín" });
       return;
     }
     const updatedPaper = await Paper.findByIdAndUpdate(
       paperId,
       { deadline_date: new Date(newDeadline) },
-      { new: true }
+      { new: true },
     );
     if (!updatedPaper) {
-      res.status(404).json({ message: 'Nepodarilo sa nájsť prácu' });
+      res.status(404).json({ message: "Nepodarilo sa nájsť prácu" });
       return;
     }
 
-    res.status(200).json({ message: 'Termín odovzdania bol úspešne aktualizovaný', paper: updatedPaper });
+    res
+      .status(200)
+      .json({
+        message: "Termín odovzdania bol úspešne aktualizovaný",
+        paper: updatedPaper,
+      });
   } catch (error) {
-    console.error('Error updating submission deadline:', error);
-    res.status(500).json({ message: 'Nepodarilo sa aktualizovať termín odovzdania', error });
+    console.error("Error updating submission deadline:", error);
+    res
+      .status(500)
+      .json({ message: "Nepodarilo sa aktualizovať termín odovzdania", error });
   }
 };
 
-export const getReviewers = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getReviewers = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
-    const reviewers = await User.find({ role: 'reviewer' }, 'first_name last_name email _id university');
+    const reviewers = await User.find(
+      { role: "reviewer" },
+      "first_name last_name email _id university",
+    );
     res.status(200).json(reviewers);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Nepodarilo sa nájsť recenzenty' });
+    res.status(500).json({ message: "Nepodarilo sa nájsť recenzenty" });
   }
 };
 
 //Assign reviewer to paper (dynamic update)
-export const assignReviewer = async (req: AuthRequest, res: Response): Promise<void> => {
+export const assignReviewer = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { paperId } = req.params;
     const { reviewerId } = req.body;
 
     const updatedPaper = await Paper.findByIdAndUpdate(
       paperId,
-      { reviewer: reviewerId },
-      { new: true, runValidators: true }
+      {
+        reviewer: reviewerId,
+        status: "Posudzovanie",
+      },
+      { new: true, runValidators: true },
     ).populate("reviewer", "first_name last_name email university"); // Populate the reviewer data
 
     if (!updatedPaper) {
@@ -477,18 +614,47 @@ export const assignReviewer = async (req: AuthRequest, res: Response): Promise<v
       return;
     }
 
+    const reviewer = updatedPaper.reviewer as IUser;
+    const paper = updatedPaper;
+
+    const currentDate = new Date().toLocaleDateString("sk-SK", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+    if (reviewer && paper) {
+      const emailContent = `
+        <p>Dobrý deň,</p>
+        <p>Bola vám dňa ${currentDate} pridelená nová práca "<strong>${paper.title}</strong>" na recenziu.</p>
+        <p>Prihláste sa do svojho účtu, aby ste získali prístup k podrobnostiam.</p>
+      `;
+
+      await sendEmail({
+        to: reviewer.email,
+        subject: "Nová práca na recenziu",
+        html: emailContent,
+      });
+    }
+
+
     res.status(200).json({
       message: "Práca bola úspešne aktualizovaná",
       paper: updatedPaper,
     });
   } catch (error) {
     console.error("Error assigning reviewer:", error);
-    res.status(500).json({ message: "Nepodarilo sa aktualizovať prácu", error });
+    res
+      .status(500)
+      .json({ message: "Nepodarilo sa aktualizovať prácu", error });
   }
 };
 
 //Paper download grouped by conference
-export const downloadPapersByConference = async (req: AuthRequest, res: Response): Promise<void> => {
+export const downloadPapersByConference = async (
+  req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     const { conferenceId } = req.params;
 
@@ -497,21 +663,35 @@ export const downloadPapersByConference = async (req: AuthRequest, res: Response
     }
 
     //Path where papers are stored
-    const conferenceUploadPath = path.resolve(__dirname, '../uploads/docs', conferenceId);
+    const conferenceUploadPath = path.resolve(
+      __dirname,
+      "../uploads/docs",
+      conferenceId,
+    );
 
     //Check if the conference folder exists
     try {
       await fs.access(conferenceUploadPath);
     } catch (err) {
       try {
-        const uploadPath = path.resolve(__dirname, `./../uploads/docs/${conferenceId}`);
+        const uploadPath = path.resolve(
+          __dirname,
+          `./../uploads/docs/${conferenceId}`,
+        );
         await fs.mkdir(uploadPath, { recursive: true });
         console.log(`Folder created: ${uploadPath}`);
-        res.status(404).json({ message: "No files available for this conference yet." });
+        res
+          .status(404)
+          .json({ message: "No files available for this conference yet." });
         return;
       } catch (mkdirErr) {
         console.error("Error creating the folder:", mkdirErr);
-        res.status(500).json({ message: "Nepodarilo sa vytvoriť priečinok pre túto konferenciu.", error: mkdirErr });
+        res
+          .status(500)
+          .json({
+            message: "Nepodarilo sa vytvoriť priečinok pre túto konferenciu.",
+            error: mkdirErr,
+          });
         return;
       }
     }
@@ -519,7 +699,11 @@ export const downloadPapersByConference = async (req: AuthRequest, res: Response
     //Read all files in the directory
     const files = await fs.readdir(conferenceUploadPath);
     if (!files || files.length === 0) {
-      res.status(404).json({ message: "Pre túto konferenciu neboli nájdené žiadne dokumenty." });
+      res
+        .status(404)
+        .json({
+          message: "Pre túto konferenciu neboli nájdené žiadne dokumenty.",
+        });
       return;
     }
 
@@ -545,33 +729,62 @@ export const downloadPapersByConference = async (req: AuthRequest, res: Response
 
 /** OTHER **/
 //Admin Reports Controller
-export const getAdminReports = async (_req: AuthRequest, res: Response): Promise<void> => {
+export const getAdminReports = async (
+  _req: AuthRequest,
+  res: Response,
+): Promise<void> => {
   try {
     // Total Papers Count
     const totalPapers = await Paper.countDocuments();
 
     //Papers Grouped by Status
     const papersByStatus = await Paper.aggregate([
-      { $group: { _id: "$status", count: { $sum: 1 } } }
+      { $group: { _id: "$status", count: { $sum: 1 } } },
     ]);
 
     //Papers by Category
     const papersByCategory = await Paper.aggregate([
-      { $lookup: { from: "categories", localField: "category", foreignField: "_id", as: "categoryInfo" } },
+      {
+        $lookup: {
+          from: "categories",
+          localField: "category",
+          foreignField: "_id",
+          as: "categoryInfo",
+        },
+      },
       { $unwind: "$categoryInfo" },
-      { $group: { _id: "$categoryInfo.name", count: { $sum: 1 } } }
+      { $group: { _id: "$categoryInfo.name", count: { $sum: 1 } } },
     ]);
 
     //Active Reviewers Count
-    const activeReviewers = await User.countDocuments({ role: "reviewer", status: "active" });
+    const activeReviewers = await User.countDocuments({
+      role: "reviewer",
+      status: "active",
+    });
 
     // Papers Under Review
-    const papersUnderReview = await Paper.countDocuments({ status: "under_review" });
+    const papersUnderReview = await Paper.countDocuments({
+      status: "under_review",
+    });
 
     // Conferences with their Paper Counts
     const conferencesWithPaperCounts = await Conference.aggregate([
-      { $lookup: { from: "papers", localField: "_id", foreignField: "conference", as: "papers" } },
-      { $project: { _id: 1, name: 1, year: 1, paperCount: { $size: "$papers" } } }
+      {
+        $lookup: {
+          from: "papers",
+          localField: "_id",
+          foreignField: "conference",
+          as: "papers",
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          year: 1,
+          paperCount: { $size: "$papers" },
+        },
+      },
     ]);
 
     // Send aggregated report data
@@ -581,11 +794,10 @@ export const getAdminReports = async (_req: AuthRequest, res: Response): Promise
       papersByCategory,
       activeReviewers,
       papersUnderReview,
-      conferencesWithPaperCounts
+      conferencesWithPaperCounts,
     });
   } catch (error) {
     console.error("Error fetching admin reports:", error);
     res.status(500).json({ message: "Failed to fetch admin reports.", error });
   }
 };
-

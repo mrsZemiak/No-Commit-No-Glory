@@ -1,13 +1,13 @@
-import express from 'express';
-import dotenv from 'dotenv';
-import cors from 'cors';
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
 import Database from "./config/db";
-import commonRoutes from './routes/common.routes';
-import authRoutes from './routes/auth.routes';
+import commonRoutes from "./routes/common.routes";
+import authRoutes from "./routes/auth.routes";
 import reviewerRoutes from "./routes/reviewer.routes";
 import participantRoutes from "./routes/participant.routes";
-import adminRoutes from './routes/admin.routes'
-import path from 'path'
+import adminRoutes from "./routes/admin.routes";
+import path from "path";
 
 dotenv.config();
 
@@ -18,16 +18,16 @@ app.use(express.json());
 
 // CORS configuration
 const corsOptions = {
-  origin: ['http://localhost:5174', 'http://localhost:5173'],
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  origin: ["http://localhost:5173", "http://frontend:80", "http://localhost:5174"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
 // Apply CORS globally
 app.use(cors(corsOptions));
 
 // Handle CORS preflight requests globally
-app.options('*', cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // Initialize database
 const initializeDatabase = async () => {
@@ -35,22 +35,22 @@ const initializeDatabase = async () => {
     const db = Database.getInstance();
     await db.connect();
   } catch (error) {
-    console.error('Failed to connect to the database:', error);
+    console.error("Failed to connect to the database:", error);
     process.exit(1);
   }
 };
 
 initializeDatabase().catch((error) => {
-  console.error('Database initialization error:', error);
+  console.error("Database initialization error:", error);
   process.exit(1);
 });
 
 // API Routes
-app.use('/api', commonRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/auth/admin', adminRoutes);
-app.use('/api/auth/participant', participantRoutes);
-app.use('/api/auth/reviewer', reviewerRoutes);
-app.use('/uploads', express.static(path.join(__dirname, './uploads')));
+app.use("/api", commonRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/auth/admin", adminRoutes);
+app.use("/api/auth/participant", participantRoutes);
+app.use("/api/auth/reviewer", reviewerRoutes);
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 export default app;
