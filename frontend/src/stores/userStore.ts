@@ -138,7 +138,7 @@ export const useUserStore = defineStore('users', () => {
         console.log(pair[0], pair[1]) // Logs key-value pairs
       }
 
-      const response = await axiosInstance.patch('/auth/profile', formData, {
+      const response = await axiosInstance.patch('/auth/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
 

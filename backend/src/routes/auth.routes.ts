@@ -13,7 +13,7 @@ router.use(authenticateToken);
 
 // Authenticated routes
 router.get("/profile", getUserProfile);
-router.patch("/profile", upload.single("avatar"), async (req, res) => {
+router.patch("/upload", upload.single("avatar"), async (req, res) => {
   try {
     await updateUserProfile(req, res);
   } catch (error) {

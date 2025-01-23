@@ -175,7 +175,7 @@ export const getUserProfile = async (
 //Set up Multer for avatar uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadPath = path.resolve(__dirname, '../upload/avatars'); // Resolve relative to the current file
+    const uploadPath = path.resolve(__dirname, '../../../uploads/avatars'); // Resolve relative to the current file
     console.log("Resolved Upload Directory:", uploadPath);
 
     //Create the directory if it doesn't exist
