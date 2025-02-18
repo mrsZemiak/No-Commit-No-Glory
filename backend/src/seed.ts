@@ -8,9 +8,10 @@ import Review from "./models/Review";
 import Question from "./models/Question";
 import Database from "./config/db";
 import mongoose from "mongoose";
+import { join } from 'path';
 
-dotenv.config();
-
+dotenv.config({ path: join(__dirname, '../.env') });
+console.log("MONGO_URI:", process.env.MONGO_URI);
 const SEED_LOG_COLLECTION = "seeding_log";
 
 // Function to check if seeding has already been performed

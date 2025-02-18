@@ -4,7 +4,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
       - ./backend:/app
       - avatars_data:/usr/src/app/uploads/avatars
@@ -12,7 +12,7 @@ services:
     environment:
       - JWT_SECRET=my-super-secret-key
     env_file:
-      - ./backend/.env
+      - backend/.env
 
   frontend:
     build:
@@ -26,6 +26,19 @@ services:
     depends_on:
       - backend
 
+  mongo:
+    image: mongo:6.0
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=scisubmit
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=example
+
 volumes:
   avatars_data:
   docs_data:
+  mongo_data:
